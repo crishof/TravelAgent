@@ -13,16 +13,18 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table (name = "tbl_supplier_settlement")
-public class SupplierSettlement {
+@Table(name = "tbl_booking")
+public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private Long supplierId;
-    private String settlementId;
-    private LocalDate date;
+    private String bookingId;
+    private LocalDate bookingDate;
+    private LocalDate reservationDate;
+    private String description;
     private Double amount;
     private String currency;
     private boolean paid;

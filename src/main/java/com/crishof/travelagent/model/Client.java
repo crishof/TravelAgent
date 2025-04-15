@@ -1,12 +1,13 @@
 package com.crishof.travelagent.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
 
 
 @Entity
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 public class Client {
 
     @Id
-    @GeneratedValue(strategy =  GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
@@ -25,7 +26,6 @@ public class Client {
     private String phone;
     private String email;
     private String dni;
+    private String passport;
 
-    @OneToMany
-    private ArrayList<Image> dniImages;
 }

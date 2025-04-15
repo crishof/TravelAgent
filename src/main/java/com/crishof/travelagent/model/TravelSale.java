@@ -12,7 +12,7 @@ import java.util.ArrayList;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table (name = "tbl_travel_sale")
+@Table(name = "tbl_travel_sale")
 public class TravelSale {
 
     @Id
@@ -27,6 +27,6 @@ public class TravelSale {
     private String description;
 
     @OneToMany
-    private ArrayList<SupplierSettlement> services;
+    private ArrayList<Booking> services;
 
 }
