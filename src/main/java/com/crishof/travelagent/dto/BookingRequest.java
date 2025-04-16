@@ -11,6 +11,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class BookingRequest {
 
+    private Long supplierId;
+    private String bookingNumber;
     private LocalDate bookingDate;
     private LocalDate reservationDate;
     private String description;

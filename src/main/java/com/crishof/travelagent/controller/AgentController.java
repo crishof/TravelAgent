@@ -28,7 +28,7 @@ public class AgentController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<AgentResponse> update(@PathVariable("id") long id, AgentRequest agentRequest) {
+    public ResponseEntity<AgentResponse> update(@PathVariable("id") long id, @RequestBody AgentRequest agentRequest) {
         return ResponseEntity.ok(agentService.update(id, agentRequest));
     }
 

@@ -13,5 +13,7 @@ public interface TravelSaleService {
 
     TravelSaleResponse create(TravelSaleRequest travelSaleRequest);
 
+    TravelSaleResponse update(long id, TravelSaleRequest travelSaleRequest);
+
     String delete(long id);
 }

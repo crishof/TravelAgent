@@ -21,7 +21,7 @@ public class Booking {
     private Long id;
 
     private Long supplierId;
-    private String bookingId;
+    private String bookingNumber;
     private LocalDate bookingDate;
     private LocalDate reservationDate;
     private String description;

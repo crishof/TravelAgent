@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 public class AgentRequest {
 
     private String name;
-    private String lastName;
+    private String lastname;
     private String email;
     private String username;
     private String password;

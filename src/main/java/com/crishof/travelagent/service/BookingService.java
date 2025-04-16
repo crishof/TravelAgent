@@ -1,6 +1,5 @@
 package com.crishof.travelagent.service;
 
-import com.crishof.travelagent.dto.AgentResponse;
 import com.crishof.travelagent.dto.BookingRequest;
 import com.crishof.travelagent.dto.BookingResponse;
 
@@ -8,9 +7,9 @@ import java.util.List;
 
 public interface BookingService {
 
-    List<AgentResponse> getAll();
+    List<BookingResponse> getAll();
 
-    BookingResponse getbyId(long id);
+    BookingResponse getById(long id);
 
     BookingResponse create(BookingRequest bookingRequest);
 

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SupplierResponse {
 
-    private Long supplierId;
+    private Long id;
 
     private String supplierName;
     private String currency;

@@ -37,7 +37,7 @@ public class AgentServiceImpl implements AgentService {
         Agent agent = new Agent();
 
         agent.setName(agentRequest.getName());
-        agent.setLastName(agentRequest.getLastName());
+        agent.setLastname(agentRequest.getLastname());
         agent.setEmail(agentRequest.getEmail());
         agent.setUsername(agentRequest.getUsername());
         agent.setPassword(agentRequest.getPassword());
@@ -51,7 +51,7 @@ public class AgentServiceImpl implements AgentService {
         Agent agent = agentRepository.findById(id).orElseThrow(() -> new AgentNotFoundException(id));
 
         agent.setName(agentRequest.getName());
-        agent.setLastName(agentRequest.getLastName());
+        agent.setLastname(agentRequest.getLastname());
         agent.setEmail(agentRequest.getEmail());
         agent.setUsername(agentRequest.getUsername());
         if (agentRequest.getPassword() != null && !agentRequest.getPassword().isBlank()) {
@@ -74,7 +74,7 @@ public class AgentServiceImpl implements AgentService {
 
         agentResponse.setId(agent.getId());
         agentResponse.setName(agent.getName());
-        agentResponse.setLastName(agent.getLastName());
+        agentResponse.setLastname(agent.getLastname());
         agentResponse.setUsername(agent.getUsername());
         agentResponse.setEmail(agent.getEmail());
         agentResponse.setPassword(agent.getPassword());
