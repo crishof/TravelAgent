@@ -1,9 +1,9 @@
 package com.crishof.travelagent.service;
 
-import com.crishof.travelagent.dto.ClientRequest;
-import com.crishof.travelagent.dto.ClientResponse;
+import com.crishof.travelagent.dto.CustomerRequest;
+import com.crishof.travelagent.dto.CustomerResponse;
 import com.crishof.travelagent.exception.ClientNotFoundException;
-import com.crishof.travelagent.model.Client;
+import com.crishof.travelagent.model.Customer;
 import com.crishof.travelagent.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,68 +17,68 @@ public class ClientServiceImpl implements ClientService {
     private final ClientRepository clientRepository;
 
     @Override
-    public List<ClientResponse> getAll() {
-        List<Client> clients = clientRepository.findAll();
-        return clients.stream()
+    public List<CustomerResponse> getAll() {
+        List<Customer> customers = clientRepository.findAll();
+        return customers.stream()
                 .map(this::toClientResponse)
                 .toList();
     }
 
     @Override
-    public ClientResponse getById(long id) {
+    public CustomerResponse getById(long id) {
 
-        Client client = clientRepository.findById(id).orElseThrow(() -> new ClientNotFoundException(id));
-        return this.toClientResponse(client);
+        Customer customer = clientRepository.findById(id).orElseThrow(() -> new ClientNotFoundException(id));
+        return this.toClientResponse(customer);
     }
 
     @Override
-    public ClientResponse create(ClientRequest clientRequest) {
+    public CustomerResponse create(CustomerRequest customerRequest) {
 
-        return this.toClientResponse(clientRepository.save(this.toClient(clientRequest)));
+        return this.toClientResponse(clientRepository.save(this.toClient(customerRequest)));
     }
 
     @Override
-    public ClientResponse update(long id, ClientRequest clientRequest) {
+    public CustomerResponse update(long id, CustomerRequest customerRequest) {
 
-        Client client = clientRepository.findById(id).orElseThrow(() -> new ClientNotFoundException(id));
+        Customer customer = clientRepository.findById(id).orElseThrow(() -> new ClientNotFoundException(id));
 
-        client.setName(clientRequest.getName());
-        client.setLastname(clientRequest.getLastname());
-        client.setEmail(clientRequest.getEmail());
-        client.setDni(clientRequest.getDni());
-        client.setPassport(clientRequest.getPassport());
-        client.setPhone(clientRequest.getPhone());
-        return this.toClientResponse(clientRepository.save(client));
+        customer.setName(customerRequest.getName());
+        customer.setLastname(customerRequest.getLastname());
+        customer.setEmail(customerRequest.getEmail());
+        customer.setDni(customerRequest.getDni());
+        customer.setPassport(customerRequest.getPassport());
+        customer.setPhone(customerRequest.getPhone());
+        return this.toClientResponse(clientRepository.save(customer));
     }
 
     @Override
     public String delete(long id) {
-        Client client = clientRepository.findById(id).orElseThrow(() -> new ClientNotFoundException(id));
-        clientRepository.delete(client);
-        return "Client with id " + id + " deleted";
+        Customer customer = clientRepository.findById(id).orElseThrow(() -> new ClientNotFoundException(id));
+        clientRepository.delete(customer);
+        return "Customer with id " + id + " deleted";
     }
 
-    private ClientResponse toClientResponse(Client client) {
-        ClientResponse clientResponse = new ClientResponse();
+    private CustomerResponse toClientResponse(Customer customer) {
+        CustomerResponse customerResponse = new CustomerResponse();
 
-        clientResponse.setId(client.getId());
-        clientResponse.setName(client.getName());
-        clientResponse.setLastname(client.getLastname());
-        clientResponse.setPhone(client.getPhone());
-        clientResponse.setDni(client.getDni());
-        clientResponse.setPassport(client.getPassport());
-        clientResponse.setEmail(client.getEmail());
-        return clientResponse;
+        customerResponse.setId(customer.getId());
+        customerResponse.setName(customer.getName());
+        customerResponse.setLastname(customer.getLastname());
+        customerResponse.setPhone(customer.getPhone());
+        customerResponse.setDni(customer.getDni());
+        customerResponse.setPassport(customer.getPassport());
+        customerResponse.setEmail(customer.getEmail());
+        return customerResponse;
     }
 
-    private Client toClient(ClientRequest clientRequest) {
-        Client client = new Client();
-        client.setName(clientRequest.getName());
-        client.setLastname(clientRequest.getLastname());
-        client.setEmail(clientRequest.getEmail());
-        client.setDni(clientRequest.getDni());
-        client.setPassport(clientRequest.getPassport());
-        client.setPhone(clientRequest.getPhone());
-        return client;
+    private Customer toClient(CustomerRequest customerRequest) {
+        Customer customer = new Customer();
+        customer.setName(customerRequest.getName());
+        customer.setLastname(customerRequest.getLastname());
+        customer.setEmail(customerRequest.getEmail());
+        customer.setDni(customerRequest.getDni());
+        customer.setPassport(customerRequest.getPassport());
+        customer.setPhone(customerRequest.getPhone());
+        return customer;
     }
 }

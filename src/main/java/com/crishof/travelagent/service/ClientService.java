@@ -1,19 +1,19 @@
 package com.crishof.travelagent.service;
 
-import com.crishof.travelagent.dto.ClientRequest;
-import com.crishof.travelagent.dto.ClientResponse;
+import com.crishof.travelagent.dto.CustomerRequest;
+import com.crishof.travelagent.dto.CustomerResponse;
 
 import java.util.List;
 
 public interface ClientService {
 
-    List<ClientResponse> getAll();
+    List<CustomerResponse> getAll();
 
-    ClientResponse getById(long id);
+    CustomerResponse getById(long id);
 
-    ClientResponse create(ClientRequest clientRequest);
+    CustomerResponse create(CustomerRequest customerRequest);
 
-    ClientResponse update(long id, ClientRequest clientRequest);
+    CustomerResponse update(long id, CustomerRequest customerRequest);
 
     String delete(long id);
 }

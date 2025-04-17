@@ -22,8 +22,8 @@ public class SupplierController {
         return ResponseEntity.ok(supplierService.getAll());
     }
 
-    @GetMapping("/getById/id")
-    public ResponseEntity<SupplierResponse> getById(@RequestParam Long id) {
+    @GetMapping("/getById/{id}")
+    public ResponseEntity<SupplierResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(supplierService.getById(id));
     }
 
@@ -37,7 +37,7 @@ public class SupplierController {
         return ResponseEntity.status(HttpStatus.CREATED).body(supplierService.create(supplierRequest));
     }
 
-    @DeleteMapping("/delete/id")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable("id") long id) {
         return ResponseEntity.status(HttpStatus.OK).body(supplierService.delete(id));
     }

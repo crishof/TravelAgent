@@ -1,7 +1,7 @@
 package com.crishof.travelagent.controller;
 
-import com.crishof.travelagent.dto.ClientRequest;
-import com.crishof.travelagent.dto.ClientResponse;
+import com.crishof.travelagent.dto.CustomerRequest;
+import com.crishof.travelagent.dto.CustomerResponse;
 import com.crishof.travelagent.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,28 +13,28 @@ import java.util.List;
 @RestController
 @RequestMapping("/client")
 @RequiredArgsConstructor
-public class ClientController {
+public class CustomerController {
 
     private final ClientService clientService;
 
     @GetMapping("/getAll")
-    public ResponseEntity<List<ClientResponse>> getAll() {
+    public ResponseEntity<List<CustomerResponse>> getAll() {
         return ResponseEntity.ok(clientService.getAll());
     }
 
     @GetMapping("/getById/{id}")
-    public ResponseEntity<ClientResponse> getById(@PathVariable("id") long id) {
+    public ResponseEntity<CustomerResponse> getById(@PathVariable("id") long id) {
         return ResponseEntity.ok(clientService.getById(id));
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<ClientResponse> update(@PathVariable("id") long id, @RequestBody ClientRequest clientRequest) {
-        return ResponseEntity.ok(clientService.update(id, clientRequest));
+    public ResponseEntity<CustomerResponse> update(@PathVariable("id") long id, @RequestBody CustomerRequest customerRequest) {
+        return ResponseEntity.ok(clientService.update(id, customerRequest));
     }
 
     @PostMapping("/save")
-    public ResponseEntity<ClientResponse> save(@RequestBody ClientRequest clientRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(clientService.create(clientRequest));
+    public ResponseEntity<CustomerResponse> save(@RequestBody CustomerRequest customerRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(clientService.create(customerRequest));
     }
 
     @DeleteMapping("/delete/{id}")

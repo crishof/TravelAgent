@@ -1,13 +1,12 @@
 package com.crishof.travelagent.dto;
 
-import com.crishof.travelagent.model.Booking;
 import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -24,5 +23,5 @@ public class TravelSaleResponse {
     private String description;
 
     @OneToMany
-    private ArrayList<Booking> services;
+    private List<BookingResponse> services;
 }

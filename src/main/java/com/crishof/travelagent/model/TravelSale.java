@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -29,6 +29,10 @@ public class TravelSale {
     private String description;
 
     @OneToMany
-    private ArrayList<Booking> services;
-
+    @JoinTable(
+            name = "tbl_travel_sale_services",
+            joinColumns = @JoinColumn(name = "travel_sale_id"),
+            inverseJoinColumns = @JoinColumn(name = "services_id")
+    )
+    private List<Booking> services;
 }

@@ -8,6 +8,7 @@ import com.crishof.travelagent.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -20,9 +21,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingResponse> getAll() {
 
         List<Booking> bookings = bookingRepository.findAll();
-        return bookings.stream()
-                .map(this::toBookingResponse)
-                .toList();
+        return bookings.stream().map(this::toBookingResponse).toList();
     }
 
     @Override
@@ -38,11 +37,16 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public Booking createEntity(BookingRequest bookingRequest) {
+
+        return bookingRepository.save(this.toBooking(bookingRequest));
+    }
+
+    @Override
     public BookingResponse update(long id, BookingRequest bookingRequest) {
 
         Booking booking = bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id));
 
-        booking.setBookingDate(bookingRequest.getBookingDate());
         booking.setBookingNumber(bookingRequest.getBookingNumber());
         booking.setAmount(bookingRequest.getAmount());
         booking.setCurrency(bookingRequest.getCurrency());
@@ -59,7 +63,8 @@ public class BookingServiceImpl implements BookingService {
         return "Booking with id: " + id + "successfully deleted";
     }
 
-    private BookingResponse toBookingResponse(Booking booking) {
+    @Override
+    public BookingResponse toBookingResponse(Booking booking) {
 
         BookingResponse bookingResponse = new BookingResponse();
         bookingResponse.setId(booking.getId());
@@ -75,14 +80,16 @@ public class BookingServiceImpl implements BookingService {
         return bookingResponse;
     }
 
-    private Booking toBooking(BookingRequest bookingRequest) {
+    @Override
+    public Booking toBooking(BookingRequest bookingRequest) {
         Booking booking = new Booking();
         booking.setBookingNumber(bookingRequest.getBookingNumber());
-        booking.setBookingDate(bookingRequest.getBookingDate());
+        booking.setBookingDate(LocalDate.now());
         booking.setReservationDate(bookingRequest.getReservationDate());
         booking.setDescription(bookingRequest.getDescription());
         booking.setAmount(bookingRequest.getAmount());
         booking.setCurrency(bookingRequest.getCurrency());
+        booking.setSupplierId(bookingRequest.getSupplierId());
         return booking;
     }
 }
