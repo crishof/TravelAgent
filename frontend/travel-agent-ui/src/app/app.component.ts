@@ -1,19 +1,20 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { NavbarComponent } from "./layout/navbar/navbar.component";
-import { FooterComponent } from "./layout/footer/footer.component";
-import { AgentComponent } from "./features/agent/agent.component";
-import { CustomerComponent } from "./features/customer/customer.component";
-import { SaleComponent } from "./features/sale/sale.component";
-import { SupplierComponent } from "./features/supplier/supplier.component";
+import { RouterLink, RouterOutlet } from '@angular/router';
+
+import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, FooterComponent, AgentComponent, CustomerComponent, SaleComponent, SupplierComponent],
+  selector: 'app-root',
+  imports: [CommonModule, RouterLink, RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title = 'travel-agent-ui';
+  menuOption: string = '';
+  currentYear: number = new Date().getFullYear();
+
+  onOption(menuOption: string) {
+    this.menuOption = menuOption;
+  }
 }
