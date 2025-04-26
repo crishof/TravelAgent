@@ -1,5 +1,5 @@
 export interface ISupplier {
   id: string;
-  name: string;
-  
+  supplierName: string;
+  currency: string;
 }

@@ -1,1 +1,38 @@
-<p>sale works!</p>
+<div class="container-fluid">
+  <div class="table-responsive" id="table-container">
+    <table class="table table-stripped table-hover align-middle table-sm">
+      <thead class="table-primary">
+        <tr>
+          <th scope="col">#Id</th>
+          <th scope="col">Agent</th>
+          <th scope="col">Creation Date</th>
+          <th scope="col">Travel Date</th>
+          <th scope="col">Description</th>
+          <th scope="col">Amount</th>
+          <th scope="col">Services</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (sale of saleList; track $index) {
+        <tr>
+          <td>{{ sale.id }}</td>
+          <td>{{ sale.agentId }}</td>
+          <td>{{ sale.creationDate }}</td>
+          <td>{{ sale.travelDate }}</td>
+          <td>{{ sale.description }}</td>
+          <td>{{ sale.currency }} {{ sale.amount }}</td>
+          <td>
+            <ul>
+              <li *ngFor="let service of sale.services">
+                {{ service.description }} - {{ service.currency }}
+                {{ service.amount }}
+              </li>
+            </ul>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

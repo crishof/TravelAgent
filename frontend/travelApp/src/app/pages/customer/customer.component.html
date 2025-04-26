@@ -1,1 +1,23 @@
-<p>customer works!</p>
+<div class="container-fluid">
+  <div class="table-responsive" id="table-container">
+    <table class="table table-stripped table-hover align-middle table-sm">
+      <thead class="table-primary">
+        <tr>
+          <th scope="col">#Id</th>
+          <th scope="col">Name</th>
+          <th scope="col">Lastame</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (customer of customerList; track $index) {
+        <tr>
+          <td>{{ customer.id }}</td>
+          <td>{{ customer.name }}</td>
+          <td>{{ customer.lastname }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

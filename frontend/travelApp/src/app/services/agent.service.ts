@@ -9,8 +9,8 @@ import { IAgent } from '../model/agent.model';
 export class AgentService {
   constructor() {}
 
-  private _http = inject(HttpClient);
-  private _urlBase = `http://localhost:9001/agent`;
+  readonly _http = inject(HttpClient);
+  readonly _urlBase = `http://localhost:9001/agent`;
 
   getAllAgents(): Observable<IAgent[]> {
     return this._http.get<IAgent[]>(`${this._urlBase}/getAll`);
