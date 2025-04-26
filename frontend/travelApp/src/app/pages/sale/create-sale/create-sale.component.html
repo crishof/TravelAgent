@@ -1,0 +1,208 @@
+<form (ngSubmit)="saveSale()" #saleForm="ngForm" class="container mt-4">
+  <!-- Formulario de la venta (ISale) -->
+  <div class="form-group">
+    <label for="description">Description</label>
+    <input
+      type="text"
+      id="description"
+      class="form-control"
+      [(ngModel)]="sale.description"
+      name="description"
+      required
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="amount">Amount</label>
+    <input
+      type="number"
+      id="amount"
+      class="form-control"
+      [(ngModel)]="sale.amount"
+      name="amount"
+      required
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="currency">Currency</label>
+    <select
+      id="currency"
+      class="form-select"
+      [(ngModel)]="sale.currency"
+      name="currency"
+      required
+    >
+      <option value="USD">USD</option>
+      <option value="EURO">EURO</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="travelDate">Travel Date</label>
+    <input
+      type="date"
+      id="travelDate"
+      class="form-control"
+      [(ngModel)]="sale.travelDate"
+      name="travelDate"
+      required
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="creationDate">Creation Date</label>
+    <input
+      type="text"
+      id="creationDate"
+      class="form-control"
+      [(ngModel)]="sale.creationDate"
+      name="creationDate"
+      [value]="creationDate()"
+      readonly
+    />
+  </div>
+
+  <!-- Formulario para agregar un servicio (IBooking) -->
+  <h3>Add Services</h3>
+
+  <div class="form-group">
+    <label for="supplierId">Supplier ID</label>
+    <input
+      type="text"
+      id="supplierId"
+      class="form-control"
+      [(ngModel)]="newService.supplierId"
+      name="supplierId"
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="bookingNumber">Booking Number</label>
+    <input
+      type="text"
+      id="bookingNumber"
+      class="form-control"
+      [(ngModel)]="newService.bookingNumber"
+      name="bookingNumber"
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="bookingDate">Booking Date</label>
+    <input
+      type="date"
+      id="bookingDate"
+      class="form-control"
+      [(ngModel)]="newService.bookingDate"
+      name="bookingDate"
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="reservationDate">Reservation Date</label>
+    <input
+      type="date"
+      id="reservationDate"
+      class="form-control"
+      [(ngModel)]="newService.reservationDate"
+      name="reservationDate"
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="serviceDescription">Service Description</label>
+    <input
+      type="text"
+      id="serviceDescription"
+      class="form-control"
+      [(ngModel)]="newService.description"
+      name="description"
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="serviceAmount">Amount</label>
+    <input
+      type="number"
+      id="serviceAmount"
+      class="form-control"
+      [(ngModel)]="newService.amount"
+      name="amount"
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="serviceCurrency">Currency</label>
+    <select
+      id="serviceCurrency"
+      class="form-control"
+      [(ngModel)]="newService.currency"
+      name="currency"
+    >
+      <option value="USD">USD</option>
+      <option value="EURO">EURO</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="paid">Paid</label>
+    <input
+      type="checkbox"
+      id="paid"
+      class="form-control"
+      [(ngModel)]="newService.paid"
+      name="paid"
+    />
+  </div>
+
+  <button type="button" class="btn btn-primary" (click)="addService()">
+    Add Service
+  </button>
+
+  <!-- Tabla para mostrar los servicios añadidos -->
+  <h3>Services Added</h3>
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Supplier ID</th>
+        <th>Booking Number</th>
+        <th>Booking Date</th>
+        <th>Description</th>
+        <th>Amount</th>
+        <th>Currency</th>
+        <th>Paid</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let service of sale.services; let i = index">
+        <td>{{ service.supplierId }}</td>
+        <td>{{ service.bookingNumber }}</td>
+        <td>{{ service.bookingDate }}</td>
+        <td>{{ service.description }}</td>
+        <td>{{ service.amount }}</td>
+        <td>{{ service.currency }}</td>
+        <td>{{ service.paid ? "Yes" : "No" }}</td>
+        <td>
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="removeService(i)"
+          >
+            Remove
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Botón de Save -->
+  <button
+    type="submit"
+    class="btn btn-success"
+    [disabled]="!saleForm.form.valid"
+  >
+    Save
+  </button>
+</form>
