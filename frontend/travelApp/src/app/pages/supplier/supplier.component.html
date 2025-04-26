@@ -1,1 +1,21 @@
-<p>supplier works!</p>
+<div class="container-fluid">
+  <div class="table-responsive" id="table-container">
+    <table class="table table-stripped table-hover align-middle table-sm">
+      <thead class="table-primary">
+        <tr>
+          <th scope="col">#Id</th>
+          <th scope="col">Name</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (supplier of supplierList; track $index) {
+        <tr>
+          <td>{{ supplier.id }}</td>
+          <td>{{ supplier.supplierName }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

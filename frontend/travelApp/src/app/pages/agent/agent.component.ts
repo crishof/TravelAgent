@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { IAgent } from '../../model/agent.model';
-import { AgentService } from '../../services/agent.service';
 import { HttpClientModule } from '@angular/common/http';
+import { AgentService } from '../../services/agent.service';
+import { IAgent } from '../../model/agent.model';
 
 @Component({
   selector: 'app-agent',
@@ -14,7 +14,7 @@ import { HttpClientModule } from '@angular/common/http';
 })
 export class AgentComponent implements OnInit {
   agentList: IAgent[] = [];
-  private _agentService = inject(AgentService);
+  readonly _agentService = inject(AgentService);
 
   ngOnInit(): void {
     this._agentService.getAllAgents().subscribe((data: IAgent[]) => {
