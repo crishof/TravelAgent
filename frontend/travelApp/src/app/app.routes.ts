@@ -5,10 +5,12 @@ import { CustomerComponent } from './pages/customer/customer.component';
 import { SupplierComponent } from './pages/supplier/supplier.component';
 import { BookingComponent } from './pages/booking/booking.component';
 import { HomeComponent } from './pages/home/home.component';
+import { CreateSaleComponent } from './pages/sale/create-sale/create-sale.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'sale', component: SaleComponent },
+  { path: 'sale/createSale', component: CreateSaleComponent },
   { path: 'booking', component: BookingComponent },
   { path: 'agent', component: AgentComponent },
   { path: 'customer', component: CustomerComponent },

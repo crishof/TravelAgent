@@ -16,6 +16,7 @@ public class TravelSaleResponse {
     private Long id;
 
     private Long agentId;
+    private Long customerId;
     private LocalDate creationDate;
     private LocalDate travelDate;
     private double amount;

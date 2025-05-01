@@ -4,11 +4,18 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { ISale } from '../../model/sale.model';
 import { SaleService } from '../../services/sale.service';
-
+import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-sale',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    HttpClientModule,
+    RouterLink,
+  ],
+
   templateUrl: './sale.component.html',
   styleUrl: './sale.component.css',
 })
