@@ -1,70 +1,144 @@
-import { Component } from '@angular/core';
-import { ISale } from '../../../model/sale.model';
-import { IBooking } from '../../../model/booking.model';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+
+import {
+  FormArray,
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+
+import { ISupplier } from '../../../model/supplier.model';
+import { SupplierService } from '../../../services/supplier.service';
+import { SaleService } from '../../../services/sale.service';
 
 @Component({
   selector: 'app-create-sale',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './create-sale.component.html',
   styleUrl: './create-sale.component.css',
 })
-export class CreateSaleComponent {
-  sale: ISale = {
-    id: 0,
-    agentId: 0,
-    creationDate: this.creationDate(),
-    travelDate: '',
-    amount: 0,
-    currency: 'USD',
-    description: '',
-    services: [],
-  };
+export class CreateSaleComponent implements OnInit {
+  saleForm!: FormGroup;
+  newServiceForm!: FormGroup;
+  formBuilder = inject(FormBuilder);
+  supplierList: ISupplier[] = [];
+  readonly _supplierService = inject(SupplierService);
+  readonly _saleService = inject(SaleService);
+  readonly cdr = inject(ChangeDetectorRef);
 
-  newService: IBooking = {
-    id: '',
-    supplierId: '',
-    bookingNumber: '',
-    bookingDate: '',
-    reservationDate: '',
-    description: '',
-    amount: 0,
-    currency: 'USD',
-    paid: false,
-  };
+  ngOnInit(): void {
+    this.loadSupplierList();
+    this.initForm();
+    this.initNewServiceForm();
+  }
 
-  creationDate() {
-    return new Date().toISOString().split('T')[0]; // Retorna la fecha en formato YYYY-MM-DD
+  initForm() {
+    this.saleForm = this.formBuilder.group({
+      agentId: this.getLoggedAgent(),
+      customer: this.formBuilder.group({
+        name: '',
+        lastname: '',
+        phone: '',
+        email: '',
+        dni: '',
+        passport: '',
+      }),
+      creationDate: this.formatDate(new Date().toISOString()),
+      travelDate: '',
+      amount: 0,
+      currency: '',
+      description: '',
+      services: this.formBuilder.array([]),
+    });
+  }
+
+  initNewServiceForm() {
+    this.newServiceForm = this.formBuilder.group({
+      supplierId: ['', Validators.required],
+      bookingNumber: ['', Validators.required],
+      bookingDate: [new Date().toISOString().split('T')[0]],
+      reservationDate: ['', Validators.required],
+      description: ['', Validators.required],
+      amount: [0, Validators.required],
+      currency: ['USD', Validators.required],
+      paid: [false],
+    });
+  }
+
+  get servicesFormArray() {
+    return this.saleForm.get('services') as FormArray;
   }
 
   addService() {
-    // Agrega el servicio a la lista de servicios
-    this.sale.services.push({ ...this.newService });
+    // Crea un nuevo grupo basado en los valores actuales del formulario
+    const serviceGroup = this.formBuilder.group({
+      supplierId: [
+        this.newServiceForm.get('supplierId')?.value,
+        Validators.required,
+      ],
+      bookingNumber: [
+        this.newServiceForm.get('bookingNumber')?.value,
+        Validators.required,
+      ],
+      bookingDate: [this.newServiceForm.get('bookingDate')?.value],
+      description: [
+        this.newServiceForm.get('description')?.value,
+        Validators.required,
+      ],
+      reservationDate: [this.newServiceForm.get('reservationDate')?.value],
+      amount: [this.newServiceForm.get('amount')?.value, Validators.required],
+      currency: [
+        this.newServiceForm.get('currency')?.value,
+        Validators.required,
+      ],
+      paid: [this.newServiceForm.get('paid')?.value],
+    });
 
-    // Limpia el formulario de servicio para agregar otro servicio
-    this.newService = {
-      id: '',
+    // Agrega el nuevo grupo al FormArray
+    this.servicesFormArray.push(serviceGroup);
+
+    // Marca el componente para la detección de cambios en el próximo ciclo
+    this.cdr.markForCheck();
+
+    // Reinicia el formulario de servicio
+    this.newServiceForm.reset({
       supplierId: '',
       bookingNumber: '',
-      bookingDate: '',
+      bookingDate: this.formatDate(new Date().toISOString()),
       reservationDate: '',
       description: '',
       amount: 0,
       currency: 'USD',
       paid: false,
-    };
+    });
+  }
+
+  formatDate(date: string) {
+    const d = new Date(date);
+    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}/${d.getFullYear()}`;
   }
 
   removeService(index: number) {
-    // Elimina un servicio de la lista
-    this.sale.services.splice(index, 1);
+    this.servicesFormArray.removeAt(index);
+  }
+
+  loadSupplierList() {
+    this._supplierService.getAllSuppliers().subscribe((data: ISupplier[]) => {
+      this.supplierList = data;
+    });
+  }
+
+  getLoggedAgent() {
+    return 1;
   }
 
   saveSale() {
-    // Aquí manejarías la lógica para guardar la venta
-    console.log('Sale saved:', this.sale);
+    console.log('Sale saved:', this.saleForm.value);
   }
 }
