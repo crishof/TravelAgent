@@ -15,4 +15,8 @@ export class SaleService {
   getAllSales(): Observable<ISale[]> {
     return this._http.get<ISale[]>(`${this._urlBase}/getAll`);
   }
+
+  createSale(travelSaleRequest: any): Observable<any> {
+    return this._http.post(`${this._urlBase}/save`, travelSaleRequest);
+  }
 }

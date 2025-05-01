@@ -75,7 +75,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     private void applyRequestToSale(TravelSale sale, TravelSaleRequest request, boolean isNew) {
 
         sale.setAgentId(request.getAgentId());
-        sale.setCustomerId(request.getCustomerId());
+        //TODO set customer
         sale.setTravelDate(request.getTravelDate());
         sale.setDescription(request.getDescription());
         sale.setAmount(request.getAmount());

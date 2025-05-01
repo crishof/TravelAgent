@@ -4,6 +4,7 @@ import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
+  FormControl,
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
@@ -47,7 +48,7 @@ export class CreateSaleComponent implements OnInit {
         dni: '',
         passport: '',
       }),
-      creationDate: this.formatDate(new Date().toISOString()),
+      creationDate: [new Date().toISOString().split('T')[0]],
       travelDate: '',
       amount: 0,
       currency: '',
@@ -108,20 +109,13 @@ export class CreateSaleComponent implements OnInit {
     this.newServiceForm.reset({
       supplierId: '',
       bookingNumber: '',
-      bookingDate: this.formatDate(new Date().toISOString()),
+      bookingDate: [new Date().toISOString().split('T')[0]],
       reservationDate: '',
       description: '',
       amount: 0,
       currency: 'USD',
       paid: false,
     });
-  }
-
-  formatDate(date: string) {
-    const d = new Date(date);
-    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1)
-      .toString()
-      .padStart(2, '0')}/${d.getFullYear()}`;
   }
 
   removeService(index: number) {
@@ -139,6 +133,51 @@ export class CreateSaleComponent implements OnInit {
   }
 
   saveSale() {
-    console.log('Sale saved:', this.saleForm.value);
+    const formData = this.saleForm.value;
+
+    if (this.saleForm.valid) {
+      // Agrega los servicios al objeto formData
+      formData.services = this.servicesFormArray.value;
+
+      // Llama al servicio para enviar los datos al backend
+      this._saleService.createSale(formData).subscribe({
+        next: (response) => {
+          console.log('Sale created successfully:', response);
+
+          // Reinicia el formulario principal y limpia los servicios
+          this.saleForm.reset();
+          this.servicesFormArray.clear();
+
+          // Opcional: Marca el formulario como "pristine" y "untouched"
+          this.saleForm.markAsPristine();
+          this.saleForm.markAsUntouched();
+        },
+        error: (error) => {
+          console.error('Error creating sale:', error);
+
+          // Opcional: Muestra un mensaje de error al usuario
+          alert('An error occurred while creating the sale. Please try again.');
+        },
+      });
+    } else {
+      // El formulario no es válido, imprime los campos inválidos y sus errores
+      console.log('El formulario no es válido. Campos inválidos:');
+      Object.keys(this.saleForm.controls).forEach((key) => {
+        const control = this.saleForm.get(key);
+        if (control?.errors) {
+          console.log(key + ':', control.errors);
+        }
+      });
+
+      // Marca los campos inválidos como tocados para mostrar mensajes de error en el HTML
+      Object.values(this.saleForm.controls).forEach((control) => {
+        if (control instanceof FormControl || control instanceof FormGroup) {
+          control.markAsTouched();
+        }
+      });
+
+      // Opcional: Muestra un mensaje al usuario indicando que el formulario es inválido
+      alert('Please fill out all required fields before submitting.');
+    }
   }
 }

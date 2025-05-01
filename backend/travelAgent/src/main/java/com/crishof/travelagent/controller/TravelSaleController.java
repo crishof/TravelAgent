@@ -34,6 +34,7 @@ public class TravelSaleController {
 
     @PostMapping("/save")
     public ResponseEntity<TravelSaleResponse> save(@RequestBody TravelSaleRequest travelSaleRequest) {
+        System.out.println("travelSaleRequest = " + travelSaleRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(travelSaleService.create(travelSaleRequest));
     }
 
