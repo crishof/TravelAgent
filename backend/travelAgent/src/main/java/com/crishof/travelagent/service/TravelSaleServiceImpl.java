@@ -67,6 +67,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         travelSaleResponse.setCurrency(travelSale.getCurrency());
         travelSaleResponse.setDescription(travelSale.getDescription());
         travelSaleResponse.setAgentId(travelSale.getAgentId());
+        travelSaleResponse.setCustomerId(travelSale.getCustomerId());
         travelSaleResponse.setCreationDate(travelSale.getCreationDate());
         return travelSaleResponse;
     }
@@ -74,6 +75,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     private void applyRequestToSale(TravelSale sale, TravelSaleRequest request, boolean isNew) {
 
         sale.setAgentId(request.getAgentId());
+        sale.setCustomerId(request.getCustomerId());
         sale.setTravelDate(request.getTravelDate());
         sale.setDescription(request.getDescription());
         sale.setAmount(request.getAmount());
