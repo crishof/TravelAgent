@@ -1,6 +1,7 @@
 export interface IBooking {
-  id: string;
-  supplierId: string;
+  id: number;
+  supplierId: number;
+  supplierName: string;
   bookingNumber: string;
   bookingDate: string;
   reservationDate: string;

@@ -15,4 +15,8 @@ export class SupplierService {
   getAllSuppliers(): Observable<ISupplier[]> {
     return this._http.get<ISupplier[]>(`${this._urlBase}/getAll`);
   }
+
+  getSupplierById(supplierId: number): Observable<ISupplier> {
+    return this._http.get<ISupplier>(`${this._urlBase}/getById/${supplierId}`);
+  }
 }
