@@ -21,6 +21,7 @@ import java.util.Objects;
 public class TravelSaleServiceImpl implements TravelSaleService {
     private final TravelSaleRepository travelSaleRepository;
     private final BookingService bookingService;
+    private final CustomerService customerService;
 
     @Override
     public List<TravelSaleResponse> getAll() {
@@ -38,7 +39,8 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     @Override
     public TravelSaleResponse create(TravelSaleRequest request) {
         TravelSale sale = new TravelSale();
-        applyRequestToSale(sale, request, true);
+        long customerId = customerService.getIdFromNewSale(request.getCustomer());
+        applyRequestToSale(sale, request, true, customerId);
         return this.toTravelSaleResponse(travelSaleRepository.save(sale));
     }
 
@@ -46,7 +48,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     public TravelSaleResponse update(long id, TravelSaleRequest request) {
         TravelSale sale = travelSaleRepository.findById(id)
                 .orElseThrow(() -> new TravelSaleNotFoundException(id));
-        applyRequestToSale(sale, request, false);
+        applyRequestToSale(sale, request, false, id);
         return this.toTravelSaleResponse(travelSaleRepository.save(sale));
     }
 
@@ -72,10 +74,10 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         return travelSaleResponse;
     }
 
-    private void applyRequestToSale(TravelSale sale, TravelSaleRequest request, boolean isNew) {
+    private void applyRequestToSale(TravelSale sale, TravelSaleRequest request, boolean isNew, long customerId) {
 
         sale.setAgentId(request.getAgentId());
-        //TODO set customer
+        sale.setCustomerId(customerId);
         sale.setTravelDate(request.getTravelDate());
         sale.setDescription(request.getDescription());
         sale.setAmount(request.getAmount());

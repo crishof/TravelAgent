@@ -5,7 +5,7 @@ import com.crishof.travelagent.dto.CustomerResponse;
 
 import java.util.List;
 
-public interface ClientService {
+public interface CustomerService {
 
     List<CustomerResponse> getAll();
 
@@ -16,4 +16,6 @@ public interface ClientService {
     CustomerResponse update(long id, CustomerRequest customerRequest);
 
     String delete(long id);
+
+    Long getIdFromNewSale(CustomerRequest customerRequest);
 }
