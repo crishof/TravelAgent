@@ -10,11 +10,11 @@ public interface PaymentService {
 
     List<PaymentResponse> getAll();
 
-    PaymentResponse getById(long id);
+    PaymentResponse getById(Long id);
 
     PaymentResponse create(PaymentRequest paymentRequest);
 
-    PaymentResponse update(long id, PaymentRequest paymentRequest);
+    PaymentResponse update(Long id, PaymentRequest paymentRequest);
 
-    String delete(long id);
+    String delete(Long id);
 }

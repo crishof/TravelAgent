@@ -10,17 +10,19 @@ public interface BookingService {
 
     List<BookingResponse> getAll();
 
-    BookingResponse getById(long id);
+    BookingResponse getById(Long id);
 
     BookingResponse create(BookingRequest bookingRequest);
 
     Booking createEntity(BookingRequest bookingRequest);
 
-    BookingResponse update(long id, BookingRequest bookingRequest);
+    BookingResponse update(Long id, BookingRequest bookingRequest);
 
-    String delete(long id);
+    String delete(Long id);
 
     Booking toBooking(BookingRequest bookingRequest);
 
     BookingResponse toBookingResponse(Booking booking);
+
+    void payBooking(Long id, boolean paid);
 }
