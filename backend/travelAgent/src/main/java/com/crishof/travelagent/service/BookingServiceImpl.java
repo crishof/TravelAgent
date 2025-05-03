@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -19,20 +20,19 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingResponse> getAll() {
-
         List<Booking> bookings = bookingRepository.findAll();
-        return bookings.stream().map(this::toBookingResponse).toList();
+        return bookings.stream()
+                .sorted(Comparator.comparing(Booking::getReservationDate))
+                .map(this::toBookingResponse).toList();
     }
 
     @Override
-    public BookingResponse getById(long id) {
-
-        return toBookingResponse(bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id)));
+    public BookingResponse getById(Long id) {
+        return this.toBookingResponse(bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id)));
     }
 
     @Override
     public BookingResponse create(BookingRequest bookingRequest) {
-
         return this.toBookingResponse(bookingRepository.save(this.toBooking(bookingRequest)));
     }
 
@@ -43,7 +43,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingResponse update(long id, BookingRequest bookingRequest) {
+    public BookingResponse update(Long id, BookingRequest bookingRequest) {
 
         Booking booking = bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id));
 
@@ -57,10 +57,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public String delete(long id) {
+    public String delete(Long id) {
         Booking booking = bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id));
         bookingRepository.delete(booking);
         return "Booking with id: " + id + "successfully deleted";
+    }
+
+    @Override
+    public void payBooking(Long bookingId, boolean paid) {
+
+        Booking booking = bookingRepository.findById(bookingId).orElseThrow(() -> new BookingNotFoundException(bookingId));
+        booking.setPaid(paid);
     }
 
     @Override

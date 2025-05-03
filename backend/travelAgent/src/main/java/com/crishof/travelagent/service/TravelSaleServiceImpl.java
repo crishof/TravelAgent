@@ -34,7 +34,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     }
 
     @Override
-    public TravelSaleResponse getById(long id) {
+    public TravelSaleResponse getById(Long id) {
 
         TravelSale sale = travelSaleRepository.findById(id).orElseThrow(() -> new TravelSaleNotFoundException(id));
         return this.toTravelSaleResponse(sale);
@@ -43,13 +43,13 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     @Override
     public TravelSaleResponse create(TravelSaleRequest request) {
         TravelSale sale = new TravelSale();
-        long customerId = customerService.getIdFromNewSale(request.getCustomer());
+        Long customerId = customerService.getIdFromNewSale(request.getCustomer());
         applyRequestToSale(sale, request, true, customerId);
         return this.toTravelSaleResponse(travelSaleRepository.save(sale));
     }
 
     @Override
-    public TravelSaleResponse update(long id, TravelSaleRequest request) {
+    public TravelSaleResponse update(Long id, TravelSaleRequest request) {
         TravelSale sale = travelSaleRepository.findById(id)
                 .orElseThrow(() -> new TravelSaleNotFoundException(id));
         applyRequestToSale(sale, request, false, id);
@@ -57,7 +57,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     }
 
     @Override
-    public String delete(long id) {
+    public String delete(Long id) {
         TravelSale sale = travelSaleRepository.findById(id).orElseThrow(() -> new TravelSaleNotFoundException(id));
         travelSaleRepository.delete(sale);
         return "Travel Sale with id " + id + " successfully deleted";
