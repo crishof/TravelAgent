@@ -17,6 +17,7 @@
             <tr>
               <th scope="col">#Id</th>
               <th scope="col">Agent</th>
+              <th scope="col">Customer</th>
               <th scope="col">Creation Date</th>
               <th scope="col">Travel Date</th>
               <th scope="col">Description</th>
@@ -30,6 +31,10 @@
             <tr>
               <td>{{ sale.id }}</td>
               <td>{{ sale.agentId }}</td>
+              <td>
+                {{ sale.customerResponse.lastname }}
+                {{ sale.customerResponse.name }}
+              </td>
               <td>{{ sale.creationDate | date : "dd/MM/yyyy" }}</td>
               <td>{{ sale.travelDate | date : "dd/MM/yyyy" }}</td>
               <td>{{ sale.description }}</td>

@@ -73,7 +73,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         travelSaleResponse.setCurrency(travelSale.getCurrency());
         travelSaleResponse.setDescription(travelSale.getDescription());
         travelSaleResponse.setAgentId(travelSale.getAgentId());
-        travelSaleResponse.setCustomerId(travelSale.getCustomerId());
+        travelSaleResponse.setCustomerResponse(customerService.getById(travelSale.getCustomerId()));
         travelSaleResponse.setCreationDate(travelSale.getCreationDate());
         return travelSaleResponse;
     }
