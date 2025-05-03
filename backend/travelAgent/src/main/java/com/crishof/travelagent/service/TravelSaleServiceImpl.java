@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,7 +27,10 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     @Override
     public List<TravelSaleResponse> getAll() {
         List<TravelSale> sales = travelSaleRepository.findAll();
-        return sales.stream().map(this::toTravelSaleResponse).toList();
+        return sales.stream()
+                .sorted(Comparator.comparing(TravelSale::getTravelDate))
+                .map(this::toTravelSaleResponse)
+                .toList();
     }
 
     @Override
