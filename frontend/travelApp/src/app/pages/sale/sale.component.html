@@ -1,47 +1,57 @@
 <div class="container-fluid">
-  <a
-    class="btn btn-success mb-3"
-    routerLink="createSale"
-    routerLinkActive="router-link-active"
-  >
-    New Travel
-  </a>
+  <div class="container mt-4 card">
+    <div class="card-header mt-3">
+      <h4>Sales</h4>
+    </div>
+    <a
+      class="btn btn-success mb-3"
+      routerLink="createSale"
+      routerLinkActive="router-link-active"
+    >
+      New Trip
+    </a>
+    <div class="card-body">
+      <div class="table-responsive" id="table-container">
+        <table class="table table-stripped table-hover align-middle table-sm">
+          <thead class="table-primary">
+            <tr>
+              <th scope="col">#Id</th>
+              <th scope="col">Agent</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Creation Date</th>
+              <th scope="col">Travel Date</th>
+              <th scope="col">Description</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Services</th>
+            </tr>
+          </thead>
 
-  <div class="table-responsive" id="table-container">
-    <table class="table table-stripped table-hover align-middle table-sm">
-      <thead class="table-primary">
-        <tr>
-          <th scope="col">#Id</th>
-
-          <th scope="col">Agent</th>
-          <th scope="col">Creation Date</th>
-          <th scope="col">Travel Date</th>
-          <th scope="col">Description</th>
-          <th scope="col">Amount</th>
-          <th scope="col">Services</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        @for (sale of saleList; track $index) {
-        <tr>
-          <td>{{ sale.id }}</td>
-          <td>{{ sale.agentId }}</td>
-          <td>{{ sale.creationDate | date : "dd/MM/yyyy" }}</td>
-          <td>{{ sale.travelDate | date : "dd/MM/yyyy" }}</td>
-          <td>{{ sale.description }}</td>
-          <td>{{ sale.currency }} {{ sale.amount }}</td>
-          <td>
-            <ul>
-              <li *ngFor="let service of sale.services">
-                {{ service.description }} - {{ service.currency }}
-                {{ service.amount }}
-              </li>
-            </ul>
-          </td>
-        </tr>
-        }
-      </tbody>
-    </table>
+          <tbody>
+            @for (sale of saleList; track $index) {
+            <tr>
+              <td>{{ sale.id }}</td>
+              <td>{{ sale.agentId }}</td>
+              <td>
+                {{ sale.customerResponse.lastname }}
+                {{ sale.customerResponse.name }}
+              </td>
+              <td>{{ sale.creationDate | date : "dd/MM/yyyy" }}</td>
+              <td>{{ sale.travelDate | date : "dd/MM/yyyy" }}</td>
+              <td>{{ sale.description }}</td>
+              <td>{{ sale.currency }} {{ sale.amount }}</td>
+              <td>
+                <ul>
+                  <li *ngFor="let service of sale.services">
+                    {{ service.description }} - {{ service.currency }}
+                    {{ service.amount }}
+                  </li>
+                </ul>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>

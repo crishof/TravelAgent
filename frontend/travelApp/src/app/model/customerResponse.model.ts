@@ -1,4 +1,4 @@
-export interface ICustomer {
+export interface ICustomerResponse {
   id: number;
   name: string;
   lastname: string;

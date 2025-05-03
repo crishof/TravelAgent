@@ -19,7 +19,7 @@ public class TravelSaleRequest {
     private double amount;
     private String currency;
     private String description;
-    private Long customerId;
+    private CustomerRequest customer;
 
     @OneToMany
     private List<BookingRequest> services;

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,11 +22,15 @@ import java.util.Objects;
 public class TravelSaleServiceImpl implements TravelSaleService {
     private final TravelSaleRepository travelSaleRepository;
     private final BookingService bookingService;
+    private final CustomerService customerService;
 
     @Override
     public List<TravelSaleResponse> getAll() {
         List<TravelSale> sales = travelSaleRepository.findAll();
-        return sales.stream().map(this::toTravelSaleResponse).toList();
+        return sales.stream()
+                .sorted(Comparator.comparing(TravelSale::getTravelDate))
+                .map(this::toTravelSaleResponse)
+                .toList();
     }
 
     @Override
@@ -38,7 +43,8 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     @Override
     public TravelSaleResponse create(TravelSaleRequest request) {
         TravelSale sale = new TravelSale();
-        applyRequestToSale(sale, request, true);
+        long customerId = customerService.getIdFromNewSale(request.getCustomer());
+        applyRequestToSale(sale, request, true, customerId);
         return this.toTravelSaleResponse(travelSaleRepository.save(sale));
     }
 
@@ -46,7 +52,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     public TravelSaleResponse update(long id, TravelSaleRequest request) {
         TravelSale sale = travelSaleRepository.findById(id)
                 .orElseThrow(() -> new TravelSaleNotFoundException(id));
-        applyRequestToSale(sale, request, false);
+        applyRequestToSale(sale, request, false, id);
         return this.toTravelSaleResponse(travelSaleRepository.save(sale));
     }
 
@@ -67,15 +73,15 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         travelSaleResponse.setCurrency(travelSale.getCurrency());
         travelSaleResponse.setDescription(travelSale.getDescription());
         travelSaleResponse.setAgentId(travelSale.getAgentId());
-        travelSaleResponse.setCustomerId(travelSale.getCustomerId());
+        travelSaleResponse.setCustomerResponse(customerService.getById(travelSale.getCustomerId()));
         travelSaleResponse.setCreationDate(travelSale.getCreationDate());
         return travelSaleResponse;
     }
 
-    private void applyRequestToSale(TravelSale sale, TravelSaleRequest request, boolean isNew) {
+    private void applyRequestToSale(TravelSale sale, TravelSaleRequest request, boolean isNew, long customerId) {
 
         sale.setAgentId(request.getAgentId());
-        sale.setCustomerId(request.getCustomerId());
+        sale.setCustomerId(customerId);
         sale.setTravelDate(request.getTravelDate());
         sale.setDescription(request.getDescription());
         sale.setAmount(request.getAmount());

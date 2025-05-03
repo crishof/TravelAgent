@@ -1,10 +1,10 @@
 import { IBooking } from './booking.model';
-import { ICustomer } from './customer.model';
+import { ICustomerResponse } from './customerResponse.model';
 
 export interface ISale {
   id: number;
   agentId: number;
-  customer: ICustomer;
+  customerResponse: ICustomerResponse;
   creationDate: string;
   travelDate: string;
   amount: number;
