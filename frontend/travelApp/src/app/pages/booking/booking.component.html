@@ -1,35 +1,42 @@
 <div class="container-fluid">
-  <div class="table-responsive" id="table-container">
-    <table class="table table-stripped table-hover align-middle table-sm">
-      <thead class="table-primary">
-        <tr>
-          <th scope="col">#Id</th>
-          <th scope="col">Supplier</th>
-          <th scope="col">Booking number</th>
-          <th scope="col">Booking Date</th>
-          <th scope="col">Reservation Date</th>
-          <th scope="col">Description</th>
-          <th scope="col">Amount</th>
-          <th scope="col">Paid</th>
-        </tr>
-      </thead>
+  <div class="container mt-4 card">
+    <div class="card-header mt-3">
+      <h4>Bookings</h4>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive" id="table-container">
+        <table class="table table-stripped table-hover align-middle table-sm">
+          <thead class="table-primary">
+            <tr>
+              <th scope="col">#Id</th>
+              <th scope="col">Supplier</th>
+              <th scope="col">Booking number</th>
+              <th scope="col">Booking Date</th>
+              <th scope="col">Reservation Date</th>
+              <th scope="col">Description</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Paid</th>
+            </tr>
+          </thead>
 
-      <tbody>
-        @for (booking of bookingList; track $index) {
-        <tr>
-          <td>{{ booking.id }}</td>
-          <td>{{ booking.supplierName }}</td>
-          <td>{{ booking.bookingNumber }}</td>
-          <td>{{ booking.bookingDate }}</td>
-          <td>{{ booking.reservationDate }}</td>
-          <td>{{ booking.description }}</td>
-          <td>{{ booking.currency }} {{ booking.amount }}</td>
-          <td [ngStyle]="{ color: booking.paid ? 'black' : 'red' }">
-            {{ booking.paid ? "YES" : "NO" }}
-          </td>
-        </tr>
-        }
-      </tbody>
-    </table>
+          <tbody>
+            @for (booking of bookingList; track $index) {
+            <tr>
+              <td>{{ booking.id }}</td>
+              <td>{{ booking.supplierName }}</td>
+              <td>{{ booking.bookingNumber }}</td>
+              <td>{{ booking.bookingDate }}</td>
+              <td>{{ booking.reservationDate }}</td>
+              <td>{{ booking.description }}</td>
+              <td>{{ booking.currency }} {{ booking.amount }}</td>
+              <td [ngStyle]="{ color: booking.paid ? 'black' : 'red' }">
+                {{ booking.paid ? "YES" : "NO" }}
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
