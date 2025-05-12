@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { ISale } from '../../model/sale.model';
 import { SaleService } from '../../services/sale.service';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 @Component({
   selector: 'app-sale',
   standalone: true,
@@ -22,10 +22,15 @@ import { RouterLink } from '@angular/router';
 export class SaleComponent implements OnInit {
   saleList: ISale[] = [];
   readonly _saleService = inject(SaleService);
+  readonly _router = inject(Router);
 
   ngOnInit(): void {
     this._saleService.getAllSales().subscribe((data: ISale[]) => {
       this.saleList = data;
     });
+  }
+
+  goToDetails(saleId: number): void {
+    this._router.navigate([`/sale/sale-details`, saleId]);
   }
 }
