@@ -21,7 +21,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<PaymentResponse> getAll() {
-        return paymentRepository.findAll().stream().map(this::toPaymentResponse).sorted(Comparator.comparing(PaymentResponse::getPaymentDate)).toList();
+        return paymentRepository.findAll().stream()
+                .map(this::toPaymentResponse).sorted(Comparator.comparing(PaymentResponse::getPaymentDate)).toList();
     }
 
     @Override
@@ -55,6 +56,7 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRepository.delete(payment);
         return "Payment deleted successfully";
     }
+
 
     public PaymentResponse toPaymentResponse(Payment payment) {
         return PaymentResponse.builder()
