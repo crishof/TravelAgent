@@ -39,6 +39,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
                 .travelId(paymentRequest.getTravelId())
                 .customerId(paymentRequest.getCustomerId())
                 .amount(paymentRequest.getAmount())
+                .paymentMethod(paymentRequest.getPaymentMethod())
                 .currency(paymentRequest.getCurrency())
                 .build();
         return this.toCustomerPaymentResponse(customerPaymentRepository.save(payment));
@@ -66,6 +67,7 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
 
     public CustomerPaymentResponse toCustomerPaymentResponse(CustomerPayment payment) {
 
+        System.out.println("payment = " + payment);
         return CustomerPaymentResponse.builder()
                 .id(payment.getId())
                 .customerId(payment.getCustomerId())

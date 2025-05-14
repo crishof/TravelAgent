@@ -33,6 +33,8 @@ public class CustomerPaymentController {
 
     @PostMapping("/save")
     public ResponseEntity<CustomerPaymentResponse> save(@RequestBody CustomerPaymentRequest customerPaymentRequest) {
+
+        System.out.println("customerPaymentRequest = " + customerPaymentRequest);
         return ResponseEntity.ok(customerPaymentService.create(customerPaymentRequest));
     }
 

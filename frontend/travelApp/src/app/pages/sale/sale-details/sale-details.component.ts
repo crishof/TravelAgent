@@ -18,7 +18,7 @@ import { ICustomerPayment } from '../../../model/customerPayment.model';
 export class SaleDetailsComponent implements OnInit {
   constructor(readonly route: ActivatedRoute) {}
 
-  saleId: string | null = null;
+  saleId: number | null = null;
 
   sale: any;
   payments: ICustomerPayment[] = [];
@@ -28,11 +28,21 @@ export class SaleDetailsComponent implements OnInit {
   readonly _location = inject(Location);
   readonly _customerPaymentService = inject(CustomerPaymentService);
   isLoading: boolean = true;
+  isAddingPayment: boolean = false;
+  newPayment: ICustomerPayment = {
+    id: 0,
+    customerId: 0,
+    travelId: 0,
+    amount: 0,
+    currency: '',
+    paymentMethod: '',
+    paymentDate: '',
+  };
 
   ngOnInit() {
     const saleId = this.route.snapshot.paramMap.get('id');
-    if (saleId) {
-      this.saleId = saleId;
+    if (saleId && !isNaN(Number(saleId))) {
+      this.saleId = Number(saleId);
       this.loadSaleDetails(Number(saleId));
     }
   }
@@ -85,5 +95,32 @@ export class SaleDetailsComponent implements OnInit {
 
   goBack(): void {
     this._location.back();
+  }
+
+  togglePaymentForm() {
+    this.isAddingPayment = !this.isAddingPayment;
+  }
+
+  addPayment() {
+    if (!this.saleId || !this.sale.customerResponse) {
+      console.error('Sale ID or customer ID is missing.');
+      return;
+    }
+    const payment = {
+      ...this.newPayment,
+      paymentDate: new Date().toISOString(),
+      customerId: this.sale.customerResponse.id,
+      travelId: this.saleId,
+    };
+    this._customerPaymentService.addPayment(payment).subscribe({
+      next: (data) => {
+        console.log('Payment added successfully:', data);
+        this.isAddingPayment = false;
+        this.loadPayments(this.saleId!, this.sale.customerResponse.id);
+      },
+      error: (error) => {
+        console.error('Error adding payment:', error);
+      },
+    });
   }
 }

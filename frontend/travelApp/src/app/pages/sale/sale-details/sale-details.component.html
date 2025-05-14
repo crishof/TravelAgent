@@ -68,10 +68,70 @@
 
   <!-- Tabla de pagos realizados -->
   <div class="card mb-4">
-    <div class="card-header">
+    <div class="card-header d-flex align-items-center">
       <h5>Payments</h5>
+      <button
+        type="button"
+        class="btn btn-success ms-3"
+        (click)="togglePaymentForm()"
+      >
+        New
+      </button>
     </div>
     <div class="card-body">
+      @if(isAddingPayment){
+      <form (ngSubmit)="addPayment()">
+        <div class="row g-3 align-items-center">
+          <div class="col-md-2 mb-3">
+            <label for="amount" class="form-label">Amount</label>
+            <input
+              type="number"
+              id="amount"
+              class="form-control"
+              [(ngModel)]="newPayment.amount"
+              name="amount"
+              required
+            />
+          </div>
+          <div class="col-md-2 mb-3">
+            <label for="currency" class="form-label">Currency</label>
+            <select
+              id="currency"
+              class="form-select"
+              [(ngModel)]="newPayment.currency"
+              name="currency"
+              required
+            >
+              <option value="">Select Currency</option>
+              <option value="USD">USD</option>
+              <option value="EURO">EURO</option>
+            </select>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="paymentMethod" class="form-label">Payment Method</label>
+            <input
+              type="text"
+              id="paymentMethod"
+              class="form-control"
+              [(ngModel)]="newPayment.paymentMethod"
+              name="paymentMethod"
+              required
+            />
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary me-2">Save</button>
+            <button
+              type="button"
+              class="btn btn-danger"
+              (click)="togglePaymentForm()"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </form>
+      }
+
       <table class="table table-bordered">
         <thead class="table-light">
           <tr>
@@ -83,7 +143,7 @@
         <tbody>
           <tr *ngFor="let payment of payments">
             <td>{{ payment.paymentDate | date : "dd/MM/yyyy" }}</td>
-            <td>{{ payment.amount | currency : payment.currency }}</td>
+            <td>{{ payment.currency }} {{ payment.amount }}</td>
             <td>{{ payment.paymentMethod }}</td>
           </tr>
         </tbody>
@@ -93,6 +153,6 @@
         {{ pendingBalance | currency : sale?.currency }}
       </p>
     </div>
-    <a class="btn btn-danger mb-3 col-2" (click)="goBack()"> Back </a>
+    <a class="btn btn-danger m-3 col-2" (click)="goBack()"> Back </a>
   </div>
 </div>
