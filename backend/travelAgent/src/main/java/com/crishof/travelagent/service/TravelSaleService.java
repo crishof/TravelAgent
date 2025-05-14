@@ -16,4 +16,6 @@ public interface TravelSaleService {
     TravelSaleResponse update(Long id, TravelSaleRequest travelSaleRequest);
 
     String delete(Long id);
+
+    List<TravelSaleResponse> getAllByCustomerId(Long customerId);
 }

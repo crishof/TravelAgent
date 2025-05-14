@@ -26,8 +26,8 @@ public class TravelSaleServiceImpl implements TravelSaleService {
 
     @Override
     public List<TravelSaleResponse> getAll() {
-        List<TravelSale> sales = travelSaleRepository.findAll();
-        return sales.stream()
+
+        return travelSaleRepository.findAll().stream()
                 .sorted(Comparator.comparing(TravelSale::getTravelDate))
                 .map(this::toTravelSaleResponse)
                 .toList();
@@ -38,6 +38,15 @@ public class TravelSaleServiceImpl implements TravelSaleService {
 
         TravelSale sale = travelSaleRepository.findById(id).orElseThrow(() -> new TravelSaleNotFoundException(id));
         return this.toTravelSaleResponse(sale);
+    }
+
+    @Override
+    public List<TravelSaleResponse> getAllByCustomerId(Long customerId) {
+
+        return travelSaleRepository.findAllByCustomerId(customerId).stream()
+                .sorted(Comparator.comparing(TravelSale::getTravelDate).reversed())
+                .map(this::toTravelSaleResponse)
+                .toList();
     }
 
     @Override
