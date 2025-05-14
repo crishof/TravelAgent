@@ -23,4 +23,10 @@ export class SaleService {
   getSaleById(id: number): Observable<ISale[]> {
     return this._http.get<ISale[]>(`${this._urlBase}/getById/${id}`);
   }
+
+  getSalesByCustomerId(customerId: number): Observable<ISale[]> {
+    return this._http.get<ISale[]>(
+      `${this._urlBase}/getAllByCustomerId/${customerId}`
+    );
+  }
 }

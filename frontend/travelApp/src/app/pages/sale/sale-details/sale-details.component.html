@@ -18,6 +18,10 @@
         {{ sale.travelDate | date : "dd/MM/yyyy" }}
       </p>
       <p>
+        <strong>Description:</strong>
+        {{ sale.description }}
+      </p>
+      <p>
         <strong>Sale Amount:</strong>
         {{ sale.amount | currency : sale.currency }}
       </p>
