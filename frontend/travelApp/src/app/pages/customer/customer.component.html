@@ -16,7 +16,7 @@
 
           <tbody>
             @for (customer of customerList; track $index) {
-            <tr>
+            <tr (click)="goToDetails(customer.id)">
               <td>{{ customer.id }}</td>
               <td>{{ customer.name }}</td>
               <td>{{ customer.lastname }}</td>

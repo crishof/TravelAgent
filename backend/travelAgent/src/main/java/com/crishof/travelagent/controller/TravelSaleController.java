@@ -27,6 +27,11 @@ public class TravelSaleController {
         return ResponseEntity.ok(travelSaleService.getById(id));
     }
 
+    @GetMapping("/getAllByCustomerId/{id}")
+    public ResponseEntity<List<TravelSaleResponse>> getCustomerSales(@PathVariable("id") long id) {
+        return ResponseEntity.ok(travelSaleService.getAllByCustomerId(id));
+    }
+
     @PutMapping("/update/{id}")
     public ResponseEntity<TravelSaleResponse> update(@PathVariable("id") long id, @RequestBody TravelSaleRequest travelSaleRequest) {
         return ResponseEntity.ok(travelSaleService.update(id, travelSaleRequest));

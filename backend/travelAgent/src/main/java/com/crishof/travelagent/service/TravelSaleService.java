@@ -9,11 +9,13 @@ public interface TravelSaleService {
 
     List<TravelSaleResponse> getAll();
 
-    TravelSaleResponse getById(long id);
+    TravelSaleResponse getById(Long id);
 
     TravelSaleResponse create(TravelSaleRequest travelSaleRequest);
 
-    TravelSaleResponse update(long id, TravelSaleRequest travelSaleRequest);
+    TravelSaleResponse update(Long id, TravelSaleRequest travelSaleRequest);
 
-    String delete(long id);
+    String delete(Long id);
+
+    List<TravelSaleResponse> getAllByCustomerId(Long customerId);
 }

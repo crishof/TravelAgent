@@ -9,9 +9,9 @@
           <thead class="table-primary">
             <tr>
               <th scope="col">#Id</th>
+              <th scope="col">Booking Date</th>
               <th scope="col">Supplier</th>
               <th scope="col">Booking number</th>
-              <th scope="col">Booking Date</th>
               <th scope="col">Reservation Date</th>
               <th scope="col">Description</th>
               <th scope="col">Amount</th>
@@ -23,10 +23,10 @@
             @for (booking of bookingList; track $index) {
             <tr>
               <td>{{ booking.id }}</td>
+              <td>{{ booking.bookingDate | date : "dd/MM/yyyy" }}</td>
               <td>{{ booking.supplierName }}</td>
               <td>{{ booking.bookingNumber }}</td>
-              <td>{{ booking.bookingDate }}</td>
-              <td>{{ booking.reservationDate }}</td>
+              <td>{{ booking.reservationDate | date : "dd/MM/yyyy" }}</td>
               <td>{{ booking.description }}</td>
               <td>{{ booking.currency }} {{ booking.amount }}</td>
               <td [ngStyle]="{ color: booking.paid ? 'black' : 'red' }">

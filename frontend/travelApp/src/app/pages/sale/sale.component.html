@@ -23,12 +23,13 @@
               <th scope="col">Description</th>
               <th scope="col">Amount</th>
               <th scope="col">Services</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             @for (sale of saleList; track $index) {
-            <tr>
+            <tr (click)="goToDetails(sale.id)">
               <td>{{ sale.id }}</td>
               <td>{{ sale.agentId }}</td>
               <td>
@@ -46,6 +47,14 @@
                     {{ service.amount }}
                   </li>
                 </ul>
+              </td>
+              <td>
+                <a
+                  class="btn btn-outline-primary mb-3"
+                  routerLink="sale-details/{{ sale.id }}"
+                  routerLinkActive="router-link-active"
+                  >Details</a
+                >
               </td>
             </tr>
             }

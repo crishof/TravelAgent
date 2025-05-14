@@ -1,0 +1,54 @@
+<div class="container mt-4">
+  <!-- Información del cliente -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h4>Customer Details</h4>
+    </div>
+    <div class="card-body">
+      <p>
+        <strong>Name:</strong> {{ customer?.name }} {{ customer?.lastname }}
+      </p>
+      <p><strong>Email:</strong> {{ customer?.email }}</p>
+      <p><strong>Phone:</strong> {{ customer?.phone }}</p>
+      <p><strong>DNI:</strong> {{ customer?.dni }}</p>
+      <p><strong>Passport:</strong> {{ customer?.passport }}</p>
+    </div>
+  </div>
+
+  <!-- Lista de viajes -->
+  <div class="card">
+    <div class="card-header">
+      <h5>Trips</h5>
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered">
+        <thead class="table-light">
+          <tr>
+            <th>Trip ID</th>
+            <th>Destination</th>
+            <th>Travel Date</th>
+            <th>Amount</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let trip of trips">
+            <td>{{ trip.id }}</td>
+            <td>{{ trip.description }}</td>
+            <td>{{ trip.travelDate | date : "dd/MM/yyyy" }}</td>
+            <td>{{ trip.currency }} {{ trip.amount }}</td>
+
+            <td>
+              <a
+                class="btn btn-outline-primary btn-sm"
+                routerLink="'/sale/sale-details/' + trip.id"
+              >
+                View Details
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

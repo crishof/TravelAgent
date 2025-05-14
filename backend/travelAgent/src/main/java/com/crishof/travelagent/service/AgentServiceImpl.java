@@ -25,7 +25,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public AgentResponse getById(long id) {
+    public AgentResponse getById(Long id) {
 
         Agent agent = agentRepository.findById(id).orElseThrow(() -> new AgentNotFoundException(id));
         return this.toAgentResponse(agent);
@@ -46,7 +46,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public AgentResponse update(long id, AgentRequest agentRequest) {
+    public AgentResponse update(Long id, AgentRequest agentRequest) {
 
         Agent agent = agentRepository.findById(id).orElseThrow(() -> new AgentNotFoundException(id));
 
@@ -63,7 +63,7 @@ public class AgentServiceImpl implements AgentService {
     }
 
     @Override
-    public String delete(long id) {
+    public String delete(Long id) {
         Agent agent = agentRepository.findById(id).orElseThrow(() -> new AgentNotFoundException(id));
         agentRepository.delete(agent);
         return "Agent successfully deleted";

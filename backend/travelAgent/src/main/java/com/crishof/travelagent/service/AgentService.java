@@ -9,11 +9,11 @@ public interface AgentService {
 
     List<AgentResponse> getAll();
 
-    AgentResponse getById(long id);
+    AgentResponse getById(Long id);
 
     AgentResponse create(AgentRequest agentRequest);
 
-    AgentResponse update(long id, AgentRequest agentRequest);
+    AgentResponse update(Long id, AgentRequest agentRequest);
 
-    String delete(long id);
+    String delete(Long id);
 }

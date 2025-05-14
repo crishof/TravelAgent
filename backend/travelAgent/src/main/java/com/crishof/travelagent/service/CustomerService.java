@@ -9,13 +9,13 @@ public interface CustomerService {
 
     List<CustomerResponse> getAll();
 
-    CustomerResponse getById(long id);
+    CustomerResponse getById(Long id);
 
     CustomerResponse create(CustomerRequest customerRequest);
 
-    CustomerResponse update(long id, CustomerRequest customerRequest);
+    CustomerResponse update(Long id, CustomerRequest customerRequest);
 
-    String delete(long id);
+    String delete(Long id);
 
     Long getIdFromNewSale(CustomerRequest customerRequest);
 }
