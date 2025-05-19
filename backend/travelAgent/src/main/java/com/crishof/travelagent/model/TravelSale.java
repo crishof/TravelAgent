@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class TravelSale {
     private Long customerId;
     private LocalDate creationDate;
     private LocalDate travelDate;
-    private double amount;
+    private BigDecimal amount;
     private String currency;
     private String description;
 
