@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -89,7 +90,9 @@ public class TravelSaleServiceImpl implements TravelSaleService {
 
     private void applyRequestToSale(TravelSale sale, TravelSaleRequest request, boolean isNew, long customerId) {
 
-        sale.setAgentId(request.getAgentId());
+//      TODO  sale.setAgentId(request.getAgentId());
+
+        sale.setAgentId(ThreadLocalRandom.current().nextLong(1, 4));
         sale.setCustomerId(customerId);
         sale.setTravelDate(request.getTravelDate());
         sale.setDescription(request.getDescription());
