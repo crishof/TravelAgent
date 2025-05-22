@@ -1,5 +1,6 @@
 package com.crishof.travelagent.service;
 
+import com.crishof.travelagent.dto.CurrencyLatestResponse;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -39,8 +40,7 @@ public class CurrencyConversionService {
                 });
     }
 
-    // opción sincrónica si la necesitas:
     public BigDecimal getExchangeRateSync(String from, String to) {
-        return getExchangeRate(from, to).block(); // usar con precaución fuera de entornos reactivos
+        return getExchangeRate(from, to).block();
     }
 }

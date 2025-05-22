@@ -24,6 +24,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     private final TravelSaleRepository travelSaleRepository;
     private final BookingService bookingService;
     private final CustomerService customerService;
+    private final CurrencyConversionService currencyConversionService;
 
     @Override
     public List<TravelSaleResponse> getAll() {

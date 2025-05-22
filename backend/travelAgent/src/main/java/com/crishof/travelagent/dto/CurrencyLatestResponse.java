@@ -1,4 +1,4 @@
-package com.crishof.travelagent.service;
+package com.crishof.travelagent.dto;
 
 import lombok.Data;
 

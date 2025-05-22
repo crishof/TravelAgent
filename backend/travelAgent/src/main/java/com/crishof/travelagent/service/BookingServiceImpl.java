@@ -3,11 +3,13 @@ package com.crishof.travelagent.service;
 import com.crishof.travelagent.dto.BookingRequest;
 import com.crishof.travelagent.dto.BookingResponse;
 import com.crishof.travelagent.exception.BookingNotFoundException;
+import com.crishof.travelagent.exception.ExchangeRateNotAvailableException;
 import com.crishof.travelagent.model.Booking;
 import com.crishof.travelagent.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.List;
 public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
+    private final CurrencyConversionService currencyConversionService;
 
     @Override
     public List<BookingResponse> getAll() {
@@ -33,12 +36,24 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponse create(BookingRequest bookingRequest) {
+
+        String sourceCurrency = bookingRequest.getCurrency();
+        String targetCurrency = "USD".equals(sourceCurrency) ? "EUR" : "USD";
+
+        BigDecimal exchangeRate = currencyConversionService.getExchangeRate(sourceCurrency, targetCurrency)
+                .blockOptional()
+                .orElseThrow(() -> new ExchangeRateNotAvailableException(sourceCurrency, targetCurrency));
+
+        BigDecimal amountInSaleCurrency = bookingRequest.getAmount().multiply(exchangeRate);
+
+        bookingRequest.setExchangeRate(exchangeRate);
+        bookingRequest.setAmountInSaleCurrency(amountInSaleCurrency);
+
         return this.toBookingResponse(bookingRepository.save(this.toBooking(bookingRequest)));
     }
 
     @Override
     public Booking createEntity(BookingRequest bookingRequest) {
-
         return bookingRepository.save(this.toBooking(bookingRequest));
     }
 
@@ -83,6 +98,8 @@ public class BookingServiceImpl implements BookingService {
         bookingResponse.setAmount(booking.getAmount());
         bookingResponse.setCurrency(booking.getCurrency());
         bookingResponse.setPaid(booking.isPaid());
+        bookingResponse.setAmountInSaleCurrency(booking.getAmountInSaleCurrency());
+        bookingResponse.setExchangeRate(booking.getExchangeRate());
 
         return bookingResponse;
     }
@@ -97,6 +114,9 @@ public class BookingServiceImpl implements BookingService {
         booking.setAmount(bookingRequest.getAmount());
         booking.setCurrency(bookingRequest.getCurrency());
         booking.setSupplierId(bookingRequest.getSupplierId());
+        booking.setPaid(bookingRequest.isPaid());
+        booking.setExchangeRate(bookingRequest.getExchangeRate());
+        booking.setAmountInSaleCurrency(bookingRequest.getAmountInSaleCurrency());
         return booking;
     }
 }

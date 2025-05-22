@@ -21,5 +21,7 @@ public class BookingResponse {
     private String description;
     private BigDecimal amount;
     private String currency;
+    private BigDecimal exchangeRate;
+    private BigDecimal amountInSaleCurrency;
     private boolean paid;
 }

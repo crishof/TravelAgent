@@ -20,5 +20,7 @@ public class BookingRequest {
     private BigDecimal amount;
     private String currency;
     private boolean paid;
+    private BigDecimal exchangeRate;
+    private BigDecimal amountInSaleCurrency;
 
 }
