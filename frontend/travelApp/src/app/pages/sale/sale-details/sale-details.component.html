@@ -9,22 +9,75 @@
       @if(isLoading){
       <h2>Loading...</h2>
       }@else{
-      <p>
-        <strong>Passenger:</strong>
-        {{ sale.customerResponse?.lastname }}, {{ sale.customerResponse?.name }}
-      </p>
-      <p>
-        <strong>Trip date:</strong>
-        {{ sale.travelDate | date : "dd/MM/yyyy" }}
-      </p>
-      <p>
-        <strong>Description:</strong>
-        {{ sale.description }}
-      </p>
-      <p>
-        <strong>Sale Amount:</strong>
-        {{ sale.amount | currency : sale.currency }}
-      </p>
+
+      <div class="row">
+        <div class="col-md-6">
+          <p>
+            <strong>Passenger:</strong>
+            {{ sale.customerResponse?.lastname }},
+            {{ sale.customerResponse?.name }}
+          </p>
+          <p>
+            <strong>Trip date:</strong>
+            {{ sale.travelDate | date : "dd/MM/yyyy" }}
+          </p>
+          <p>
+            <strong>Description:</strong>
+            {{ sale.description }}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <div class="row">
+            <!-- Columna izquierda: Sale Amount y Pending Balance -->
+            <div class="col-md-6">
+              <div class="mb-3">
+                <div class="card text-bg-light">
+                  <div class="card-body">
+                    <h5 class="card-title mb-1">Sale Amount</h5>
+                    <p class="card-text fs-4 fw-bold mb-0">
+                      {{ sale.amount | currency : sale.currency }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div
+                  class="card"
+                  [ngClass]="
+                    pendingBalance > 0 ? 'text-bg-danger' : 'text-bg-light'
+                  "
+                >
+                  <div class="card-body">
+                    <h5 class="card-title mb-1">Pending Balance</h5>
+                    <p class="card-text fs-4 fw-bold mb-0">
+                      {{ pendingBalance | currency : sale?.currency }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna derecha: Current Fee -->
+            <div class="col-md-6 d-flex flex-column justify-content-between">
+              <div
+                class="card h-100"
+                [ngClass]="currentFee < 0 ? 'text-bg-danger' : 'text-bg-light'"
+              >
+                <div
+                  class="card-body d-flex flex-column justify-content-center align-items-center"
+                >
+                  <h5 class="card-title mb-1">Current Fee</h5>
+                  <p class="card-text fs-4 fw-bold mb-0">
+                    {{ currentFee | currency : sale?.currency }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       }
     </div>
   </div>

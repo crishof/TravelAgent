@@ -39,11 +39,14 @@ export class SaleDetailsComponent implements OnInit {
     paymentDate: '',
   };
 
+  currentFee: number = 0;
+
   ngOnInit() {
     const saleId = this.route.snapshot.paramMap.get('id');
     if (saleId && !isNaN(Number(saleId))) {
       this.saleId = Number(saleId);
       this.loadSaleDetails(Number(saleId));
+      this.loadCurrentFee(Number(saleId));
     }
   }
 
@@ -77,6 +80,18 @@ export class SaleDetailsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading sale details:', error);
+      },
+    });
+  }
+
+  loadCurrentFee(saleId: number): void {
+    this._saleService.getCurrentFee(saleId).subscribe({
+      next: (data) => {
+        this.currentFee = data;
+        console.log('Current fee:', this.currentFee);
+      },
+      error: (error) => {
+        console.error('Error loading current fee:', error);
       },
     });
   }
