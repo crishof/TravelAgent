@@ -6,11 +6,13 @@ import com.crishof.travelagent.dto.TravelSaleResponse;
 import com.crishof.travelagent.exception.BookingNotFoundException;
 import com.crishof.travelagent.exception.TravelSaleNotFoundException;
 import com.crishof.travelagent.model.Booking;
+import com.crishof.travelagent.model.CustomerPayment;
 import com.crishof.travelagent.model.TravelSale;
 import com.crishof.travelagent.repository.TravelSaleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -24,7 +26,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     private final TravelSaleRepository travelSaleRepository;
     private final BookingService bookingService;
     private final CustomerService customerService;
-    private final CurrencyConversionService currencyConversionService;
+    private final CustomerPaymentService customerPaymentService;
 
     @Override
     public List<TravelSaleResponse> getAll() {
@@ -72,6 +74,29 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         TravelSale sale = travelSaleRepository.findById(id).orElseThrow(() -> new TravelSaleNotFoundException(id));
         travelSaleRepository.delete(sale);
         return "Travel Sale with id " + id + " successfully deleted";
+    }
+
+    @Override
+    public BigDecimal getTravelFee(Long id) {
+        TravelSale travelSale = travelSaleRepository.findById(id)
+                .orElseThrow(() -> new TravelSaleNotFoundException(id));
+
+        BigDecimal totalPayments = BigDecimal.ZERO;
+        BigDecimal totalBookings = BigDecimal.ZERO;
+
+        List<CustomerPayment> payments = customerPaymentService.getAllByTravelId(id);
+        for (CustomerPayment payment : payments) {
+            totalPayments = totalPayments.add(payment.getAmount());
+        }
+
+        for (Booking booking : travelSale.getServices()) {
+
+            if (booking.isPaid()) {
+                totalBookings = totalBookings.add(booking.getAmountInSaleCurrency());
+            }
+        }
+
+        return totalBookings.subtract(totalPayments);
     }
 
     private TravelSaleResponse toTravelSaleResponse(TravelSale travelSale) {

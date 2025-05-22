@@ -2,6 +2,7 @@ package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.CustomerPaymentRequest;
 import com.crishof.travelagent.dto.CustomerPaymentResponse;
+import com.crishof.travelagent.model.CustomerPayment;
 
 import java.util.List;
 
@@ -18,4 +19,6 @@ public interface CustomerPaymentService {
     String delete(Long id);
 
     List<CustomerPaymentResponse> getAllByCustomerIdAndTravelId(Long customerId, Long travelId);
+
+    List<CustomerPayment> getAllByTravelId(Long travelId);
 }

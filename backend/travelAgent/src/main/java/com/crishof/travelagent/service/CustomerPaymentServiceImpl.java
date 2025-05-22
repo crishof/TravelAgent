@@ -67,7 +67,6 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
 
     public CustomerPaymentResponse toCustomerPaymentResponse(CustomerPayment payment) {
 
-        System.out.println("payment = " + payment);
         return CustomerPaymentResponse.builder()
                 .id(payment.getId())
                 .customerId(payment.getCustomerId())
@@ -83,5 +82,10 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
     public List<CustomerPaymentResponse> getAllByCustomerIdAndTravelId(Long customerId, Long travelId) {
         return customerPaymentRepository.findAllByCustomerIdAndTravelId(customerId, travelId).stream()
                 .map(this::toCustomerPaymentResponse).sorted(Comparator.comparing(CustomerPaymentResponse::getPaymentDate)).toList();
+    }
+
+    @Override
+    public List<CustomerPayment> getAllByTravelId(Long travelId) {
+        return customerPaymentRepository.findAllByTravelId(travelId);
     }
 }

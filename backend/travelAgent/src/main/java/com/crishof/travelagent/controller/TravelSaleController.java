@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -45,5 +46,10 @@ public class TravelSaleController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> delete(@PathVariable("id") long id) {
         return ResponseEntity.status(HttpStatus.OK).body(travelSaleService.delete(id));
+    }
+
+    @GetMapping("/getTravelFee/{id}")
+    public ResponseEntity<BigDecimal> getFee(@PathVariable long id) {
+        return ResponseEntity.ok(travelSaleService.getTravelFee(id));
     }
 }
