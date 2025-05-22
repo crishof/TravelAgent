@@ -129,6 +129,7 @@
             class="form-select"
             id="supplierId"
             formControlName="supplierId"
+            (change)="onSupplierChange()"
             required
           >
             <option value="">Select supplier</option>
@@ -170,7 +171,9 @@
         </div>
 
         <div class="col-md-4">
-          <label for="serviceAmount">Amount</label>
+          <label for="serviceAmount"
+            >Amount in {{ selectedSupplier?.currency || "" }}</label
+          >
           <input
             type="number"
             id="serviceAmount"
@@ -180,35 +183,36 @@
           />
         </div>
 
-        <div class="col-md-4">
-          <label for="currency">Currency</label>
-          <select
-            id="currency"
-            class="form-control"
-            formControlName="currency"
-            required
+        <div class="col-md-4 d-flex align-items-center gap-4">
+          <div
+            class="form-check d-flex align-items-center mb-0"
+            style="min-width: 120px"
           >
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-          </select>
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="paid"
+              formControlName="paid"
+              style="transform: scale(1.5); margin-right: 1rem"
+            />
+            <label
+              class="form-check-label fs-5"
+              for="paid"
+              style="margin-bottom: 0"
+            >
+              Paid
+            </label>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="addService()"
+            [disabled]="newServiceForm.invalid"
+          >
+            Add Service
+          </button>
         </div>
       </div>
-      <div class="row mt-3">
-        <div class="col-md-6">
-          <label>
-            <input type="checkbox" formControlName="paid" />
-            Paid
-          </label>
-        </div>
-      </div>
-      <button
-        type="button"
-        class="btn btn-primary mt-3"
-        (click)="addService()"
-        [disabled]="newServiceForm.invalid"
-      >
-        Add Service
-      </button>
     </form>
   </div>
 
@@ -218,7 +222,7 @@
     <table class="table table-bordered">
       <thead>
         <tr>
-          <th>Supplier ID</th>
+          <th>Supplier</th>
           <th>Booking Number</th>
           <th>Reservation Date</th>
           <th>Description</th>
@@ -233,7 +237,7 @@
           *ngFor="let service of servicesFormArray.controls; let i = index"
           [formGroupName]="i"
         >
-          <td>{{ service.get("supplierId")?.value }}</td>
+          <td>{{ getSupplierNameById(service.get("supplierId")?.value) }}</td>
           <td>{{ service.get("bookingNumber")?.value }}</td>
           <td>
             {{ service.get("reservationDate")?.value | date : "dd/MM/yyyy" }}

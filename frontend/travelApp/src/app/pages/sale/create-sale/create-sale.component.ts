@@ -31,6 +31,8 @@ export class CreateSaleComponent implements OnInit {
   readonly _saleService = inject(SaleService);
   readonly cdr = inject(ChangeDetectorRef);
 
+  selectedSupplier: ISupplier | null = null;
+
   ngOnInit(): void {
     this.loadSupplierList();
     this.initForm();
@@ -116,6 +118,7 @@ export class CreateSaleComponent implements OnInit {
       currency: 'USD',
       paid: false,
     });
+    this.selectedSupplier = null;
   }
 
   removeService(index: number) {
@@ -130,6 +133,21 @@ export class CreateSaleComponent implements OnInit {
 
   getLoggedAgent() {
     return 1;
+  }
+
+  onSupplierChange() {
+    const supplierId = this.newServiceForm.get('supplierId')?.value;
+    this.selectedSupplier =
+      this.supplierList.find((s) => s.id == supplierId) || null;
+    if (this.selectedSupplier) {
+      this.newServiceForm
+        .get('currency')
+        ?.setValue(this.selectedSupplier.currency);
+    }
+  }
+
+  getSupplierNameById(id: number): string {
+    return this.supplierList.find((s) => s.id == id)?.supplierName ?? '';
   }
 
   saveSale() {
