@@ -86,7 +86,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
 
         List<CustomerPayment> payments = customerPaymentService.getAllByTravelId(id);
         for (CustomerPayment payment : payments) {
-            totalPayments = totalPayments.add(payment.getAmount());
+            totalPayments = totalPayments.add(payment.getAmountInSaleCurrency());
         }
 
         for (Booking booking : travelSale.getServices()) {
@@ -96,7 +96,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
             }
         }
 
-        return totalBookings.subtract(totalPayments);
+        return totalPayments.subtract(totalBookings);
     }
 
     private TravelSaleResponse toTravelSaleResponse(TravelSale travelSale) {
@@ -128,9 +128,11 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         if (isNew) {
 
             sale.setCreationDate(LocalDate.now());
-            sale.setServices(request.getServices().stream()
-                    .map(bookingService::createEntity)
-                    .toList());
+            sale.setServices(
+                    request.getServices().stream()
+                            .map(service -> bookingService.createEntity(service, sale.getCurrency()))
+                            .toList()
+            );
         } else {
 
             List<Booking> updatedServices = new ArrayList<>();
@@ -155,7 +157,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
 
                 } else {
 
-                    Booking newBooking = bookingService.createEntity(req);
+                    Booking newBooking = bookingService.createEntity(req, sale.getCurrency());
                     updatedServices.add(newBooking);
                 }
             }
