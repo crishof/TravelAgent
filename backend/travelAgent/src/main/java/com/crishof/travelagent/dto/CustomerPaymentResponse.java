@@ -22,4 +22,6 @@ public class CustomerPaymentResponse {
     private String currency;
     private LocalDate paymentDate;
     private String paymentMethod;
+    private BigDecimal amountInSaleCurrency;
+    private BigDecimal exchangeRate;
 }

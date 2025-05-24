@@ -27,4 +27,6 @@ public class CustomerPayment {
     private String currency;
     private String paymentMethod;
     private LocalDate paymentDate;
+    private BigDecimal exchangeRate;
+    private BigDecimal amountInSaleCurrency;
 }

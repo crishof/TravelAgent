@@ -20,5 +20,6 @@ public class CustomerPaymentRequest {
     private BigDecimal amount;
     private String currency;
     private String paymentMethod;
+    private String saleCurrency;
 
 }
