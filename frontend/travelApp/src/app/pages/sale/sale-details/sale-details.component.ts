@@ -37,6 +37,9 @@ export class SaleDetailsComponent implements OnInit {
     currency: '',
     paymentMethod: '',
     paymentDate: '',
+    exchangeRate: 0,
+    amountInSaleCurrency: 0,
+    saleCurrency: '',
   };
 
   currentFee: number = 0;
@@ -88,7 +91,6 @@ export class SaleDetailsComponent implements OnInit {
     this._saleService.getCurrentFee(saleId).subscribe({
       next: (data) => {
         this.currentFee = data;
-        console.log('Current fee:', this.currentFee);
       },
       error: (error) => {
         console.error('Error loading current fee:', error);
@@ -99,7 +101,7 @@ export class SaleDetailsComponent implements OnInit {
   calculatePendingBalance(): void {
     if (this.sale && this.payments.length > 0) {
       const totalPayments = this.payments.reduce(
-        (sum, payment) => sum + payment.amount,
+        (sum, payment) => sum + payment.amountInSaleCurrency,
         0
       );
       this.pendingBalance = this.sale.amount - totalPayments;
@@ -126,12 +128,14 @@ export class SaleDetailsComponent implements OnInit {
       paymentDate: new Date().toISOString(),
       customerId: this.sale.customerResponse.id,
       travelId: this.saleId,
+      saleCurrency: this.sale.currency,
     };
     this._customerPaymentService.addPayment(payment).subscribe({
       next: (data) => {
         console.log('Payment added successfully:', data);
         this.isAddingPayment = false;
         this.loadPayments(this.saleId!, this.sale.customerResponse.id);
+        this.loadCurrentFee(this.saleId!);
       },
       error: (error) => {
         console.error('Error adding payment:', error);

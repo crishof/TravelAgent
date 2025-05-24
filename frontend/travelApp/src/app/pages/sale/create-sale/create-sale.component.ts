@@ -163,8 +163,8 @@ export class CreateSaleComponent implements OnInit {
           console.log('Sale created successfully:', response);
 
           // Reinicia el formulario principal y limpia los servicios
-          this.saleForm.reset();
-          this.servicesFormArray.clear();
+          //TODO this.saleForm.reset();
+          //TODO   t    his.servicesFormArray.clear();
 
           // Opcional: Marca el formulario como "pristine" y "untouched"
           this.saleForm.markAsPristine();
