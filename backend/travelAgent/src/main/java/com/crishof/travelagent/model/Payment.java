@@ -22,7 +22,6 @@ public class Payment {
     Long id;
 
     private Long bookingId;
-    private Long customerId;
     private LocalDate paymentDate;
     private BigDecimal amount;
     private String currency;

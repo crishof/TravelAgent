@@ -20,22 +20,20 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public List<CustomerResponse> getAll() {
         List<Customer> customers = customerRepository.findAll();
-        return customers.stream()
-                .map(this::toClientResponse)
-                .toList();
+        return customers.stream().map(this::toCustomerResponse).toList();
     }
 
     @Override
     public CustomerResponse getById(Long id) {
 
         Customer customer = customerRepository.findById(id).orElseThrow(() -> new ClientNotFoundException(id));
-        return this.toClientResponse(customer);
+        return this.toCustomerResponse(customer);
     }
 
     @Override
     public CustomerResponse create(CustomerRequest customerRequest) {
 
-        return this.toClientResponse(customerRepository.save(this.toClient(customerRequest)));
+        return this.toCustomerResponse(customerRepository.save(this.toCustomer(customerRequest)));
     }
 
     @Override
@@ -60,7 +58,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setDni(customerRequest.getDni());
         customer.setPassport(customerRequest.getPassport());
         customer.setPhone(customerRequest.getPhone());
-        return this.toClientResponse(customerRepository.save(customer));
+        return this.toCustomerResponse(customerRepository.save(customer));
     }
 
     @Override
@@ -70,7 +68,7 @@ public class CustomerServiceImpl implements CustomerService {
         return "Customer with id " + id + " deleted";
     }
 
-    private CustomerResponse toClientResponse(Customer customer) {
+    private CustomerResponse toCustomerResponse(Customer customer) {
         CustomerResponse customerResponse = new CustomerResponse();
 
         customerResponse.setId(customer.getId());
@@ -83,14 +81,13 @@ public class CustomerServiceImpl implements CustomerService {
         return customerResponse;
     }
 
-    private Customer toClient(CustomerRequest customerRequest) {
-        Customer customer = new Customer();
-        customer.setName(customerRequest.getName());
-        customer.setLastname(customerRequest.getLastname());
-        customer.setEmail(customerRequest.getEmail());
-        customer.setDni(customerRequest.getDni());
-        customer.setPassport(customerRequest.getPassport());
-        customer.setPhone(customerRequest.getPhone());
-        return customer;
+    private Customer toCustomer(CustomerRequest customerRequest) {
+
+        String name = customerRequest.getName();
+        String formattedName = name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
+
+
+        return Customer.builder().name(formattedName).lastname(customerRequest.getLastname().toUpperCase()).email(customerRequest.getEmail()).dni(customerRequest.getDni()).passport(customerRequest.getPassport()).phone(customerRequest.getPhone()).build();
+
     }
 }

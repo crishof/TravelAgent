@@ -6,4 +6,7 @@ export interface ICustomerPayment {
   currency: string;
   paymentMethod: string;
   paymentDate: string;
+  exchangeRate: number;
+  amountInSaleCurrency: number;
+  saleCurrency: string;
 }
