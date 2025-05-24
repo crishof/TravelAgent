@@ -12,9 +12,9 @@ public interface BookingService {
 
     BookingResponse getById(Long id);
 
-    BookingResponse create(BookingRequest bookingRequest);
+    BookingResponse create(BookingRequest bookingRequest, String saleCurrency);
 
-    Booking createEntity(BookingRequest bookingRequest);
+    Booking createEntity(BookingRequest bookingRequest, String saleCurrency);
 
     BookingResponse update(Long id, BookingRequest bookingRequest);
 

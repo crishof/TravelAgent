@@ -2,6 +2,7 @@ package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.BookingRequest;
 import com.crishof.travelagent.dto.BookingResponse;
+import com.crishof.travelagent.dto.CurrencyExchangeResponse;
 import com.crishof.travelagent.exception.BookingNotFoundException;
 import com.crishof.travelagent.exception.ExchangeRateNotAvailableException;
 import com.crishof.travelagent.model.Booking;
@@ -21,12 +22,11 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final CurrencyConversionService currencyConversionService;
 
+
     @Override
     public List<BookingResponse> getAll() {
         List<Booking> bookings = bookingRepository.findAll();
-        return bookings.stream()
-                .sorted(Comparator.comparing(Booking::getReservationDate))
-                .map(this::toBookingResponse).toList();
+        return bookings.stream().sorted(Comparator.comparing(Booking::getReservationDate)).map(this::toBookingResponse).toList();
     }
 
     @Override
@@ -35,25 +35,36 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingResponse create(BookingRequest bookingRequest) {
+    public BookingResponse create(BookingRequest bookingRequest, String saleCurrency) {
 
-        String sourceCurrency = bookingRequest.getCurrency();
-        String targetCurrency = "USD".equals(sourceCurrency) ? "EUR" : "USD";
+        if (bookingRequest.getCurrency().equals(saleCurrency)) {
 
-        BigDecimal exchangeRate = currencyConversionService.getExchangeRate(sourceCurrency, targetCurrency)
-                .blockOptional()
-                .orElseThrow(() -> new ExchangeRateNotAvailableException(sourceCurrency, targetCurrency));
+            bookingRequest.setExchangeRate(new BigDecimal(1));
+            bookingRequest.setAmountInSaleCurrency(bookingRequest.getAmount());
+        }
 
-        BigDecimal amountInSaleCurrency = bookingRequest.getAmount().multiply(exchangeRate);
+        CurrencyExchangeResponse currencyExchangeResponse = this.toCurrencyExchangeResponse(bookingRequest.getCurrency(), bookingRequest.getAmount());
+        bookingRequest.setExchangeRate(currencyExchangeResponse.getExchangeRate());
+        bookingRequest.setAmountInSaleCurrency(currencyExchangeResponse.getAmountInSaleCurrency());
 
-        bookingRequest.setExchangeRate(exchangeRate);
-        bookingRequest.setAmountInSaleCurrency(amountInSaleCurrency);
 
         return this.toBookingResponse(bookingRepository.save(this.toBooking(bookingRequest)));
     }
 
     @Override
-    public Booking createEntity(BookingRequest bookingRequest) {
+    public Booking createEntity(BookingRequest bookingRequest, String saleCurrency) {
+
+        if (bookingRequest.getCurrency().equals(saleCurrency)) {
+
+            bookingRequest.setExchangeRate(new BigDecimal(1));
+            bookingRequest.setAmountInSaleCurrency(bookingRequest.getAmount());
+
+        } else {
+            CurrencyExchangeResponse currencyExchangeResponse = this.toCurrencyExchangeResponse(bookingRequest.getCurrency(), bookingRequest.getAmount());
+            bookingRequest.setExchangeRate(currencyExchangeResponse.getExchangeRate());
+            bookingRequest.setAmountInSaleCurrency(currencyExchangeResponse.getAmountInSaleCurrency());
+        }
+
         return bookingRepository.save(this.toBooking(bookingRequest));
     }
 
@@ -69,6 +80,20 @@ public class BookingServiceImpl implements BookingService {
         booking.setDescription(bookingRequest.getDescription());
         return this.toBookingResponse(bookingRepository.save(booking));
 
+    }
+
+    private CurrencyExchangeResponse toCurrencyExchangeResponse(String sourceCurrency, BigDecimal amount) {
+
+        CurrencyExchangeResponse currencyExchangeResponse = new CurrencyExchangeResponse();
+        String targetCurrency = "USD".equals(sourceCurrency) ? "EUR" : "USD";
+        BigDecimal exchangeRate = currencyConversionService.getExchangeRate(sourceCurrency, targetCurrency).blockOptional().orElseThrow(() -> new ExchangeRateNotAvailableException(sourceCurrency, targetCurrency));
+
+        BigDecimal amountInSaleCurrency = amount.multiply(exchangeRate);
+
+        currencyExchangeResponse.setAmountInSaleCurrency(amountInSaleCurrency);
+        currencyExchangeResponse.setExchangeRate(exchangeRate);
+
+        return currencyExchangeResponse;
     }
 
     @Override
