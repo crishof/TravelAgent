@@ -18,7 +18,7 @@ import { ICustomerPayment } from '../../../model/customerPayment.model';
 export class SaleDetailsComponent implements OnInit {
   constructor(readonly route: ActivatedRoute) {}
 
-  saleId: string | null = null;
+  saleId: number | null = null;
 
   sale: any;
   payments: ICustomerPayment[] = [];
@@ -28,12 +28,28 @@ export class SaleDetailsComponent implements OnInit {
   readonly _location = inject(Location);
   readonly _customerPaymentService = inject(CustomerPaymentService);
   isLoading: boolean = true;
+  isAddingPayment: boolean = false;
+  newPayment: ICustomerPayment = {
+    id: 0,
+    customerId: 0,
+    travelId: 0,
+    amount: 0,
+    currency: '',
+    paymentMethod: '',
+    paymentDate: '',
+    exchangeRate: 0,
+    amountInSaleCurrency: 0,
+    saleCurrency: '',
+  };
+
+  currentFee: number = 0;
 
   ngOnInit() {
     const saleId = this.route.snapshot.paramMap.get('id');
-    if (saleId) {
-      this.saleId = saleId;
+    if (saleId && !isNaN(Number(saleId))) {
+      this.saleId = Number(saleId);
       this.loadSaleDetails(Number(saleId));
+      this.loadCurrentFee(Number(saleId));
     }
   }
 
@@ -71,10 +87,21 @@ export class SaleDetailsComponent implements OnInit {
     });
   }
 
+  loadCurrentFee(saleId: number): void {
+    this._saleService.getCurrentFee(saleId).subscribe({
+      next: (data) => {
+        this.currentFee = data;
+      },
+      error: (error) => {
+        console.error('Error loading current fee:', error);
+      },
+    });
+  }
+
   calculatePendingBalance(): void {
     if (this.sale && this.payments.length > 0) {
       const totalPayments = this.payments.reduce(
-        (sum, payment) => sum + payment.amount,
+        (sum, payment) => sum + payment.amountInSaleCurrency,
         0
       );
       this.pendingBalance = this.sale.amount - totalPayments;
@@ -85,5 +112,34 @@ export class SaleDetailsComponent implements OnInit {
 
   goBack(): void {
     this._location.back();
+  }
+
+  togglePaymentForm() {
+    this.isAddingPayment = !this.isAddingPayment;
+  }
+
+  addPayment() {
+    if (!this.saleId || !this.sale.customerResponse) {
+      console.error('Sale ID or customer ID is missing.');
+      return;
+    }
+    const payment = {
+      ...this.newPayment,
+      paymentDate: new Date().toISOString(),
+      customerId: this.sale.customerResponse.id,
+      travelId: this.saleId,
+      saleCurrency: this.sale.currency,
+    };
+    this._customerPaymentService.addPayment(payment).subscribe({
+      next: (data) => {
+        console.log('Payment added successfully:', data);
+        this.isAddingPayment = false;
+        this.loadPayments(this.saleId!, this.sale.customerResponse.id);
+        this.loadCurrentFee(this.saleId!);
+      },
+      error: (error) => {
+        console.error('Error adding payment:', error);
+      },
+    });
   }
 }

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -25,8 +26,10 @@ public class Booking {
     private LocalDate bookingDate;
     private LocalDate reservationDate;
     private String description;
-    private Double amount;
+    private BigDecimal amount;
     private String currency;
+    private BigDecimal exchangeRate;
+    private BigDecimal amountInSaleCurrency;
     private boolean paid;
 
 }

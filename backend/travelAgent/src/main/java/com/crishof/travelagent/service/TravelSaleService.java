@@ -3,6 +3,7 @@ package com.crishof.travelagent.service;
 import com.crishof.travelagent.dto.TravelSaleRequest;
 import com.crishof.travelagent.dto.TravelSaleResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface TravelSaleService {
@@ -18,4 +19,6 @@ public interface TravelSaleService {
     String delete(Long id);
 
     List<TravelSaleResponse> getAllByCustomerId(Long customerId);
+
+    BigDecimal getTravelFee(Long id);
 }

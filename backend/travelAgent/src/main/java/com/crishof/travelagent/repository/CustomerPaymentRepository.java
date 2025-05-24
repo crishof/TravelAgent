@@ -10,4 +10,6 @@ import java.util.List;
 public interface CustomerPaymentRepository extends JpaRepository<CustomerPayment, Long> {
 
     List<CustomerPayment> findAllByCustomerIdAndTravelId(Long customerId, Long travelId);
+
+    List<CustomerPayment> findAllByTravelId(Long travelId);
 }

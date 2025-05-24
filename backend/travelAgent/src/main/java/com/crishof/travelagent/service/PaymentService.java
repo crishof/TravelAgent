@@ -4,6 +4,7 @@ package com.crishof.travelagent.service;
 import com.crishof.travelagent.dto.PaymentRequest;
 import com.crishof.travelagent.dto.PaymentResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface PaymentService {
@@ -17,4 +18,6 @@ public interface PaymentService {
     PaymentResponse update(Long id, PaymentRequest paymentRequest);
 
     String delete(Long id);
+
+    void createFromBooking(Long id, BigDecimal amount, String currency);
 }

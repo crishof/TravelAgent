@@ -8,6 +8,7 @@ import com.crishof.travelagent.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -21,6 +22,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<PaymentResponse> getAll() {
+
         return paymentRepository.findAll().stream()
                 .map(this::toPaymentResponse).sorted(Comparator.comparing(PaymentResponse::getPaymentDate)).toList();
     }
@@ -32,8 +34,20 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentResponse create(PaymentRequest paymentRequest) {
+
         bookingService.payBooking(paymentRequest.getBookingId(), true);
         return this.toPaymentResponse(paymentRepository.save(toPayment(paymentRequest)));
+    }
+
+    @Override
+    public void createFromBooking(Long id, BigDecimal amount, String currency) {
+
+        paymentRepository.save(Payment.builder()
+                .paymentDate(LocalDate.now())
+                .bookingId(id)
+                .amount(amount)
+                .currency(currency)
+                .build());
     }
 
     @Override
@@ -44,7 +58,6 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setAmount(paymentRequest.getAmount());
         payment.setCurrency(paymentRequest.getCurrency());
         payment.setBookingId(paymentRequest.getBookingId());
-        payment.setCustomerId(paymentRequest.getCustomerId());
         return this.toPaymentResponse(paymentRepository.save(payment));
 
     }
@@ -63,7 +76,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .id(payment.getId())
                 .paymentDate(payment.getPaymentDate())
                 .bookingId(payment.getBookingId())
-                .customerId(payment.getCustomerId())
                 .amount(payment.getAmount())
                 .currency(payment.getCurrency())
                 .build();
@@ -73,7 +85,6 @@ public class PaymentServiceImpl implements PaymentService {
         return Payment.builder()
                 .paymentDate(LocalDate.now())
                 .bookingId(paymentRequest.getBookingId())
-                .customerId(paymentRequest.getCustomerId())
                 .amount(paymentRequest.getAmount())
                 .currency(paymentRequest.getCurrency())
                 .build();

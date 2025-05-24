@@ -29,4 +29,8 @@ export class SaleService {
       `${this._urlBase}/getAllByCustomerId/${customerId}`
     );
   }
+
+  getCurrentFee(saleId: number): Observable<number> {
+    return this._http.get<number>(`${this._urlBase}/getTravelFee/${saleId}`);
+  }
 }

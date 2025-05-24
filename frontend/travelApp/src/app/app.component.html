@@ -70,6 +70,21 @@
           >
         </li>
       </ul>
+      <div class="d-flex align-items-center ms-auto me-3">
+        <span
+          class="badge bg-info-subtle text-dark fs-6"
+          style="cursor: pointer"
+          (click)="toggleExchangeDirection()"
+          title="Click to invert conversion"
+        >
+          <i class="bi bi-currency-exchange me-1"></i>
+          Currency Exchange:
+          <strong
+            >1 {{ fromCurrency }} = {{ displayRate | number : "1.4-4" }}
+            {{ toCurrency }}</strong
+          >
+        </span>
+      </div>
       <form class="d-flex" role="search">
         <input
           class="form-control me-2"

@@ -3,6 +3,7 @@ package com.crishof.travelagent.controller;
 import com.crishof.travelagent.dto.BookingRequest;
 import com.crishof.travelagent.dto.BookingResponse;
 import com.crishof.travelagent.service.BookingService;
+import com.crishof.travelagent.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final PaymentService paymentService;
 
     @GetMapping("/getAll")
     public ResponseEntity<List<BookingResponse>> getAll() {
@@ -34,7 +36,14 @@ public class BookingController {
 
     @PostMapping("/save")
     public ResponseEntity<BookingResponse> save(@RequestBody BookingRequest bookingRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(bookingService.create(bookingRequest));
+
+        BookingResponse bookingResponse = bookingService.create(bookingRequest, bookingRequest.getSaleCurrency());
+
+        if (bookingRequest.isPaid()) {
+            paymentService.createFromBooking(bookingRequest.getId(), bookingRequest.getAmount(), bookingRequest.getCurrency());
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookingResponse);
     }
 
     @DeleteMapping("/delete/{id}")

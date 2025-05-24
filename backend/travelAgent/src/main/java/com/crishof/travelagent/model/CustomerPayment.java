@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -22,8 +23,10 @@ public class CustomerPayment {
 
     private Long customerId;
     private Long travelId;
-    private double amount;
+    private BigDecimal amount;
     private String currency;
     private String paymentMethod;
     private LocalDate paymentDate;
+    private BigDecimal exchangeRate;
+    private BigDecimal amountInSaleCurrency;
 }

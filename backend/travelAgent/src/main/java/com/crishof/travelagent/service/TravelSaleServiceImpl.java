@@ -6,16 +6,19 @@ import com.crishof.travelagent.dto.TravelSaleResponse;
 import com.crishof.travelagent.exception.BookingNotFoundException;
 import com.crishof.travelagent.exception.TravelSaleNotFoundException;
 import com.crishof.travelagent.model.Booking;
+import com.crishof.travelagent.model.CustomerPayment;
 import com.crishof.travelagent.model.TravelSale;
 import com.crishof.travelagent.repository.TravelSaleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     private final TravelSaleRepository travelSaleRepository;
     private final BookingService bookingService;
     private final CustomerService customerService;
+    private final CustomerPaymentService customerPaymentService;
 
     @Override
     public List<TravelSaleResponse> getAll() {
@@ -72,6 +76,29 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         return "Travel Sale with id " + id + " successfully deleted";
     }
 
+    @Override
+    public BigDecimal getTravelFee(Long id) {
+        TravelSale travelSale = travelSaleRepository.findById(id)
+                .orElseThrow(() -> new TravelSaleNotFoundException(id));
+
+        BigDecimal totalPayments = BigDecimal.ZERO;
+        BigDecimal totalBookings = BigDecimal.ZERO;
+
+        List<CustomerPayment> payments = customerPaymentService.getAllByTravelId(id);
+        for (CustomerPayment payment : payments) {
+            totalPayments = totalPayments.add(payment.getAmountInSaleCurrency());
+        }
+
+        for (Booking booking : travelSale.getServices()) {
+
+            if (booking.isPaid()) {
+                totalBookings = totalBookings.add(booking.getAmountInSaleCurrency());
+            }
+        }
+
+        return totalPayments.subtract(totalBookings);
+    }
+
     private TravelSaleResponse toTravelSaleResponse(TravelSale travelSale) {
         TravelSaleResponse travelSaleResponse = new TravelSaleResponse();
 
@@ -89,7 +116,9 @@ public class TravelSaleServiceImpl implements TravelSaleService {
 
     private void applyRequestToSale(TravelSale sale, TravelSaleRequest request, boolean isNew, long customerId) {
 
-        sale.setAgentId(request.getAgentId());
+//      TODO  sale.setAgentId(request.getAgentId());
+
+        sale.setAgentId(ThreadLocalRandom.current().nextLong(1, 4));
         sale.setCustomerId(customerId);
         sale.setTravelDate(request.getTravelDate());
         sale.setDescription(request.getDescription());
@@ -99,9 +128,11 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         if (isNew) {
 
             sale.setCreationDate(LocalDate.now());
-            sale.setServices(request.getServices().stream()
-                    .map(bookingService::createEntity)
-                    .toList());
+            sale.setServices(
+                    request.getServices().stream()
+                            .map(service -> bookingService.createEntity(service, sale.getCurrency()))
+                            .toList()
+            );
         } else {
 
             List<Booking> updatedServices = new ArrayList<>();
@@ -126,7 +157,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
 
                 } else {
 
-                    Booking newBooking = bookingService.createEntity(req);
+                    Booking newBooking = bookingService.createEntity(req, sale.getCurrency());
                     updatedServices.add(newBooking);
                 }
             }

@@ -20,4 +20,9 @@ export class CustomerPaymentService {
       `${this._urlBase}/customers/${customerId}/travel/${saleId}/payments`
     );
   }
+
+  addPayment(payment: ICustomerPayment): Observable<ICustomerPayment> {
+    console.log('Adding payment:', payment);
+    return this._http.post<ICustomerPayment>(`${this._urlBase}/save`, payment);
+  }
 }

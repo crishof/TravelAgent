@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @AllArgsConstructor
@@ -15,9 +16,9 @@ public class PaymentRequest {
 
     Long id;
 
-    Long bookingId;
-    Long customerId;
-    LocalDate paymentDate;
-    double amount;
-    String currency;
+    private Long bookingId;
+    private Long customerId;
+    private LocalDate paymentDate;
+    private BigDecimal amount;
+    private String currency;
 }
