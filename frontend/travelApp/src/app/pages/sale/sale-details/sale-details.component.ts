@@ -68,7 +68,6 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   loadSaleDetails(saleId: number): void {
-    console.log('Loading sale details for ID:', saleId);
     this._saleService.getSaleById(saleId).subscribe({
       next: (data) => {
         this.sale = data;

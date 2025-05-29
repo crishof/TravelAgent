@@ -22,7 +22,6 @@ export class CustomerPaymentService {
   }
 
   addPayment(payment: ICustomerPayment): Observable<ICustomerPayment> {
-    console.log('Adding payment:', payment);
     return this._http.post<ICustomerPayment>(`${this._urlBase}/save`, payment);
   }
 }
