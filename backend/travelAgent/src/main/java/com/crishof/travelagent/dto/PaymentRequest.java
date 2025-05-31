@@ -14,11 +14,9 @@ import java.time.LocalDate;
 @Builder
 public class PaymentRequest {
 
-    Long id;
-
     private Long bookingId;
-    private Long customerId;
     private LocalDate paymentDate;
     private BigDecimal amount;
     private String currency;
+    private String description;
 }

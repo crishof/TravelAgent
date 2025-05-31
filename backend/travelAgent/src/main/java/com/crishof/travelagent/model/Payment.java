@@ -25,4 +25,5 @@ public class Payment {
     private LocalDate paymentDate;
     private BigDecimal amount;
     private String currency;
+    private String description;
 }

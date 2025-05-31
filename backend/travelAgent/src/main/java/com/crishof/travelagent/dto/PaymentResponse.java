@@ -20,4 +20,5 @@ public class PaymentResponse {
     private Long customerId;
     private LocalDate paymentDate;
     private BigDecimal amount;
+    private String description;
 }

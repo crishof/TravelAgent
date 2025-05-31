@@ -58,6 +58,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setAmount(paymentRequest.getAmount());
         payment.setCurrency(paymentRequest.getCurrency());
         payment.setBookingId(paymentRequest.getBookingId());
+        payment.setDescription(paymentRequest.getDescription());
         return this.toPaymentResponse(paymentRepository.save(payment));
 
     }
@@ -78,6 +79,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .bookingId(payment.getBookingId())
                 .amount(payment.getAmount())
                 .currency(payment.getCurrency())
+                .description(payment.getDescription())
                 .build();
     }
 
@@ -87,6 +89,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .bookingId(paymentRequest.getBookingId())
                 .amount(paymentRequest.getAmount())
                 .currency(paymentRequest.getCurrency())
+                .description(paymentRequest.getDescription())
                 .build();
     }
 }
