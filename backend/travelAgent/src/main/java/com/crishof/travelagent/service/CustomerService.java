@@ -18,4 +18,6 @@ public interface CustomerService {
     String delete(Long id);
 
     Long getIdFromNewSale(CustomerRequest customerRequest);
+
+    List<CustomerResponse> globalSearch(String searchTerm);
 }

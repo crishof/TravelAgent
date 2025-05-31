@@ -68,6 +68,13 @@ public class CustomerServiceImpl implements CustomerService {
         return "Customer with id " + id + " deleted";
     }
 
+    @Override
+    public List<CustomerResponse> globalSearch(String searchTerm) {
+
+        List<Customer> customers = customerRepository.globalSearch(searchTerm);
+        return customers.stream().map(this::toCustomerResponse).toList();
+    }
+
     private CustomerResponse toCustomerResponse(Customer customer) {
         CustomerResponse customerResponse = new CustomerResponse();
 

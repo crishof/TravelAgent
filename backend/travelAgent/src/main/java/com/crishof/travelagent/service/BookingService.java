@@ -25,4 +25,6 @@ public interface BookingService {
     BookingResponse toBookingResponse(Booking booking);
 
     void payBooking(Long id, boolean paid);
+
+    List<BookingResponse> findAllByBookingNumber(String bookingNumber);
 }

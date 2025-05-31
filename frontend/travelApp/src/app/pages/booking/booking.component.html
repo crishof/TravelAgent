@@ -29,8 +29,46 @@
               <td>{{ booking.reservationDate | date : "dd/MM/yyyy" }}</td>
               <td>{{ booking.description }}</td>
               <td>{{ booking.currency }} {{ booking.amount }}</td>
-              <td [ngStyle]="{ color: booking.paid ? 'black' : 'red' }">
-                {{ booking.paid ? "YES" : "NO" }}
+              <td
+                (mouseenter)="hoveredBookingId = booking.id"
+                (mouseleave)="hoveredBookingId = null"
+                [ngStyle]="{ color: booking.paid ? 'black' : 'red' }"
+                style="min-width: 70px; text-align: center"
+              >
+                <span style="display: inline-block; width: 56px">
+                  <ng-container
+                    *ngIf="
+                      !booking.paid && hoveredBookingId === booking.id;
+                      else paidStatus
+                    "
+                  >
+                    <a
+                      class="btn btn-sm btn-outline-danger py-0"
+                      style="width: 48px; font-size: 0.95rem; padding: 2px 0"
+                      (click)="openPaymentModal(booking)"
+                      >Pay</a
+                    >
+                    <app-payment-modal
+                      [show]="showPaymentModal"
+                      [bookingId]="selectedBookingId"
+                      [supplierName]="selectedSupplierName"
+                      [bookingNumber]="selectedBookingNumber"
+                      (close)="closePaymentModal()"
+                      (paymentRegistered)="onPaymentRegistered($event)"
+                    ></app-payment-modal>
+                  </ng-container>
+                  <ng-template #paidStatus>
+                    <span
+                      style="
+                        width: 48px;
+                        display: inline-block;
+                        text-align: center;
+                      "
+                    >
+                      {{ booking.paid ? "YES" : "NO" }}
+                    </span>
+                  </ng-template>
+                </span>
               </td>
             </tr>
             }

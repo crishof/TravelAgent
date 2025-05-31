@@ -111,6 +111,12 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public List<BookingResponse> findAllByBookingNumber(String searchTerm) {
+
+        return bookingRepository.findAllByBookingNumber(searchTerm).stream().map(this::toBookingResponse).toList();
+    }
+
+    @Override
     public BookingResponse toBookingResponse(Booking booking) {
 
         BookingResponse bookingResponse = new BookingResponse();

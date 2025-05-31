@@ -15,4 +15,8 @@ export class PaymentService {
   getPaymentsBySaleId(id: number): Observable<IPayment[]> {
     return this._http.get<IPayment[]>(`${this._urlBase}/getAllBySaleId/${id}`);
   }
+
+  savePayment(payment: IPayment): Observable<IPayment> {
+    return this._http.post<IPayment>(`${this._urlBase}/save`, payment);
+  }
 }
