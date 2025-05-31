@@ -2,7 +2,7 @@ export interface ICustomerPayment {
   id: number;
   customerId: number;
   travelId: number;
-  amount: number;
+  amount: number | null;
   currency: string;
   paymentMethod: string;
   paymentDate: string;

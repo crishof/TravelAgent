@@ -33,7 +33,7 @@ export class SaleDetailsComponent implements OnInit {
     id: 0,
     customerId: 0,
     travelId: 0,
-    amount: 0,
+    amount: null,
     currency: '',
     paymentMethod: '',
     paymentDate: '',
