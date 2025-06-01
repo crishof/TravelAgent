@@ -23,7 +23,11 @@ public class CurrencyConversionService {
     }
 
     public Mono<BigDecimal> getExchangeRate(String from, String to) {
-        String apiKey = dotenv.get("FREE_CURRENCY_APIKEY");
+        String apiKey = System.getenv("FREE_CURRENCY_APIKEY");
+
+        if (apiKey == null) {
+            throw new IllegalStateException("API key for currency conversion is missing.");
+        }
 
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
