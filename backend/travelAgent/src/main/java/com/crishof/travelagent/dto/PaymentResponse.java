@@ -17,7 +17,6 @@ public class PaymentResponse {
     Long id;
     String currency;
     private Long bookingId;
-    private Long customerId;
     private LocalDate paymentDate;
     private BigDecimal amount;
     private String description;

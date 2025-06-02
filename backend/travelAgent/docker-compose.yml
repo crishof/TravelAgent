@@ -1,6 +1,8 @@
 services:
   postgres:
     image: postgres
+    networks:
+      - travelAgent-network
     container_name: travelagent_db
     restart: always
     environment:
@@ -14,6 +16,8 @@ services:
 
   backend:
     build: .
+    networks:
+      - travelAgent-network
     container_name: travelagent-backend
     depends_on:
       - postgres
@@ -26,5 +30,24 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       FREE_CURRENCY_APIKEY: ${FREE_CURRENCY_APIKEY} # Obtiene desde el  .env
 
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "80:80"
+    depends_on:
+      - postgres
+    networks:
+      - travelAgent-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
 volumes:
   postgres_data:
+  pgadmin_data:
+networks:
+  travelAgent-network:
+    driver: bridge
