@@ -32,7 +32,10 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     public List<TravelSaleResponse> getAll() {
 
         return travelSaleRepository.findAll().stream()
-                .sorted(Comparator.comparing(TravelSale::getTravelDate))
+                .sorted(Comparator.comparing(
+                        TravelSale::getTravelDate,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                ))
                 .map(this::toTravelSaleResponse)
                 .toList();
     }
