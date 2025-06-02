@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.crishof</groupId>
     <artifactId>travelAgent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>travelAgent</name>
     <description>travelAgent</description>
     <url/>

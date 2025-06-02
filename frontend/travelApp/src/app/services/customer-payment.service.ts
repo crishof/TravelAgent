@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ICustomerPayment } from '../model/customerPayment.model';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -10,7 +11,7 @@ export class CustomerPaymentService {
   constructor() {}
 
   readonly _http = inject(HttpClient);
-  readonly _urlBase = `http://localhost:9001/customerPayment`;
+  readonly _urlBase = `${environment.apiUrl}/customerPayment`;
 
   getPaymentsByCustomerAndSaleId(
     customerId: number,

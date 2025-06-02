@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ISale } from '../model/sale.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -10,7 +11,7 @@ export class SaleService {
   constructor() {}
 
   readonly _http = inject(HttpClient);
-  readonly _urlBase = `http://localhost:9001/travelSale`;
+  readonly _urlBase = `${environment.apiUrl}/travelSale`;
 
   getAllSales(): Observable<ISale[]> {
     return this._http.get<ISale[]>(`${this._urlBase}/getAll`);

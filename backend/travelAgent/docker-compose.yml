@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres
+    container_name: travelagent_db
+    restart: always
+    environment:
+      POSTGRES_DB: travel_agent_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root1234
+    ports:
+      - "55432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: travelagent-backend
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      JDBC_DATABASE_URL: jdbc:postgresql://postgres:5432/travel_agent_db
+      JDBC_DATABASE_USERNAME: postgres
+      JDBC_DATABASE_PASSWORD: root1234
+      SPRING_PROFILES_ACTIVE: prod
+      FREE_CURRENCY_APIKEY: ${FREE_CURRENCY_APIKEY} # Obtiene desde el  .env
+
+volumes:
+  postgres_data:

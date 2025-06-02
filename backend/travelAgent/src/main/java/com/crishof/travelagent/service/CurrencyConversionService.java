@@ -1,8 +1,7 @@
 package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.CurrencyLatestResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -13,33 +12,20 @@ import java.util.Map;
 @Service
 public class CurrencyConversionService {
 
-    private static final Logger logger = LoggerFactory.getLogger(CurrencyConversionService.class);
     private final WebClient webClient;
+    private final String apiKey;
 
-    public CurrencyConversionService() {
-        logger.info("Inicializando CurrencyConversionService...");
-
-        this.webClient = WebClient.builder()
+    public CurrencyConversionService(
+            WebClient.Builder webClientBuilder,
+            @Value("${FREE_CURRENCY_APIKEY}") String apiKey
+    ) {
+        this.webClient = webClientBuilder
                 .baseUrl("https://api.freecurrencyapi.com/v1")
                 .build();
-
-        try {
-
-            String apiKey = System.getenv("FREE_CURRENCY_APIKEY");
-            if (apiKey == null || apiKey.isBlank()) {
-                logger.error("❌ FREE_CURRENCY_APIKEY no está definida en el entorno.");
-                throw new IllegalStateException("FREE_CURRENCY_APIKEY es obligatoria.");
-            } else {
-                logger.info("✅ FREE_CURRENCY_APIKEY encontrada correctamente.");
-            }
-        } catch (Exception e) {
-            logger.error("Error al inicializar CurrencyConversionService", e);
-            throw e; // Relanzado para ver en Railway
-        }
+        this.apiKey = apiKey;
     }
 
     public Mono<BigDecimal> getExchangeRate(String from, String to) {
-        String apiKey = System.getenv("FREE_CURRENCY_APIKEY");
 
         if (apiKey == null) {
             throw new IllegalStateException("API key for currency conversion is missing.");
