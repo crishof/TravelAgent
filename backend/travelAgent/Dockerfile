@@ -1,14 +1,14 @@
 # Etapa 1: Construcción del JAR usando Maven
-FROM maven:3.9-eclipse-temurin-17 AS builder
+FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 COPY . .
-RUN mvn clean package -DskipTests
+RUN ./mvnw clean package -DskipTests
 
 # Etapa 2: Imagen final liviana
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
-# Copia el JAR compilado desde el builder
+# Copia el JAR compilado desde la etapa anterior
 COPY --from=builder /app/target/travelAgent-0.0.1.jar travelAgent.jar
 
 LABEL authors="cristian"
