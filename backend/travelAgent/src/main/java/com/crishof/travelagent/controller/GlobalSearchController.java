@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/globalSearch")
+@RequestMapping("/api/globalSearch")
 @RequiredArgsConstructor
 public class GlobalSearchController {
 

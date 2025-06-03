@@ -47,7 +47,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .bookingId(id)
                 .amount(amount)
                 .currency(currency)
-                        .description("Created by booking service")
+                .description("Created by booking service")
                 .build());
     }
 
