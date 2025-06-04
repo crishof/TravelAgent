@@ -30,7 +30,7 @@ public class CorsConfig {
                 // Producción
                 else {
                     registry.addMapping("/api/**")
-                            .allowedOrigins("https://travel-agent-git-main-crishofs-projects.vercel.app")
+                            .allowedOriginPatterns("https://*.vercel.app")
                             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                             .allowedHeaders("*")
                             .allowCredentials(true);
