@@ -8,12 +8,11 @@
         <table class="table table-stripped table-hover align-middle table-sm">
           <thead class="table-primary">
             <tr>
-              <th scope="col">#Id</th>
-              <th scope="col">Booking Date</th>
               <th scope="col">Supplier</th>
               <th scope="col">Booking number</th>
-              <th scope="col">Reservation Date</th>
+              <th scope="col">Booking Date</th>
               <th scope="col">Description</th>
+              <th scope="col">Reservation Date</th>
               <th scope="col">Amount</th>
               <th scope="col">Paid</th>
             </tr>
@@ -22,12 +21,11 @@
           <tbody>
             @for (booking of bookingList; track $index) {
             <tr>
-              <td>{{ booking.id }}</td>
-              <td>{{ booking.bookingDate | date : "dd/MM/yyyy" }}</td>
               <td>{{ booking.supplierName }}</td>
               <td>{{ booking.bookingNumber }}</td>
-              <td>{{ booking.reservationDate | date : "dd/MM/yyyy" }}</td>
+              <td>{{ booking.bookingDate | date : "dd/MM/yyyy" }}</td>
               <td>{{ booking.description }}</td>
+              <td>{{ booking.reservationDate | date : "dd/MM/yyyy" }}</td>
               <td>{{ booking.currency }} {{ booking.amount }}</td>
               <td
                 (mouseenter)="hoveredBookingId = booking.id"

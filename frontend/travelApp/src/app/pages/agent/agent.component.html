@@ -8,7 +8,6 @@
         <table class="table table-stripped table-hover align-middle table-sm">
           <thead class="table-primary">
             <tr>
-              <th scope="col">#Id</th>
               <th scope="col">Name</th>
               <th scope="col">Lastame</th>
               <th scope="col">Username</th>
@@ -18,7 +17,6 @@
           <tbody>
             @for (agent of agentList; track $index) {
             <tr>
-              <td>{{ agent.id }}</td>
               <td>{{ agent.name }}</td>
               <td>{{ agent.lastname }}</td>
               <td>{{ agent.username }}</td>

@@ -8,7 +8,6 @@
         <table class="table table-stripped table-hover align-middle table-sm">
           <thead class="table-primary">
             <tr>
-              <th scope="col">#Id</th>
               <th scope="col">Name</th>
               <th scope="col">Lastame</th>
             </tr>
@@ -16,8 +15,12 @@
 
           <tbody>
             @for (customer of customerList; track $index) {
-            <tr (click)="goToDetails(customer.id)">
-              <td>{{ customer.id }}</td>
+            <tr
+              (click)="goToDetails(customer.id)"
+              tabindex="0"
+              (keydown.enter)="goToDetails(customer.id)"
+              (keydown.space)="goToDetails(customer.id)"
+            >
               <td>{{ customer.name }}</td>
               <td>{{ customer.lastname }}</td>
             </tr>

@@ -15,7 +15,6 @@
         <table class="table table-stripped table-hover align-middle table-sm">
           <thead class="table-primary">
             <tr>
-              <th scope="col">#Id</th>
               <th scope="col">Agent</th>
               <th scope="col">Customer</th>
               <th scope="col">Creation Date</th>
@@ -29,8 +28,12 @@
 
           <tbody>
             @for (sale of saleList; track $index) {
-            <tr (click)="goToDetails(sale.id)">
-              <td>{{ sale.id }}</td>
+            <tr
+              (click)="goToDetails(sale.id)"
+              tabindex="0"
+              (keydown.enter)="goToDetails(sale.id)"
+              (keydown.space)="goToDetails(sale.id)"
+            >
               <td>{{ sale.agentId }}</td>
               <td>
                 {{ sale.customerResponse.lastname }}

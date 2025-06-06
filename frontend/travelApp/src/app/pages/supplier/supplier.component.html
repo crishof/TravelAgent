@@ -31,7 +31,9 @@
               <option value="EUR">EUR</option>
             </select>
           </div>
-          <div class="col-md-4 d-flex justify-content-center align-items-lg-center">
+          <div
+            class="col-md-4 d-flex justify-content-center align-items-lg-center"
+          >
             <button
               type="submit"
               class="btn btn-success"
@@ -49,7 +51,6 @@
         <table class="table table-stripped table-hover align-middle table-sm">
           <thead class="table-primary">
             <tr>
-              <th scope="col">#Id</th>
               <th scope="col">Name</th>
             </tr>
           </thead>
@@ -57,7 +58,6 @@
           <tbody>
             @for (supplier of supplierList; track $index) {
             <tr>
-              <td>{{ supplier.id }}</td>
               <td>{{ supplier.supplierName }}</td>
             </tr>
             }
