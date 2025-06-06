@@ -133,7 +133,7 @@
     </div>
     <div class="card-body">
       @if(isAddingPayment){
-      <form (ngSubmit)="addPayment()">
+      <form #paymentForm="ngForm" (ngSubmit)="addPayment()" novalidate>
         <div class="row g-3 align-items-center">
           <div class="col-md-2 mb-3">
             <label for="amount" class="form-label">Amount</label>
@@ -144,7 +144,22 @@
               [(ngModel)]="newPayment.amount"
               name="amount"
               required
+              min="0.01"
+              #amountCtrl="ngModel"
             />
+            <div
+              *ngIf="
+                amountCtrl.invalid && (amountCtrl.dirty || amountCtrl.touched)
+              "
+              class="text-danger small"
+            >
+              <div *ngIf="amountCtrl.errors?.['required']">
+                Amount is required.
+              </div>
+              <div *ngIf="amountCtrl.errors?.['min']">
+                Amount must be greater than 0.
+              </div>
+            </div>
           </div>
           <div class="col-md-2 mb-3">
             <label for="currency" class="form-label">Currency</label>
@@ -154,14 +169,26 @@
               [(ngModel)]="newPayment.currency"
               name="currency"
               required
+              #currencyCtrl="ngModel"
             >
               <option value="">Select Currency</option>
               <option value="USD">USD</option>
               <option value="EUR">EUR</option>
             </select>
+            <div
+              *ngIf="
+                currencyCtrl.invalid &&
+                (currencyCtrl.dirty || currencyCtrl.touched)
+              "
+              class="text-danger small"
+            >
+              <div *ngIf="currencyCtrl.errors?.['required']">
+                Currency is required.
+              </div>
+            </div>
           </div>
           <div class="col-md-4 mb-3">
-            <label for="paymentMethod" class="form-label">Payment Method</label>
+            <label for="paymentMethod" class="form-label">Description</label>
             <input
               type="text"
               id="paymentMethod"
@@ -169,10 +196,27 @@
               [(ngModel)]="newPayment.paymentMethod"
               name="paymentMethod"
               required
+              #methodCtrl="ngModel"
             />
+            <div
+              *ngIf="
+                methodCtrl.invalid && (methodCtrl.dirty || methodCtrl.touched)
+              "
+              class="text-danger small"
+            >
+              <div *ngIf="methodCtrl.errors?.['required']">
+                Payment method is required.
+              </div>
+            </div>
           </div>
           <div class="col-md-4 d-flex align-items-end">
-            <button type="submit" class="btn btn-primary me-2">Save</button>
+            <button
+              type="submit"
+              class="btn btn-primary me-2"
+              [disabled]="paymentForm.invalid"
+            >
+              Save
+            </button>
             <button
               type="button"
               class="btn btn-danger"
@@ -190,7 +234,7 @@
           <tr>
             <th>Date</th>
             <th>Amount</th>
-            <th>Payment Method</th>
+            <th>Description</th>
           </tr>
         </thead>
         <tbody>
