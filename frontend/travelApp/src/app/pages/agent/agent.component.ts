@@ -4,21 +4,39 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { AgentService } from '../../services/agent.service';
 import { IAgent } from '../../model/agent.model';
+import { LoadingComponent } from '../../utils/loading/loading.component';
 
 @Component({
   selector: 'app-agent',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    HttpClientModule,
+    LoadingComponent,
+  ],
   templateUrl: './agent.component.html',
   styleUrl: './agent.component.css',
 })
 export class AgentComponent implements OnInit {
   agentList: IAgent[] = [];
   readonly _agentService = inject(AgentService);
+  isLoading: boolean = true;
 
   ngOnInit(): void {
-    this._agentService.getAllAgents().subscribe((data: IAgent[]) => {
-      this.agentList = data;
+    this.isLoading = true;
+    this._agentService.getAllAgents().subscribe({
+      next: (data) => {
+        setTimeout(() => {
+          this.agentList = data;
+          this.isLoading = false;
+        }, 500); // Simulate a 500ms delay
+      },
+      error: (err) => {
+        console.error('Error fetching agents:', err);
+        this.isLoading = false;
+      },
     });
   }
 }

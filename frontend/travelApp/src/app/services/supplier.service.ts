@@ -20,4 +20,8 @@ export class SupplierService {
   getSupplierById(supplierId: number): Observable<ISupplier> {
     return this._http.get<ISupplier>(`${this._urlBase}/getById/${supplierId}`);
   }
+
+  createSupplier(supplier: ISupplier): Observable<ISupplier> {
+    return this._http.post<ISupplier>(`${this._urlBase}/save`, supplier);
+  }
 }

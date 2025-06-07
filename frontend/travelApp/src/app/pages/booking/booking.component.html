@@ -1,80 +1,83 @@
-<div class="container-fluid">
-  <div class="container mt-4 card">
-    <div class="card-header mt-3">
-      <h4>Bookings</h4>
-    </div>
-    <div class="card-body">
-      <div class="table-responsive" id="table-container">
-        <table class="table table-stripped table-hover align-middle table-sm">
-          <thead class="table-primary">
-            <tr>
-              <th scope="col">#Id</th>
-              <th scope="col">Booking Date</th>
-              <th scope="col">Supplier</th>
-              <th scope="col">Booking number</th>
-              <th scope="col">Reservation Date</th>
-              <th scope="col">Description</th>
-              <th scope="col">Amount</th>
-              <th scope="col">Paid</th>
-            </tr>
-          </thead>
+<div *ngIf="isLoading; else content">
+  <app-loading></app-loading>
+</div>
+<ng-template #content>
+  <div class="container-fluid">
+    <div class="container mt-4 card">
+      <div class="card-header mt-3">
+        <h4>Bookings</h4>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive" id="table-container">
+          <table class="table table-stripped table-hover align-middle table-sm">
+            <thead class="table-primary">
+              <tr>
+                <th scope="col">Supplier</th>
+                <th scope="col">Booking number</th>
+                <th scope="col">Booking Date</th>
+                <th scope="col">Description</th>
+                <th scope="col">Reservation Date</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Paid</th>
+              </tr>
+            </thead>
 
-          <tbody>
-            @for (booking of bookingList; track $index) {
-            <tr>
-              <td>{{ booking.id }}</td>
-              <td>{{ booking.bookingDate | date : "dd/MM/yyyy" }}</td>
-              <td>{{ booking.supplierName }}</td>
-              <td>{{ booking.bookingNumber }}</td>
-              <td>{{ booking.reservationDate | date : "dd/MM/yyyy" }}</td>
-              <td>{{ booking.description }}</td>
-              <td>{{ booking.currency }} {{ booking.amount }}</td>
-              <td
-                (mouseenter)="hoveredBookingId = booking.id"
-                (mouseleave)="hoveredBookingId = null"
-                [ngStyle]="{ color: booking.paid ? 'black' : 'red' }"
-                style="min-width: 70px; text-align: center"
-              >
-                <span style="display: inline-block; width: 56px">
-                  <ng-container
-                    *ngIf="
-                      !booking.paid && hoveredBookingId === booking.id;
-                      else paidStatus
-                    "
-                  >
-                    <a
-                      class="btn btn-sm btn-outline-danger py-0"
-                      style="width: 48px; font-size: 0.95rem; padding: 2px 0"
-                      (click)="openPaymentModal(booking)"
-                      >Pay</a
-                    >
-                    <app-payment-modal
-                      [show]="showPaymentModal"
-                      [bookingId]="selectedBookingId"
-                      [supplierName]="selectedSupplierName"
-                      [bookingNumber]="selectedBookingNumber"
-                      (close)="closePaymentModal()"
-                      (paymentRegistered)="onPaymentRegistered($event)"
-                    ></app-payment-modal>
-                  </ng-container>
-                  <ng-template #paidStatus>
-                    <span
-                      style="
-                        width: 48px;
-                        display: inline-block;
-                        text-align: center;
+            <tbody>
+              @for (booking of bookingList; track $index) {
+              <tr>
+                <td>{{ booking.supplierName }}</td>
+                <td>{{ booking.bookingNumber }}</td>
+                <td>{{ booking.bookingDate | date : "dd/MM/yyyy" }}</td>
+                <td>{{ booking.description }}</td>
+                <td>{{ booking.reservationDate | date : "dd/MM/yyyy" }}</td>
+                <td>{{ booking.currency }} {{ booking.amount }}</td>
+                <td
+                  (mouseenter)="hoveredBookingId = booking.id"
+                  (mouseleave)="hoveredBookingId = null"
+                  [ngStyle]="{ color: booking.paid ? 'black' : 'red' }"
+                  style="min-width: 70px; text-align: center"
+                >
+                  <span style="display: inline-block; width: 56px">
+                    <ng-container
+                      *ngIf="
+                        !booking.paid && hoveredBookingId === booking.id;
+                        else paidStatus
                       "
                     >
-                      {{ booking.paid ? "YES" : "NO" }}
-                    </span>
-                  </ng-template>
-                </span>
-              </td>
-            </tr>
-            }
-          </tbody>
-        </table>
+                      <a
+                        class="btn btn-sm btn-outline-danger py-0"
+                        style="width: 48px; font-size: 0.95rem; padding: 2px 0"
+                        (click)="openPaymentModal(booking)"
+                        >Pay</a
+                      >
+                      <app-payment-modal
+                        [show]="showPaymentModal"
+                        [bookingId]="selectedBookingId"
+                        [supplierName]="selectedSupplierName"
+                        [bookingNumber]="selectedBookingNumber"
+                        (close)="closePaymentModal()"
+                        (paymentRegistered)="onPaymentRegistered($event)"
+                      ></app-payment-modal>
+                    </ng-container>
+                    <ng-template #paidStatus>
+                      <span
+                        style="
+                          width: 48px;
+                          display: inline-block;
+                          text-align: center;
+                        "
+                      >
+                        {{ booking.paid ? "YES" : "NO" }}
+                      </span>
+                    </ng-template>
+                  </span>
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</ng-template>

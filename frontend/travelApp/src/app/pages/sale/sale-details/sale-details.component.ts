@@ -115,6 +115,9 @@ export class SaleDetailsComponent implements OnInit {
 
   togglePaymentForm() {
     this.isAddingPayment = !this.isAddingPayment;
+    if (!this.isAddingPayment) {
+      this.resetPaymentForm();
+    }
   }
 
   addPayment() {
@@ -133,6 +136,7 @@ export class SaleDetailsComponent implements OnInit {
       next: (data) => {
         console.log('Payment added successfully:', data);
         this.isAddingPayment = false;
+        this.resetPaymentForm();
         this.loadPayments(this.saleId!, this.sale.customerResponse.id);
         this.loadCurrentFee(this.saleId!);
       },
@@ -140,5 +144,20 @@ export class SaleDetailsComponent implements OnInit {
         console.error('Error adding payment:', error);
       },
     });
+  }
+
+  resetPaymentForm() {
+    this.newPayment = {
+      id: 0,
+      customerId: 0,
+      travelId: 0,
+      amount: null,
+      currency: '',
+      paymentMethod: '',
+      paymentDate: '',
+      exchangeRate: 0,
+      amountInSaleCurrency: 0,
+      saleCurrency: '',
+    };
   }
 }
