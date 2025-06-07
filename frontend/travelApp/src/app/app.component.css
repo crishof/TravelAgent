@@ -1,3 +1,25 @@
+body,
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.app-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background: linear-gradient(
+    135deg,
+    rgba(2, 0, 2, 0.7),
+    rgba(28, 0, 35, 0.872)
+  );
+  backdrop-filter: blur(8px);
+}
+
 nav {
   position: fixed;
   top: 0;
@@ -5,6 +27,11 @@ nav {
   width: 100%;
   z-index: 1000;
 }
+
+.main-content {
+  margin-top: 100px;
+}
+
 footer {
   position: fixed;
   bottom: 0;
