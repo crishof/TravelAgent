@@ -11,6 +11,7 @@ import { combineLatest } from 'rxjs';
 import { PaymentModalComponent } from '../../utils/payment-modal/payment-modal.component';
 import { PaymentService } from '../../services/payment.service';
 import { IPayment } from '../../model/payment.model';
+import { LoadingComponent } from '../../utils/loading/loading.component';
 
 @Component({
   selector: 'app-booking',
@@ -21,6 +22,7 @@ import { IPayment } from '../../model/payment.model';
     ReactiveFormsModule,
     HttpClientModule,
     PaymentModalComponent,
+    LoadingComponent,
   ],
 
   templateUrl: './booking.component.html',
@@ -38,8 +40,10 @@ export class BookingComponent implements OnInit {
   selectedSupplierName?: string;
   selectedSupplierCurrency?: string;
   selectedBookingNumber?: string;
+  isLoading: boolean = true;
 
   ngOnInit(): void {
+    this.isLoading = true;
     combineLatest([
       this._bookingService.getAllBookings(),
 
@@ -52,6 +56,9 @@ export class BookingComponent implements OnInit {
       }
       this.bookingList = filteredList;
       this.populateSupplierNames();
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 500); // Simulate a 500ms delay
     });
   }
 

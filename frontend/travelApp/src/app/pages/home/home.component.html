@@ -1,6 +1,11 @@
-<div class="container-fluid">
-  <div class="home">
-    <h1>Welcome to Travel Agent</h1>
-    <p>Start managing your travel sales and bookings!</p>
-  </div>
+<div *ngIf="isLoading; else content">
+  <app-loading></app-loading>
 </div>
+<ng-template #content>
+  <div class="container-fluid">
+    <div class="home">
+      <h1>Welcome to Travel Agent</h1>
+      <p>Start managing your travel sales and bookings!</p>
+    </div>
+  </div>
+</ng-template>

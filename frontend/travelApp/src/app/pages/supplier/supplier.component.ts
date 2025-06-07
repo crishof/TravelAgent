@@ -10,11 +10,18 @@ import {
 import { HttpClientModule } from '@angular/common/http';
 import { ISupplier } from '../../model/supplier.model';
 import { SupplierService } from '../../services/supplier.service';
+import { LoadingComponent } from '../../utils/loading/loading.component';
 
 @Component({
   selector: 'app-supplier',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    HttpClientModule,
+    LoadingComponent,
+  ],
   templateUrl: './supplier.component.html',
   styleUrl: './supplier.component.css',
 })
@@ -23,14 +30,20 @@ export class SupplierComponent implements OnInit {
   readonly _supplierService = inject(SupplierService);
   supplierForm!: FormGroup;
   formBuilder = inject(FormBuilder);
+  isLoading: boolean = true;
 
   ngOnInit(): void {
+    this.isLoading = true;
+
     this.supplierForm = this.formBuilder.group({
       name: ['', Validators.required],
       currency: ['', Validators.required],
     });
 
     this.loadSuppliers();
+    setTimeout(() => {
+      this.isLoading = false;
+    }, 500); // Simulate a 500ms delay
   }
 
   loadSuppliers(): void {

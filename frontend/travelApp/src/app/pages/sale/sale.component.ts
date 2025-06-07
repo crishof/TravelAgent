@@ -5,6 +5,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { ISale } from '../../model/sale.model';
 import { SaleService } from '../../services/sale.service';
 import { Router, RouterLink } from '@angular/router';
+import { LoadingComponent } from '../../utils/loading/loading.component';
 @Component({
   selector: 'app-sale',
   standalone: true,
@@ -14,6 +15,7 @@ import { Router, RouterLink } from '@angular/router';
     ReactiveFormsModule,
     HttpClientModule,
     RouterLink,
+    LoadingComponent,
   ],
 
   templateUrl: './sale.component.html',
@@ -23,10 +25,15 @@ export class SaleComponent implements OnInit {
   saleList: ISale[] = [];
   readonly _saleService = inject(SaleService);
   readonly _router = inject(Router);
+  isLoading: boolean = true;
 
   ngOnInit(): void {
+    this.isLoading = true;
     this._saleService.getAllSales().subscribe((data: ISale[]) => {
       this.saleList = data;
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 500); // Simulate a 500ms delay
     });
   }
 
