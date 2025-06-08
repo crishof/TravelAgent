@@ -1,1 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
+.main-scroll {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
