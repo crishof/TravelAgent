@@ -1,301 +1,309 @@
-<div class="container-fluid">
-  <form
-    [formGroup]="saleForm"
-    (submit)="saveSale()"
-    class="container mt-4 card"
-  >
-    <!-- Creación del cliente -->
-    <div class="card-header m-3">
-      <h4>Customer</h4>
-    </div>
+<div class="main-scroll">
+  <div class="container-fluid">
+    <form
+      [formGroup]="saleForm"
+      (submit)="saveSale()"
+      class="container mt-4 card"
+    >
+      <!-- Creación del cliente -->
+      <div class="card-header m-3">
+        <h4>Customer</h4>
+      </div>
 
-    <div formGroupName="customer" class="form-group card-body">
-      <div class="row">
-        <div class="col-md-6">
-          <label for="name">Name</label>
-          <input
-            type="text"
-            class="form-control"
-            id="name"
-            formControlName="name"
-          />
-        </div>
-        <div class="col-md-6">
-          <label for="lastname">Lastname</label>
-          <input
-            type="text"
-            class="form-control"
-            id="lastname"
-            formControlName="lastname"
-          />
-        </div>
-      </div>
-      <div class="row mt-3">
-        <div class="col-md-6">
-          <label for="phone">Phone</label>
-          <input
-            type="text"
-            class="form-control"
-            id="phone"
-            formControlName="phone"
-          />
-        </div>
-
-        <div class="col-md-6">
-          <label for="email">Email</label>
-          <input
-            type="text"
-            class="form-control"
-            id="email"
-            formControlName="email"
-          />
-        </div>
-      </div>
-      <div class="row mt-3">
-        <div class="col-md-6">
-          <label for="dni">DNI</label>
-          <input
-            type="text"
-            class="form-control"
-            id="dni"
-            formControlName="dni"
-          />
-        </div>
-        <div class="col-md-6">
-          <label for="passport">Passport</label>
-          <input
-            type="text"
-            class="form-control"
-            id="passport"
-            formControlName="passport"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- Datos del viaje -->
-    <div class="card-header m-3">
-      <h4>Travel Data</h4>
-    </div>
-    <div class="form-group card-body">
-      <div class="row d-flex align-items-center">
-        <div class="col-md-6">
-          <label for="travelDate" class="form-label">Travel Date</label>
-          <input
-            type="date"
-            id="travelDate"
-            class="form-control"
-            formControlName="travelDate"
-          />
-        </div>
-        <div class="col-md-6">
-          <label for="description" class="form-label">Description</label>
-          <input
-            type="text"
-            id="description"
-            class="form-control"
-            formControlName="description"
-          />
-        </div>
-      </div>
-      <div class="row mt-3">
-        <div class="col-md-6">
-          <label for="amount">Amount</label>
-          <input
-            type="number"
-            id="amount"
-            class="form-control"
-            [class.is-invalid]="
-              saleForm.get('amount')?.invalid && saleForm.get('amount')?.touched
-            "
-            formControlName="amount"
-            name="amount"
-            min="0.01"
-          />
-          <div
-            class="invalid-feedback"
-            *ngIf="
-              saleForm.get('amount')?.invalid && saleForm.get('amount')?.touched
-            "
-          >
-            Amount must be greater than 0
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <label for="currency">Currency</label>
-        <select id="currency" class="form-select" formControlName="currency">
-          <option value="">Select currency</option>
-          <option value="USD">USD</option>
-          <option value="EUR">EUR</option>
-        </select>
-        <div
-          class="text-danger"
-          *ngIf="
-            saleForm.get('currency')?.invalid &&
-            saleForm.get('currency')?.touched
-          "
-        >
-          Currency is required
-        </div>
-      </div>
-    </div>
-
-    <!-- Servicios -->
-    <div class="card-header m-3">
-      <h4>Add Services</h4>
-    </div>
-    <div class="form-group card-body">
-      <!-- Formulario para agregar un servicio -->
-      <form [formGroup]="newServiceForm">
+      <div formGroupName="customer" class="form-group card-body">
         <div class="row">
-          <div class="col-md-4">
-            <label for="supplierId">Supplier</label>
-            <select
-              class="form-select"
-              id="supplierId"
-              formControlName="supplierId"
-              (change)="onSupplierChange()"
-              required
-            >
-              <option value="">Select supplier</option>
-              <option
-                *ngFor="let supplier of supplierList"
-                [value]="supplier.id"
-              >
-                {{ supplier.supplierName }}
-              </option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label for="bookingNumber">Booking Number</label>
+          <div class="col-md-6">
+            <label for="name">Name</label>
             <input
               type="text"
-              id="bookingNumber"
               class="form-control"
-              formControlName="bookingNumber"
-              required
+              id="name"
+              formControlName="name"
             />
           </div>
-          <div class="col-md-4">
-            <label for="description">Service Description</label>
+          <div class="col-md-6">
+            <label for="lastname">Lastname</label>
+            <input
+              type="text"
+              class="form-control"
+              id="lastname"
+              formControlName="lastname"
+            />
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-md-6">
+            <label for="phone">Phone</label>
+            <input
+              type="text"
+              class="form-control"
+              id="phone"
+              formControlName="phone"
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label for="email">Email</label>
+            <input
+              type="text"
+              class="form-control"
+              id="email"
+              formControlName="email"
+            />
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-md-6">
+            <label for="dni">DNI</label>
+            <input
+              type="text"
+              class="form-control"
+              id="dni"
+              formControlName="dni"
+            />
+          </div>
+          <div class="col-md-6">
+            <label for="passport">Passport</label>
+            <input
+              type="text"
+              class="form-control"
+              id="passport"
+              formControlName="passport"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Datos del viaje -->
+      <div class="card-header m-3">
+        <h4>Travel Data</h4>
+      </div>
+      <div class="form-group card-body">
+        <div class="row d-flex align-items-center">
+          <div class="col-md-6">
+            <label for="travelDate" class="form-label">Travel Date</label>
+            <input
+              type="date"
+              id="travelDate"
+              class="form-control"
+              formControlName="travelDate"
+            />
+          </div>
+          <div class="col-md-6">
+            <label for="description" class="form-label">Description</label>
             <input
               type="text"
               id="description"
               class="form-control"
               formControlName="description"
-              required
             />
           </div>
         </div>
         <div class="row mt-3">
-          <div class="col-md-4">
-            <label for="reservationDate">Reservation Date</label>
-            <input
-              type="date"
-              id="reservationDate"
-              class="form-control"
-              formControlName="reservationDate"
-            />
-          </div>
-
-          <div class="col-md-4">
-            <label for="serviceAmount"
-              >Amount in {{ selectedSupplier?.currency || "" }}</label
-            >
+          <div class="col-md-6">
+            <label for="amount">Amount</label>
             <input
               type="number"
-              id="serviceAmount"
+              id="amount"
               class="form-control"
+              [class.is-invalid]="
+                saleForm.get('amount')?.invalid &&
+                saleForm.get('amount')?.touched
+              "
               formControlName="amount"
-              required
+              name="amount"
+              min="0.01"
             />
-          </div>
-
-          <div class="col-md-4 d-flex align-items-center gap-4">
             <div
-              class="form-check d-flex align-items-center mb-0"
-              style="min-width: 120px"
+              class="invalid-feedback"
+              *ngIf="
+                saleForm.get('amount')?.invalid &&
+                saleForm.get('amount')?.touched
+              "
             >
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="paid"
-                formControlName="paid"
-                style="transform: scale(1.5); margin-right: 1rem"
-              />
-              <label
-                class="form-check-label fs-5"
-                for="paid"
-                style="margin-bottom: 0"
-              >
-                Paid
-              </label>
+              Amount must be greater than 0
             </div>
-            <button
-              type="button"
-              class="btn btn-primary"
-              (click)="addService()"
-              [disabled]="newServiceForm.invalid"
-            >
-              Add Service
-            </button>
           </div>
         </div>
-      </form>
-    </div>
-
-    <!-- Tabla para mostrar los servicios -->
-    <h3>Services Added</h3>
-    <div formArrayName="services">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Supplier</th>
-            <th>Booking Number</th>
-            <th>Reservation Date</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Currency</th>
-            <th>Paid</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            *ngFor="let service of servicesFormArray.controls; let i = index"
-            [formGroupName]="i"
+        <div class="col-md-6">
+          <label for="currency">Currency</label>
+          <select id="currency" class="form-select" formControlName="currency">
+            <option value="">Select currency</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+          </select>
+          <div
+            class="text-danger"
+            *ngIf="
+              saleForm.get('currency')?.invalid &&
+              saleForm.get('currency')?.touched
+            "
           >
-            <td>{{ getSupplierNameById(service.get("supplierId")?.value) }}</td>
-            <td>{{ service.get("bookingNumber")?.value }}</td>
-            <td>
-              {{ service.get("reservationDate")?.value | date : "dd/MM/yyyy" }}
-            </td>
-            <td>{{ service.get("description")?.value }}</td>
-            <td>{{ service.get("amount")?.value }}</td>
-            <td>{{ service.get("currency")?.value }}</td>
-            <td>{{ service.get("paid")?.value ? "Yes" : "No" }}</td>
-            <td>
+            Currency is required
+          </div>
+        </div>
+      </div>
+
+      <!-- Servicios -->
+      <div class="card-header m-3">
+        <h4>Add Services</h4>
+      </div>
+      <div class="form-group card-body">
+        <!-- Formulario para agregar un servicio -->
+        <form [formGroup]="newServiceForm">
+          <div class="row">
+            <div class="col-md-4">
+              <label for="supplierId">Supplier</label>
+              <select
+                class="form-select"
+                id="supplierId"
+                formControlName="supplierId"
+                (change)="onSupplierChange()"
+                required
+              >
+                <option value="">Select supplier</option>
+                <option
+                  *ngFor="let supplier of supplierList"
+                  [value]="supplier.id"
+                >
+                  {{ supplier.supplierName }}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="bookingNumber">Booking Number</label>
+              <input
+                type="text"
+                id="bookingNumber"
+                class="form-control"
+                formControlName="bookingNumber"
+                required
+              />
+            </div>
+            <div class="col-md-4">
+              <label for="description">Service Description</label>
+              <input
+                type="text"
+                id="description"
+                class="form-control"
+                formControlName="description"
+                required
+              />
+            </div>
+          </div>
+          <div class="row mt-3">
+            <div class="col-md-4">
+              <label for="reservationDate">Reservation Date</label>
+              <input
+                type="date"
+                id="reservationDate"
+                class="form-control"
+                formControlName="reservationDate"
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label for="serviceAmount"
+                >Amount in {{ selectedSupplier?.currency || "" }}</label
+              >
+              <input
+                type="number"
+                id="serviceAmount"
+                class="form-control"
+                formControlName="amount"
+                required
+              />
+            </div>
+
+            <div class="col-md-4 d-flex align-items-center gap-4">
+              <div
+                class="form-check d-flex align-items-center mb-0"
+                style="min-width: 120px"
+              >
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="paid"
+                  formControlName="paid"
+                  style="transform: scale(1.5); margin-right: 1rem"
+                />
+                <label
+                  class="form-check-label fs-5"
+                  for="paid"
+                  style="margin-bottom: 0"
+                >
+                  Paid
+                </label>
+              </div>
               <button
                 type="button"
-                class="btn btn-danger"
-                (click)="removeService(i)"
+                class="btn btn-primary"
+                (click)="addService()"
+                [disabled]="newServiceForm.invalid"
               >
-                Remove
+                Add Service
               </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+            </div>
+          </div>
+        </form>
+      </div>
 
-    <!-- Botón de Save -->
-    <button
-      type="submit"
-      class="btn btn-success m-3"
-      [disabled]="!saleForm.valid"
-    >
-      Save
-    </button>
-  </form>
+      <!-- Tabla para mostrar los servicios -->
+      <h3>Services Added</h3>
+      <div formArrayName="services">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Supplier</th>
+              <th>Booking Number</th>
+              <th>Reservation Date</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Currency</th>
+              <th>Paid</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let service of servicesFormArray.controls; let i = index"
+              [formGroupName]="i"
+            >
+              <td>
+                {{ getSupplierNameById(service.get("supplierId")?.value) }}
+              </td>
+              <td>{{ service.get("bookingNumber")?.value }}</td>
+              <td>
+                {{
+                  service.get("reservationDate")?.value | date : "dd/MM/yyyy"
+                }}
+              </td>
+              <td>{{ service.get("description")?.value }}</td>
+              <td>{{ service.get("amount")?.value }}</td>
+              <td>{{ service.get("currency")?.value }}</td>
+              <td>{{ service.get("paid")?.value ? "Yes" : "No" }}</td>
+              <td>
+                <button
+                  type="button"
+                  class="btn btn-danger"
+                  (click)="removeService(i)"
+                >
+                  Remove
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Botón de Save -->
+      <button
+        type="submit"
+        class="btn btn-success m-3"
+        [disabled]="!saleForm.valid"
+      >
+        Save
+      </button>
+    </form>
+  </div>
 </div>
