@@ -71,20 +71,23 @@
             >
           </li>
         </ul>
-        <div class="d-flex align-items-center ms-auto me-3">
-          <span
-            class="badge bg-info-subtle text-dark fs-6"
+        <div class="d-flex align-items-center ms-auto m-3">
+          <button
+            type="button"
+            class="badge bg-info-subtle text-dark fs-6 border-0"
             style="cursor: pointer"
             (click)="toggleExchangeDirection()"
+            (keydown.enter)="toggleExchangeDirection()"
+            (keydown.space)="toggleExchangeDirection()"
             title="Click to invert conversion"
           >
             <i class="bi bi-currency-exchange me-1"></i>
             Currency Exchange:
-            <strong
-              >1 {{ fromCurrency }} = {{ displayRate | number : "1.4-4" }}
-              {{ toCurrency }}</strong
-            >
-          </span>
+            <strong>
+              1 {{ fromCurrency }} = {{ displayRate | number : "1.4-4" }}
+              {{ toCurrency }}
+            </strong>
+          </button>
         </div>
 
         <form
@@ -115,6 +118,8 @@
             class="alert alert-warning mb-0 w-100 text-center d-flex align-items-center justify-content-center"
             style="height: 38px; cursor: pointer"
             (click)="noResults = false"
+            (keydown.enter)="noResults = false"
+            (keydown.space)="noResults = false"
           >
             <span class="w-100"
               >No se encontraron resultados para la búsqueda.
