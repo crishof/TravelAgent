@@ -24,7 +24,12 @@
 
             <tbody>
               @for (booking of bookingList; track $index) {
-              <tr>
+              <tr
+                (click)="goToSale(booking.saleId)"
+                tabindex="0"
+                (keydown.enter)="goToSale(booking.saleId)"
+                (keydown.space)="goToSale(booking.saleId)"
+              >
                 <td>{{ booking.supplierName }}</td>
                 <td>{{ booking.bookingNumber }}</td>
                 <td>{{ booking.bookingDate | date : "dd/MM/yyyy" }}</td>

@@ -6,7 +6,7 @@ import { IBooking } from '../../model/booking.model';
 import { BookingService } from '../../services/booking.service';
 import { SupplierService } from '../../services/supplier.service';
 import { ISupplier } from '../../model/supplier.model';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { combineLatest } from 'rxjs';
 import { PaymentModalComponent } from '../../utils/payment-modal/payment-modal.component';
 import { PaymentService } from '../../services/payment.service';
@@ -41,6 +41,7 @@ export class BookingComponent implements OnInit {
   selectedSupplierCurrency?: string;
   selectedBookingNumber?: string;
   isLoading: boolean = true;
+  readonly _router = inject(Router);
 
   ngOnInit(): void {
     this.isLoading = true;
@@ -110,5 +111,9 @@ export class BookingComponent implements OnInit {
     });
     console.log('Payment registered:', paymentData);
     this.closePaymentModal();
+  }
+
+  goToSale(saleId: number): void {
+    this._router.navigate([`/sale/sale-details`, saleId]);
   }
 }
