@@ -18,10 +18,10 @@
           <li class="nav-item">
             <a
               class="nav-link"
-              routerLink=""
-              [ngClass]="{ active: menuOption == 'home' }"
-              (click)="onOption('home')"
-              >Home</a
+              routerLink="dashboard"
+              [ngClass]="{ active: menuOption == 'dashboard' }"
+              (click)="onOption('dashboard')"
+              >Dashboard</a
             >
           </li>
 
@@ -58,7 +58,7 @@
               routerLink="agent"
               [ngClass]="{ active: menuOption == 'agent' }"
               (click)="onOption('agent')"
-              >Agent</a
+              >Agents</a
             >
           </li>
           <li class="nav-item">
@@ -71,20 +71,24 @@
             >
           </li>
         </ul>
-        <div class="d-flex align-items-center ms-auto me-3">
-          <span
-            class="badge bg-info-subtle text-dark fs-6"
+
+        <div class="d-flex align-items-center ms-auto m-3">
+          <button
+            type="button"
+            class="badge bg-info-subtle text-dark fs-6 border-0"
             style="cursor: pointer"
             (click)="toggleExchangeDirection()"
+            (keydown.enter)="toggleExchangeDirection()"
+            (keydown.space)="toggleExchangeDirection()"
             title="Click to invert conversion"
           >
             <i class="bi bi-currency-exchange me-1"></i>
             Currency Exchange:
-            <strong
-              >1 {{ fromCurrency }} = {{ displayRate | number : "1.4-4" }}
-              {{ toCurrency }}</strong
-            >
-          </span>
+            <strong>
+              1 {{ fromCurrency }} = {{ displayRate | number : "1.4-4" }}
+              {{ toCurrency }}
+            </strong>
+          </button>
         </div>
 
         <form
@@ -92,7 +96,6 @@
           class="d-flex"
           role="search"
           (ngSubmit)="globalSearch($event)"
-          style="min-width: 320px; max-width: 400px; width: 100%"
         >
           <input
             name="searchTerm"
@@ -101,7 +104,6 @@
             type="search"
             placeholder="Search"
             aria-label="Search"
-            style="min-width: 0; flex: 1 1 auto"
           />
           <button class="btn btn-outline-success" type="submit">Search</button>
         </form>
@@ -115,12 +117,12 @@
             class="alert alert-warning mb-0 w-100 text-center d-flex align-items-center justify-content-center"
             style="height: 38px; cursor: pointer"
             (click)="noResults = false"
+            (keydown.enter)="noResults = false"
+            (keydown.space)="noResults = false"
           >
             <span class="w-100"
               >No se encontraron resultados para la búsqueda.
-              <span class="text-primary" style="text-decoration: underline"
-                >(Click para volver)</span
-              ></span
+              <span class="text-success">(Click para volver)</span></span
             >
           </div>
         </div>

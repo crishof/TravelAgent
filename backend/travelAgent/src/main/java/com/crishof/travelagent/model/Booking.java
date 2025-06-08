@@ -31,5 +31,8 @@ public class Booking {
     private BigDecimal exchangeRate;
     private BigDecimal amountInSaleCurrency;
     private boolean paid;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sale_id")
+    private TravelSale sale;
 
 }

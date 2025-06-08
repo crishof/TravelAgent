@@ -9,4 +9,5 @@ export interface IBooking {
   amount: number;
   currency: string;
   paid: boolean;
+  saleId: number;
 }

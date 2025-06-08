@@ -9,6 +9,7 @@ import { CreateSaleComponent } from './pages/sale/create-sale/create-sale.compon
 import { SaleDetailsComponent } from './pages/sale/sale-details/sale-details.component';
 import { CustomerDetailsComponent } from './pages/customer/customer-details/customer-details.component';
 import { BookingDetailsComponent } from './pages/booking/booking-details/booking-details.component';
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -19,6 +20,7 @@ export const routes: Routes = [
   { path: 'booking/booking-details/:id', component: BookingDetailsComponent },
   { path: 'agent', component: AgentComponent },
   { path: 'customer', component: CustomerComponent },
+  { path: 'dashboard', component: DashboardComponent },
   {
     path: 'customer/customer-details/:id',
     component: CustomerDetailsComponent,

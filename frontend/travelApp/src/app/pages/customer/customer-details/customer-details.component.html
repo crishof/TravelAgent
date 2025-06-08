@@ -21,34 +21,36 @@
       <h5>Trips</h5>
     </div>
     <div class="card-body">
-      <table class="table table-bordered">
-        <thead class="table-light">
-          <tr>
-            <th>Trip ID</th>
-            <th>Destination</th>
-            <th>Travel Date</th>
-            <th>Amount</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let trip of trips">
-            <td>{{ trip.id }}</td>
-            <td>{{ trip.description }}</td>
-            <td>{{ trip.travelDate | date : "dd/MM/yyyy" }}</td>
-            <td>{{ trip.currency }} {{ trip.amount }}</td>
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>Trip ID</th>
+              <th>Destination</th>
+              <th>Travel Date</th>
+              <th>Amount</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let trip of trips">
+              <td>{{ trip.id }}</td>
+              <td>{{ trip.description }}</td>
+              <td>{{ trip.travelDate | date : "dd/MM/yyyy" }}</td>
+              <td>{{ trip.currency }} {{ trip.amount }}</td>
 
-            <td>
-              <a
-                class="btn btn-outline-primary mb-3"
-                routerLink="/sale/sale-details/{{ trip.id }}"
-                routerLinkActive="router-link-active"
-                >Details</a
-              >
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <td>
+                <a
+                  class="btn btn-outline-primary mb-3"
+                  routerLink="/sale/sale-details/{{ trip.id }}"
+                  routerLinkActive="router-link-active"
+                  >Details</a
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

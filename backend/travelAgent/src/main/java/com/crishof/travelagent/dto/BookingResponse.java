@@ -24,4 +24,5 @@ public class BookingResponse {
     private BigDecimal exchangeRate;
     private BigDecimal amountInSaleCurrency;
     private boolean paid;
+    private Long saleId;
 }
