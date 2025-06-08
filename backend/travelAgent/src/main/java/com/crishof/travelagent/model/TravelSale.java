@@ -30,11 +30,6 @@ public class TravelSale {
     private String currency;
     private String description;
 
-    @OneToMany
-    @JoinTable(
-            name = "tbl_travel_sale_services",
-            joinColumns = @JoinColumn(name = "travel_sale_id"),
-            inverseJoinColumns = @JoinColumn(name = "services_id")
-    )
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL)
     private List<Booking> services;
 }

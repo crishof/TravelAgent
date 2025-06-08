@@ -131,6 +131,7 @@ public class BookingServiceImpl implements BookingService {
         bookingResponse.setPaid(booking.isPaid());
         bookingResponse.setAmountInSaleCurrency(booking.getAmountInSaleCurrency());
         bookingResponse.setExchangeRate(booking.getExchangeRate());
+        bookingResponse.setSaleId(booking.getSale().getId());
 
         return bookingResponse;
     }
