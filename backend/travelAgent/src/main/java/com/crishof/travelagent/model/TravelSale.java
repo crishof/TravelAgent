@@ -32,4 +32,8 @@ public class TravelSale {
 
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL)
     private List<Booking> services;
+
+    @ManyToOne
+    @JoinColumn(name = "agency_id")
+    private Agency agency;
 }

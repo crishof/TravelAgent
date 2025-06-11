@@ -35,4 +35,8 @@ public class Booking {
     @JoinColumn(name = "sale_id")
     private TravelSale sale;
 
+    @ManyToOne
+    @JoinColumn(name = "agency_id")
+    private Agency agency;
+
 }

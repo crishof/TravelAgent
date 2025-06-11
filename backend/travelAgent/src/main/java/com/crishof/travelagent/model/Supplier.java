@@ -20,4 +20,8 @@ public class Supplier {
 
     private String supplierName;
     private String currency;
+
+    @ManyToOne
+    @JoinColumn(name = "agency_id")
+    private Agency agency;
 }

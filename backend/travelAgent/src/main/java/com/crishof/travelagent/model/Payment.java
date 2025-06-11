@@ -26,4 +26,8 @@ public class Payment {
     private BigDecimal amount;
     private String currency;
     private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "agency_id")
+    private Agency agency;
 }

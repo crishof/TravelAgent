@@ -29,4 +29,8 @@ public class CustomerPayment {
     private LocalDate paymentDate;
     private BigDecimal exchangeRate;
     private BigDecimal amountInSaleCurrency;
+
+    @ManyToOne
+    @JoinColumn(name = "agency_id")
+    private Agency agency;
 }
