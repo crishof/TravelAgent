@@ -33,16 +33,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void createAgent(UserRequest request, Authentication auth) {
+    public UserResponse createUser(UserRequest request, Authentication auth) {
         User admin = (User) auth.getPrincipal();
 
-        User newAgent = User.builder()
+        User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .agency(admin.getAgency())
                 .build();
 
-        userRepository.save(newAgent);
+        userRepository.save(user);
+        return UserResponse.from(user);
     }
 }

@@ -12,5 +12,5 @@ public interface UserService {
 
     List<UserResponse> getUsersByAgency(Authentication auth);
 
-    void createAgent(UserRequest request, Authentication auth);
+    UserResponse createUser(UserRequest request, Authentication auth);
 }
