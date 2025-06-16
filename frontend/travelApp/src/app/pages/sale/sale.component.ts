@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
 import { ISale } from '../../model/sale.model';
 import { SaleService } from '../../services/sale.service';
 import { Router, RouterLink } from '@angular/router';
@@ -13,7 +12,6 @@ import { LoadingComponent } from '../../utils/loading/loading.component';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    HttpClientModule,
     RouterLink,
     LoadingComponent,
   ],

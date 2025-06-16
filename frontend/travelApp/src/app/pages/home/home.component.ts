@@ -1,13 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { LoadingComponent } from '../../utils/loading/loading.component';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, LoadingComponent],
+  imports: [CommonModule, LoadingComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })

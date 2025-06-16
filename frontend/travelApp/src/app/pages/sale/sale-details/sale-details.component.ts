@@ -2,7 +2,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { SaleService } from '../../../services/sale.service';
 import { CommonModule, Location } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PaymentService } from '../../../services/payment.service';
 import { CustomerPaymentService } from '../../../services/customer-payment.service';
@@ -11,7 +10,7 @@ import { ICustomerPayment } from '../../../model/customerPayment.model';
 @Component({
   selector: 'app-sale-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './sale-details.component.html',
   styleUrl: './sale-details.component.css',
 })

@@ -1,5 +1,4 @@
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IBooking } from '../../model/booking.model';
@@ -20,7 +19,6 @@ import { LoadingComponent } from '../../utils/loading/loading.component';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    HttpClientModule,
     PaymentModalComponent,
     LoadingComponent,
   ],
