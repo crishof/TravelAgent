@@ -1,0 +1,139 @@
+<nav class="navbar navbar-dark navbar-expand-lg">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Travel Agent</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="dashboard"
+            [ngClass]="{ active: menuOption == 'dashboard' }"
+            (click)="onOption('dashboard')"
+            >Dashboard</a
+          >
+        </li>
+
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="sale"
+            [ngClass]="{ active: menuOption == 'sales' }"
+            (click)="onOption('sales')"
+            >Sales</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="supplier"
+            [ngClass]="{ active: menuOption == 'supplier' }"
+            (click)="onOption('supplier')"
+            >Suppliers</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="booking"
+            [ngClass]="{ active: menuOption == 'booking' }"
+            (click)="onOption('booking')"
+            >Bookings</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="agent"
+            [ngClass]="{ active: menuOption == 'agent' }"
+            (click)="onOption('agent')"
+            >Agents</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="customer"
+            [ngClass]="{ active: menuOption == 'customer' }"
+            (click)="onOption('customer')"
+            >Customers</a
+          >
+        </li>
+      </ul>
+
+      <div class="d-flex align-items-center ms-auto m-3">
+        <button
+          type="button"
+          class="badge bg-info-subtle text-dark fs-6 border-0"
+          style="cursor: pointer"
+          (click)="toggleExchangeDirection()"
+          (keydown.enter)="toggleExchangeDirection()"
+          (keydown.space)="toggleExchangeDirection()"
+          title="Click to invert conversion"
+        >
+          <strong>
+            <i class="bi bi-cash-coin me-1"></i>
+            1 {{ fromCurrency }} = {{ displayRate | number : "1.4-4" }}
+            {{ toCurrency }}
+          </strong>
+        </button>
+      </div>
+
+      <form
+        *ngIf="!noResults"
+        class="d-flex"
+        role="search"
+        (ngSubmit)="globalSearch($event)"
+      >
+        <input
+          name="searchTerm"
+          [(ngModel)]="searchTerm"
+          class="form-control me-2"
+          type="search"
+          placeholder="Search"
+          aria-label="Search"
+        />
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+
+      <div
+        *ngIf="noResults"
+        class="d-flex align-items-center"
+        style="min-width: 320px; max-width: 400px; width: 100"
+      >
+        <div
+          class="alert alert-warning mb-0 w-100 text-center d-flex align-items-center justify-content-center"
+          style="height: 38px; cursor: pointer"
+          (click)="noResults = false"
+          (keydown.enter)="noResults = false"
+          (keydown.space)="noResults = false"
+        >
+          <span class="w-100"
+            >No se encontraron resultados para la búsqueda.
+            <span class="text-success">(Click para volver)</span></span
+          >
+        </div>
+      </div>
+
+      <button
+        class="btn btn-sm btn-link text-light ms-3"
+        style="text-decoration: none"
+        (click)="logout()"
+        title="Cerrar sesión"
+        *ngIf="isLoggedIn"
+      >
+        <i class="bi bi-box-arrow-right fs-4"></i>
+      </button>
+    </div>
+  </div>
+</nav>
