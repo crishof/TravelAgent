@@ -17,8 +17,8 @@
             <div class="col-md-6">
               <p>
                 <strong>Passenger:</strong>
-                {{ sale.customerResponse?.lastname }},
-                {{ sale.customerResponse?.name }}
+                {{ sale.customerResponse?.lastName }},
+                {{ sale.customerResponse?.firstName }}
               </p>
               <p>
                 <strong>Trip date:</strong>
@@ -113,7 +113,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let service of sale.services">
-                  <td>{{ service.supplierId }}</td>
+                  <td>{{ service.supplierName }}</td>
                   <td>{{ service.bookingNumber }}</td>
                   <td>{{ service.reservationDate | date : "dd/MM/yyyy" }}</td>
                   <td>{{ service.description }}</td>

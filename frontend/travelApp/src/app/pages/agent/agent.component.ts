@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
 import { AgentService } from '../../services/agent.service';
 import { IAgent } from '../../model/agent.model';
 import { LoadingComponent } from '../../utils/loading/loading.component';
@@ -9,13 +8,7 @@ import { LoadingComponent } from '../../utils/loading/loading.component';
 @Component({
   selector: 'app-agent',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    HttpClientModule,
-    LoadingComponent,
-  ],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, LoadingComponent],
   templateUrl: './agent.component.html',
   styleUrl: './agent.component.css',
 })

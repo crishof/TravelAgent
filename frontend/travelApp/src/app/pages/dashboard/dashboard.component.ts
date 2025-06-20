@@ -1,11 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -39,7 +38,5 @@ export class DashboardComponent implements OnInit {
     { name: 'Maria Green', sales: 22, total: 22000 },
   ];
 
-  ngOnInit(): void {
-    // TODO Inicializar datos
-  }
+  ngOnInit(): void {}
 }

@@ -30,8 +30,8 @@ export class RegisterAdminComponent {
 
   constructor() {
     this.registerForm = this.formBuilder.group({
-      name: ['', Validators.required],
-      lastname: ['', Validators.required],
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
       agencyName: ['', Validators.required],

@@ -14,6 +14,7 @@ import {
 import { ISupplier } from '../../../model/supplier.model';
 import { SupplierService } from '../../../services/supplier.service';
 import { SaleService } from '../../../services/sale.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-create-sale',
@@ -30,6 +31,7 @@ export class CreateSaleComponent implements OnInit {
   readonly _supplierService = inject(SupplierService);
   readonly _saleService = inject(SaleService);
   readonly cdr = inject(ChangeDetectorRef);
+  readonly _router = inject(Router);
 
   selectedSupplier: ISupplier | null = null;
 
@@ -41,10 +43,10 @@ export class CreateSaleComponent implements OnInit {
 
   initForm() {
     this.saleForm = this.formBuilder.group({
-      agentId: this.getLoggedAgent(),
+      
       customer: this.formBuilder.group({
-        name: '',
-        lastname: '',
+        firstName: '',
+        lastName: '',
         phone: '',
         email: '',
         dni: '',
@@ -131,9 +133,6 @@ export class CreateSaleComponent implements OnInit {
     });
   }
 
-  getLoggedAgent() {
-    return 1;
-  }
 
   onSupplierChange() {
     const supplierId = this.newServiceForm.get('supplierId')?.value;
@@ -150,52 +149,29 @@ export class CreateSaleComponent implements OnInit {
     return this.supplierList.find((s) => s.id == id)?.supplierName ?? '';
   }
 
-  saveSale() {
-    const formData = this.saleForm.value;
+saveSale() {
+  if (this.saleForm.valid) {
+    const formData = {
+      ...this.saleForm.value,
+      services: this.servicesFormArray.value
+    };
 
-    if (this.saleForm.valid) {
-      // Agrega los servicios al objeto formData
-      formData.services = this.servicesFormArray.value;
-
-      // Llama al servicio para enviar los datos al backend
-      this._saleService.createSale(formData).subscribe({
-        next: (response) => {
-          console.log('Sale created successfully:', response);
-
-          // Reinicia el formulario principal y limpia los servicios
-          //TODO this.saleForm.reset();
-          //TODO   this.servicesFormArray.clear();
-
-          // Opcional: Marca el formulario como "pristine" y "untouched"
-          this.saleForm.markAsPristine();
-          this.saleForm.markAsUntouched();
-        },
-        error: (error) => {
-          console.error('Error creating sale:', error);
-
-          // Opcional: Muestra un mensaje de error al usuario
-          alert('An error occurred while creating the sale. Please try again.');
-        },
-      });
-    } else {
-      // El formulario no es válido, imprime los campos inválidos y sus errores
-      console.log('El formulario no es válido. Campos inválidos:');
-      Object.keys(this.saleForm.controls).forEach((key) => {
-        const control = this.saleForm.get(key);
-        if (control?.errors) {
-          console.log(key + ':', control.errors);
-        }
-      });
-
-      // Marca los campos inválidos como tocados para mostrar mensajes de error en el HTML
-      Object.values(this.saleForm.controls).forEach((control) => {
-        if (control instanceof FormControl || control instanceof FormGroup) {
-          control.markAsTouched();
-        }
-      });
-
-      // Opcional: Muestra un mensaje al usuario indicando que el formulario es inválido
-      alert('Please fill out all required fields before submitting.');
-    }
+    this._saleService.createSale(formData).subscribe({
+      next: (response) => {
+        // Asegúrate que el backend responde con 'id'
+        this._router.navigate(['/sale/sale-details', response.id]);
+      },
+      error: () => {
+        alert('An error occurred while creating the sale. Please try again.');
+      }
+    });
+  } else {
+    Object.values(this.saleForm.controls).forEach((control) => {
+      if (control instanceof FormControl || control instanceof FormGroup) {
+        control.markAsTouched();
+      }
+    });
+    alert('Please fill out all required fields before submitting.');
   }
+}
 }

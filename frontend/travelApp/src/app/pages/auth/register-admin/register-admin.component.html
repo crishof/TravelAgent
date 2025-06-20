@@ -7,34 +7,34 @@
           <label for="name" class="form-label">Name</label>
           <input
             type="text"
-            id="name"
+            id="firstName"
             class="form-control"
-            formControlName="name"
+            formControlName="firstName"
             placeholder="Enter your name"
             [ngClass]="{
-              'is-invalid': submitted && registerForm.controls['name'].invalid
+              'is-invalid': submitted && registerForm.controls['firstName'].invalid
             }"
           />
-          @if(submitted && registerForm.controls['name'].errors){
+          @if(submitted && registerForm.controls['firstName'].errors){
 
           <div class="invalid-feedback">Name is required.</div>
           }
         </div>
 
         <div class="mb-3">
-          <label for="lastname" class="form-label">Lastname</label>
+          <label for="lastName" class="form-label">Lastname</label>
           <input
             type="text"
             id="lastname"
             class="form-control"
-            formControlName="lastname"
-            placeholder="Enter your lastname"
+            formControlName="lastName"
+            placeholder="Enter your lastName"
             [ngClass]="{
               'is-invalid':
-                submitted && registerForm.controls['lastname'].invalid
+                submitted && registerForm.controls['lastName'].invalid
             }"
           />
-          @if(submitted && registerForm.controls['lastname'].errors){
+          @if(submitted && registerForm.controls['lastName'].errors){
 
           <div class="invalid-feedback">Lastname is required.</div>
           }

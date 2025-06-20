@@ -51,15 +51,7 @@
             >Bookings</a
           >
         </li>
-        <li class="nav-item">
-          <a
-            class="nav-link"
-            routerLink="agent"
-            [ngClass]="{ active: menuOption == 'agent' }"
-            (click)="onOption('agent')"
-            >Agents</a
-          >
-        </li>
+
         <li class="nav-item">
           <a
             class="nav-link"
@@ -69,6 +61,17 @@
             >Customers</a
           >
         </li>
+
+                <li class="nav-item">
+          <a
+            class="nav-link"
+            routerLink="user"
+            [ngClass]="{ active: menuOption == 'user' }"
+            (click)="onOption('user')"
+            >Users</a
+          >
+        </li>
+
       </ul>
 
       <div class="d-flex align-items-center ms-auto m-3">
@@ -132,7 +135,7 @@
         title="Cerrar sesión"
         *ngIf="isLoggedIn"
       >
-        <i class="bi bi-box-arrow-right fs-4"></i>
+        Logout <i class="bi bi-box-arrow-right fs-4"></i>
       </button>
     </div>
   </div>
