@@ -16,7 +16,6 @@ public class TravelSaleResponse {
 
     private Long id;
 
-    private Long agentId;
     private CustomerResponse customerResponse;
     private LocalDate creationDate;
     private LocalDate travelDate;

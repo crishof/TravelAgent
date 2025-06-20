@@ -14,7 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 public class TravelSaleRequest {
 
-    private Long agentId;
     private LocalDate creationDate;
     private LocalDate travelDate;
     private BigDecimal amount;
