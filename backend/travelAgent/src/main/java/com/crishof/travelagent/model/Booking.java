@@ -21,7 +21,10 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long supplierId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
+
     private String bookingNumber;
     private LocalDate bookingDate;
     private LocalDate reservationDate;
@@ -31,8 +34,19 @@ public class Booking {
     private BigDecimal exchangeRate;
     private BigDecimal amountInSaleCurrency;
     private boolean paid;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sale_id")
     private TravelSale sale;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agency_id")
+    private Agency agency;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User createdBy;
+
+    @Column(nullable = false)
+    private boolean active = true;
 }

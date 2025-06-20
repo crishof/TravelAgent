@@ -1,24 +1,23 @@
 package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.CustomerPaymentRequest;
-import com.crishof.travelagent.dto.CustomerPaymentResponse;
 import com.crishof.travelagent.model.CustomerPayment;
 
 import java.util.List;
 
 public interface CustomerPaymentService {
 
-    List<CustomerPaymentResponse> getAll();
+    List<CustomerPayment> getAll();
 
-    CustomerPaymentResponse getById(Long id);
+    CustomerPayment getById(Long id);
 
-    CustomerPaymentResponse create(CustomerPaymentRequest paymentRequest);
+    CustomerPayment create(CustomerPaymentRequest paymentRequest);
 
-    CustomerPaymentResponse update(Long id, CustomerPaymentRequest paymentRequest);
+    CustomerPayment update(Long id, CustomerPaymentRequest paymentRequest);
 
     String delete(Long id);
 
-    List<CustomerPaymentResponse> getAllByCustomerIdAndTravelId(Long customerId, Long travelId);
+    List<CustomerPayment> getAllByCustomerIdAndTravelId(Long customerId, Long travelId);
 
     List<CustomerPayment> getAllByTravelId(Long travelId);
 }

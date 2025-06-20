@@ -1,17 +1,16 @@
 package com.crishof.travelagent.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AgentRequest {
+public class AuthRequest {
 
-    private String name;
-    private String lastname;
     private String email;
-    private String username;
     private String password;
 }

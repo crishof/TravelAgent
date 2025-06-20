@@ -21,12 +21,30 @@ public class CustomerPayment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long customerId;
-    private Long travelId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "travel_sale_id", nullable = false)
+    private TravelSale travelSale;
+
+    @Column(nullable = false)
     private BigDecimal amount;
+
+    @Column(nullable = false)
     private String currency;
+
     private String paymentMethod;
+
+    @Column(nullable = false)
     private LocalDate paymentDate;
+
     private BigDecimal exchangeRate;
+
     private BigDecimal amountInSaleCurrency;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agency_id", nullable = false)
+    private Agency agency;
 }

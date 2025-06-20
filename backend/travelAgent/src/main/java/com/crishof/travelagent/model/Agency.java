@@ -6,22 +6,23 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+import java.util.List;
+
 @Entity
-@Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Data
 @Builder
-@Table(name = "tbl_agent")
-public class Agent {
+@Table(name = "tbl_agency")
+public class Agency implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
-    private String lastname;
-    private String email;
-    private String username;
-    private String password;
 
-
+    @OneToMany(mappedBy = "agency", cascade = CascadeType.ALL)
+    private List<User> users;
 }

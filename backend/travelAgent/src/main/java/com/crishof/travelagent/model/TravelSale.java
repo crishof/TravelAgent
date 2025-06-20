@@ -22,14 +22,24 @@ public class TravelSale {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long agentId;
-    private Long customerId;
+    @ManyToOne
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
     private LocalDate creationDate;
     private LocalDate travelDate;
     private BigDecimal amount;
     private String currency;
     private String description;
 
-    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Booking> services;
+
+    @ManyToOne
+    @JoinColumn(name = "agency_id")
+    private Agency agency;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

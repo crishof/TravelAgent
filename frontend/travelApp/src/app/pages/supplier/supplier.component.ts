@@ -7,7 +7,6 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
 import { ISupplier } from '../../model/supplier.model';
 import { SupplierService } from '../../services/supplier.service';
 import { LoadingComponent } from '../../utils/loading/loading.component';
@@ -15,13 +14,7 @@ import { LoadingComponent } from '../../utils/loading/loading.component';
 @Component({
   selector: 'app-supplier',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    HttpClientModule,
-    LoadingComponent,
-  ],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, LoadingComponent],
   templateUrl: './supplier.component.html',
   styleUrl: './supplier.component.css',
 })

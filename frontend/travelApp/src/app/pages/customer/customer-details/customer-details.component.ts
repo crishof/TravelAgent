@@ -3,7 +3,6 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CustomerService } from '../../../services/customer.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
 import { SaleService } from '../../../services/sale.service';
 import { ICustomer } from '../../../model/customer.model';
 import { ISale } from '../../../model/sale.model';
@@ -11,13 +10,7 @@ import { ISale } from '../../../model/sale.model';
 @Component({
   selector: 'app-customer-details',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    HttpClientModule,
-    RouterLink,
-  ],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
   templateUrl: './customer-details.component.html',
   styleUrl: './customer-details.component.css',
 })

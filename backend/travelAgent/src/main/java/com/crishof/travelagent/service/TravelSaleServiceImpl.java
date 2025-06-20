@@ -1,13 +1,12 @@
 package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.BookingRequest;
+import com.crishof.travelagent.dto.CurrencyExchangeResponse;
 import com.crishof.travelagent.dto.TravelSaleRequest;
-import com.crishof.travelagent.dto.TravelSaleResponse;
 import com.crishof.travelagent.exception.BookingNotFoundException;
 import com.crishof.travelagent.exception.TravelSaleNotFoundException;
-import com.crishof.travelagent.model.Booking;
-import com.crishof.travelagent.model.CustomerPayment;
-import com.crishof.travelagent.model.TravelSale;
+import com.crishof.travelagent.mapper.TravelSaleMapper;
+import com.crishof.travelagent.model.*;
 import com.crishof.travelagent.repository.TravelSaleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -27,49 +25,137 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     private final BookingService bookingService;
     private final CustomerService customerService;
     private final CustomerPaymentService customerPaymentService;
+    private final UserService userService;
+    private final TravelSaleMapper travelSaleMapper;
+    private final SupplierService supplierService;
 
     @Override
-    public List<TravelSaleResponse> getAll() {
+    public List<TravelSale> getAll() {
 
-        return travelSaleRepository.findAll().stream()
+        return travelSaleRepository.findAllByAgency(userService.getCurrentUser().getAgency()).stream()
                 .sorted(Comparator.comparing(
                         TravelSale::getTravelDate,
                         Comparator.nullsLast(Comparator.naturalOrder())
                 ))
-                .map(this::toTravelSaleResponse)
                 .toList();
     }
 
     @Override
-    public TravelSaleResponse getById(Long id) {
+    public TravelSale getById(Long id) {
 
-        TravelSale sale = travelSaleRepository.findById(id).orElseThrow(() -> new TravelSaleNotFoundException(id));
-        return this.toTravelSaleResponse(sale);
+        return travelSaleRepository.findById(id).orElseThrow(() -> new TravelSaleNotFoundException(id));
+
     }
 
     @Override
-    public List<TravelSaleResponse> getAllByCustomerId(Long customerId) {
+    public List<TravelSale> getAllByCustomerId(Long customerId) {
 
-        return travelSaleRepository.findAllByCustomerId(customerId).stream()
+        User currentUser = userService.getCurrentUser();
+        Long agencyId = currentUser.getAgency().getId();
+
+        return travelSaleRepository.findAllByCustomerIdAndAgencyId(customerId, agencyId).stream()
                 .sorted(Comparator.comparing(TravelSale::getTravelDate).reversed())
-                .map(this::toTravelSaleResponse)
                 .toList();
     }
 
     @Override
-    public TravelSaleResponse create(TravelSaleRequest request) {
-        TravelSale sale = new TravelSale();
-        Long customerId = customerService.getIdFromNewSale(request.getCustomer());
-        applyRequestToSale(sale, request, true, customerId);
-        return this.toTravelSaleResponse(travelSaleRepository.save(sale));
+    public TravelSale create(TravelSaleRequest request) {
+        User currentUser = userService.getCurrentUser();
+        Customer customer = customerService.create(request.getCustomer());
+
+        TravelSale sale = travelSaleMapper.toEntity(request);
+        sale.setCustomer(customer);
+        sale.setUser(currentUser);
+        sale.setAgency(currentUser.getAgency());
+        sale.setCreationDate(LocalDate.now());
+
+        List<Booking> services = request.getServices().stream()
+                .map(req -> {
+                    Booking booking = bookingService.createEntity(req, sale.getCurrency());
+                    booking.setSale(sale); // setea la relación con la venta
+                    booking.setActive(true);
+                    return booking;
+                })
+                .toList();
+
+        sale.setServices(services);
+
+        return travelSaleRepository.save(sale); // se guarda en cascade
     }
 
+
     @Override
-    public TravelSaleResponse update(Long id, TravelSaleRequest request) {
+    public TravelSale update(Long id, TravelSaleRequest request) {
         TravelSale sale = travelSaleRepository.findById(id)
                 .orElseThrow(() -> new TravelSaleNotFoundException(id));
-        applyRequestToSale(sale, request, false, id);
-        return this.toTravelSaleResponse(travelSaleRepository.save(sale));
+
+        User currentUser = userService.getCurrentUser();
+        Agency agency = currentUser.getAgency();
+
+        sale.setUser(currentUser);
+        sale.setAgency(agency);
+        sale.setTravelDate(request.getTravelDate());
+        sale.setDescription(request.getDescription());
+        sale.setAmount(request.getAmount());
+        sale.setCurrency(request.getCurrency());
+
+        List<Booking> updatedServices = new ArrayList<>();
+
+        for (BookingRequest req : request.getServices()) {
+            if (req.getId() != null) {
+                // Modificar existente
+                Booking existing = sale.getServices().stream()
+                        .filter(b -> b.getId().equals(req.getId()))
+                        .findFirst()
+                        .orElseThrow(() -> new BookingNotFoundException(req.getId()));
+
+                existing.setSupplier(supplierService.getById(req.getSupplierId()));
+                existing.setBookingNumber(req.getBookingNumber());
+                existing.setReservationDate(req.getReservationDate());
+                existing.setDescription(req.getDescription());
+                existing.setAmount(req.getAmount());
+                existing.setCurrency(req.getCurrency());
+                // Recalcular importe en moneda de la venta si cambia
+                if (!req.getCurrency().equals(sale.getCurrency())) {
+                    CurrencyExchangeResponse conversion = bookingService.getCurrencyConversion(
+                            req.getCurrency(),
+                            sale.getCurrency(),
+                            req.getAmount()
+                    );
+                    existing.setExchangeRate(conversion.getExchangeRate());
+                    existing.setAmountInSaleCurrency(conversion.getAmountInSaleCurrency());
+                } else {
+                    existing.setExchangeRate(BigDecimal.ONE);
+                    existing.setAmountInSaleCurrency(req.getAmount());
+                }
+
+                updatedServices.add(existing);
+
+            } else {
+                // Crear nuevo booking
+                Booking newBooking = bookingService.createEntity(req, sale.getCurrency());
+                newBooking.setSale(sale);
+                newBooking.setAgency(agency);
+                newBooking.setCreatedBy(currentUser);
+                newBooking.setActive(true);
+                updatedServices.add(newBooking);
+            }
+        }
+
+        // Eliminar bookings que ya no están en el request
+        List<Long> incomingIds = request.getServices().stream()
+                .map(BookingRequest::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        List<Booking> toRemove = sale.getServices().stream()
+                .filter(b -> !incomingIds.contains(b.getId()))
+                .toList();
+
+        sale.getServices().removeAll(toRemove);
+        sale.setServices(updatedServices);
+
+        return travelSaleRepository.save(sale);
     }
 
     @Override
@@ -101,82 +187,5 @@ public class TravelSaleServiceImpl implements TravelSaleService {
 
         return totalPayments.subtract(totalBookings);
     }
-
-    private TravelSaleResponse toTravelSaleResponse(TravelSale travelSale) {
-        TravelSaleResponse travelSaleResponse = new TravelSaleResponse();
-
-        travelSaleResponse.setId(travelSale.getId());
-        travelSaleResponse.setTravelDate(travelSale.getTravelDate());
-        travelSaleResponse.setAmount(travelSale.getAmount());
-        travelSaleResponse.setServices(travelSale.getServices().stream().map(bookingService::toBookingResponse).toList());
-        travelSaleResponse.setCurrency(travelSale.getCurrency());
-        travelSaleResponse.setDescription(travelSale.getDescription());
-        travelSaleResponse.setAgentId(travelSale.getAgentId());
-        travelSaleResponse.setCustomerResponse(customerService.getById(travelSale.getCustomerId()));
-        travelSaleResponse.setCreationDate(travelSale.getCreationDate());
-        return travelSaleResponse;
-    }
-
-    private void applyRequestToSale(TravelSale sale, TravelSaleRequest request, boolean isNew, long customerId) {
-
-//      TODO  sale.setAgentId(request.getAgentId());
-
-        sale.setAgentId(ThreadLocalRandom.current().nextLong(1, 4));
-        sale.setCustomerId(customerId);
-        sale.setTravelDate(request.getTravelDate());
-        sale.setDescription(request.getDescription());
-        sale.setAmount(request.getAmount());
-        sale.setCurrency(request.getCurrency());
-
-        if (isNew) {
-
-            sale.setCreationDate(LocalDate.now());
-            sale.setServices(
-                    request.getServices().stream()
-                            .map(service -> bookingService.createEntity(service, sale.getCurrency()))
-                            .toList()
-            );
-        } else {
-
-            List<Booking> updatedServices = new ArrayList<>();
-
-            for (BookingRequest req : request.getServices()) {
-
-                if (req.getId() != null) {
-
-                    Booking existing = sale.getServices().stream()
-                            .filter(b -> b.getId().equals(req.getId()))
-                            .findFirst()
-                            .orElseThrow(() -> new BookingNotFoundException(req.getId()));
-
-                    existing.setSupplierId(req.getSupplierId());
-                    existing.setBookingNumber(req.getBookingNumber());
-                    existing.setReservationDate(req.getReservationDate());
-                    existing.setDescription(req.getDescription());
-                    existing.setAmount(req.getAmount());
-                    existing.setCurrency(req.getCurrency());
-
-                    updatedServices.add(existing);
-
-                } else {
-
-                    Booking newBooking = bookingService.createEntity(req, sale.getCurrency());
-                    updatedServices.add(newBooking);
-                }
-            }
-
-            List<Long> incomingIds = request.getServices().stream()
-                    .map(BookingRequest::getId)
-                    .filter(Objects::nonNull)
-                    .toList();
-
-            List<Booking> toRemove = sale.getServices().stream()
-                    .filter(b -> !incomingIds.contains(b.getId()))
-                    .toList();
-
-            sale.getServices().removeAll(toRemove);
-
-            sale.setServices(updatedServices);
-        }
-    }
 }
+

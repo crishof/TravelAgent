@@ -1,18 +1,20 @@
 package com.crishof.travelagent.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AgentResponse {
+@Builder
+public class RegisterRequest {
 
-    private Long id;
-    private String name;
-    private String lastname;
+    private String firstName;
+    private String lastName;
     private String email;
-    private String username;
     private String password;
+
+    private String agencyName;
 }

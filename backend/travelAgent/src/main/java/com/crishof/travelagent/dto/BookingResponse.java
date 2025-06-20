@@ -14,7 +14,7 @@ public class BookingResponse {
 
     private Long id;
 
-    private Long supplierId;
+    private String supplierName;
     private String bookingNumber;
     private LocalDate bookingDate;
     private LocalDate reservationDate;
