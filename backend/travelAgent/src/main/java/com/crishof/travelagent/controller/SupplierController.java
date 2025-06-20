@@ -2,6 +2,8 @@ package com.crishof.travelagent.controller;
 
 import com.crishof.travelagent.dto.SupplierRequest;
 import com.crishof.travelagent.dto.SupplierResponse;
+import com.crishof.travelagent.mapper.SupplierMapper;
+import com.crishof.travelagent.model.Supplier;
 import com.crishof.travelagent.service.SupplierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,25 +18,32 @@ import java.util.List;
 public class SupplierController {
 
     private final SupplierService supplierService;
+    private final SupplierMapper supplierMapper;
+
 
     @GetMapping("/getAll")
     public ResponseEntity<List<SupplierResponse>> getAll() {
-        return ResponseEntity.ok(supplierService.getAll());
+        List<Supplier> suppliers = supplierService.getAll();
+        List<SupplierResponse> responses = suppliers.stream()
+                .map(supplierMapper::toDto)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/getById/{id}")
     public ResponseEntity<SupplierResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(supplierService.getById(id));
+
+        return ResponseEntity.ok(supplierMapper.toDto(supplierService.getById(id)));
     }
 
     @PutMapping("/update/{id}")
     public ResponseEntity<SupplierResponse> update(@PathVariable Long id, @RequestBody SupplierRequest supplierRequest) {
-        return ResponseEntity.ok(supplierService.update(id, supplierRequest));
+        return ResponseEntity.ok(supplierMapper.toDto(supplierService.update(id, supplierRequest)));
     }
 
     @PostMapping("/save")
     public ResponseEntity<SupplierResponse> save(@RequestBody SupplierRequest supplierRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(supplierService.create(supplierRequest));
+        return ResponseEntity.status(HttpStatus.CREATED).body(supplierMapper.toDto(supplierService.create(supplierRequest)));
     }
 
     @DeleteMapping("/delete/{id}")
