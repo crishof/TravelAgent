@@ -1,5 +1,6 @@
 package com.crishof.travelagent.repository;
 
+import com.crishof.travelagent.model.Agency;
 import com.crishof.travelagent.model.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -11,4 +12,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByBookingNumber(String bookingNumber);
 
+    boolean existsBySupplierId(Long supplierId);
+
+    List<Booking> findAllByAgency(Agency agency);
 }

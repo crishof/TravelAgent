@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface CustomerPaymentRepository extends JpaRepository<CustomerPayment, Long> {
 
-    List<CustomerPayment> findAllByCustomerIdAndTravelId(Long customerId, Long travelId);
+    List<CustomerPayment> findAllByCustomerIdAndTravelSaleId(Long customerId, Long travelId);
 
-    List<CustomerPayment> findAllByTravelId(Long travelId);
+    List<CustomerPayment> findAllByTravelSaleId(Long travelId);
 }
