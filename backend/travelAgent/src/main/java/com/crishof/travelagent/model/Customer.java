@@ -8,25 +8,34 @@ import lombok.NoArgsConstructor;
 
 
 @Entity
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Data
-@Table(name = "tbl_customer")
+@Table(name = "tbl_customer", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"email"}),
+        @UniqueConstraint(columnNames = {"dni"})
+})
 public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-    private String lastname;
+    private String firstName;
+
+    private String lastName;
+
     private String phone;
+
+    @Column(nullable = false)
     private String email;
+
     private String dni;
+
     private String passport;
 
-    @ManyToOne
-    @JoinColumn(name = "agency_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agency_id", nullable = false)
     private Agency agency;
 }

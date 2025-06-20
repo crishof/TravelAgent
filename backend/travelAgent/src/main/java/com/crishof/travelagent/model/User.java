@@ -24,26 +24,30 @@ public class User implements UserDetails, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String firstname;
-    private String lastname;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Role role;
 
-    @ManyToOne
-    @JoinColumn(name = "agency_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agency_id", nullable = false)
     private Agency agency;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
@@ -52,24 +56,27 @@ public class User implements UserDetails, Serializable {
     }
 
     @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return true; // modificar si se requiere lógica específica
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return true; // modificar si se requiere lógica específica
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return true; // modificar si se requiere lógica específica
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return true; // modificar si se requiere lógica específica
     }
 }
-
-

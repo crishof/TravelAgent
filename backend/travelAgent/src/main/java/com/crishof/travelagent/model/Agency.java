@@ -14,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
+@Table(name = "tbl_agency")
 public class Agency implements Serializable {
 
     @Id

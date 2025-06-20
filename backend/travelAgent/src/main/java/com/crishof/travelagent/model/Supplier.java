@@ -18,10 +18,13 @@ public class Supplier {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "supplier_name", nullable = false)
     private String supplierName;
+
+    @Column(nullable = false)
     private String currency;
 
-    @ManyToOne
-    @JoinColumn(name = "agency_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agency_id", nullable = false)
     private Agency agency;
 }
