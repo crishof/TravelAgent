@@ -4,14 +4,19 @@ import com.crishof.travelagent.config.JwtService;
 import com.crishof.travelagent.dto.AuthRequest;
 import com.crishof.travelagent.dto.AuthResponse;
 import com.crishof.travelagent.dto.RegisterRequest;
+import com.crishof.travelagent.model.Agency;
 import com.crishof.travelagent.model.Role;
 import com.crishof.travelagent.model.User;
+import com.crishof.travelagent.repository.AgencyRepository;
 import com.crishof.travelagent.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,19 +26,29 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final AgencyRepository agencyRepository;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
 
+        Agency agency = agencyRepository.save(
+                Agency.builder()
+                        .name(request.getAgencyName())
+                        .build());
+        agencyRepository.save(agency);
         var user = User.builder()
-                .firstname(request.getFirstname())
-                .lastname(request.getLastname())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
+                .role(Role.ADMIN)
+                .agency(agency)
                 .build();
         userRepository.save(user);
-        var jwtToken = jwtService.generateToken(user);
+        var claims = new HashMap<String, Object>();
+        claims.put("roles", List.of("ROLE_" + user.getRole().name()));
+
+        var jwtToken = jwtService.generateToken(claims, user);
 
         return AuthResponse.builder().token(jwtToken).build();
     }
@@ -44,9 +59,12 @@ public class AuthServiceImpl implements AuthService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(), request.getPassword()));
-        var user = userRepository.findUserByEmail(request.getEmail())
+        var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow();
-        var jwtToken = jwtService.generateToken(user);
+        var claims = new HashMap<String, Object>();
+        claims.put("roles", List.of("ROLE_" + user.getRole().name()));
+
+        var jwtToken = jwtService.generateToken(claims, user);
         return AuthResponse.builder().token(jwtToken).build();
     }
 }

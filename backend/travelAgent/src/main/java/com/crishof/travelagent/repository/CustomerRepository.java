@@ -22,6 +22,12 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     List<Customer> globalSearch(@Param("term") String term);
 
     Optional<Customer> findByDniOrPassportOrEmail(String dni, String passport, String email);
+
+    Optional<Customer> findByDni(String dni);
+
+    Optional<Customer> findByPassport(String passport);
+
+    Optional<Customer> findByEmail(String email);
 }
 
 

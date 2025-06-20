@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @Table(name = "tbl_customer", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"email"}),
         @UniqueConstraint(columnNames = {"dni"})
 })
 public class Customer {
