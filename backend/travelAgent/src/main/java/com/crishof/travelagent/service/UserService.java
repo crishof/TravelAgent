@@ -1,16 +1,18 @@
 package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.UserRequest;
-import com.crishof.travelagent.dto.UserResponse;
+import com.crishof.travelagent.model.User;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
 public interface UserService {
 
-    UserResponse getProfile(Authentication auth);
+    User getProfile(Authentication auth);
 
-    List<UserResponse> getUsersByAgency(Authentication auth);
+    List<User> getUsersByAgency(Authentication auth);
 
-    UserResponse createUser(UserRequest request, Authentication auth);
+    User createUser(UserRequest request, Authentication auth);
+
+    User getCurrentUser();
 }

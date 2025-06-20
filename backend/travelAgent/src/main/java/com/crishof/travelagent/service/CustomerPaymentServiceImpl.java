@@ -1,11 +1,15 @@
 package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.CustomerPaymentRequest;
-import com.crishof.travelagent.dto.CustomerPaymentResponse;
 import com.crishof.travelagent.exception.CustomerPaymentNotFoundException;
 import com.crishof.travelagent.exception.ExchangeRateNotAvailableException;
+import com.crishof.travelagent.exception.TravelSaleNotFoundException;
+import com.crishof.travelagent.model.Customer;
 import com.crishof.travelagent.model.CustomerPayment;
+import com.crishof.travelagent.model.TravelSale;
 import com.crishof.travelagent.repository.CustomerPaymentRepository;
+import com.crishof.travelagent.repository.TravelSaleRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,54 +24,68 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
 
     private final CustomerPaymentRepository customerPaymentRepository;
     private final CurrencyConversionService currencyConversionService;
+    private final CustomerService customerService;
+    private final UserService userService;
+    private final TravelSaleRepository travelSaleRepository;
 
 
     @Override
-    public List<CustomerPaymentResponse> getAll() {
-        return customerPaymentRepository.findAll().stream().map(this::toCustomerPaymentResponse).sorted(Comparator.comparing(CustomerPaymentResponse::getPaymentDate)).toList();
+    public List<CustomerPayment> getAll() {
+        return customerPaymentRepository.findAll().stream().sorted(Comparator.comparing(CustomerPayment::getPaymentDate)).toList();
     }
 
     @Override
-    public CustomerPaymentResponse getById(Long id) {
-        return this.toCustomerPaymentResponse(customerPaymentRepository.findById(id).orElseThrow(() -> new CustomerPaymentNotFoundException(id)));
+    public CustomerPayment getById(Long id) {
+        return customerPaymentRepository.findById(id).orElseThrow(() -> new CustomerPaymentNotFoundException(id));
     }
 
     @Override
-    public CustomerPaymentResponse create(CustomerPaymentRequest paymentRequest) {
+    @Transactional
+    public CustomerPayment create(CustomerPaymentRequest paymentRequest) {
 
-        CustomerPayment payment = CustomerPayment.builder().paymentDate(LocalDate.now()).travelId(paymentRequest.getTravelId()).customerId(paymentRequest.getCustomerId()).amount(paymentRequest.getAmount()).paymentMethod(paymentRequest.getPaymentMethod()).currency(paymentRequest.getCurrency()).build();
+        Customer customer = customerService.getById(paymentRequest.getCustomerId());
+        TravelSale sale = travelSaleRepository.findById(paymentRequest.getTravelId())
+                .orElseThrow(() -> new TravelSaleNotFoundException(paymentRequest.getTravelId()));
+
+        CustomerPayment payment = CustomerPayment.builder()
+                .paymentDate(LocalDate.now())
+                .customer(customer)
+                .travelSale(sale)
+                .amount(paymentRequest.getAmount())
+                .paymentMethod(paymentRequest.getPaymentMethod())
+                .currency(paymentRequest.getCurrency())
+                .agency(userService.getCurrentUser().getAgency())
+                .build();
 
         if (paymentRequest.getCurrency().equals(paymentRequest.getSaleCurrency())) {
-
-            payment.setExchangeRate(new BigDecimal(1));
+            payment.setExchangeRate(BigDecimal.ONE);
             payment.setAmountInSaleCurrency(paymentRequest.getAmount());
         } else {
-
             String sourceCurrency = paymentRequest.getCurrency();
-            String targetCurrency = "EUR".equals(sourceCurrency) ? "USD" : "EUR";
+            String targetCurrency = paymentRequest.getSaleCurrency();
 
-            BigDecimal exchangeRate = currencyConversionService.getExchangeRate(sourceCurrency, targetCurrency).blockOptional().orElseThrow(() -> new ExchangeRateNotAvailableException(sourceCurrency, targetCurrency));
+            BigDecimal exchangeRate = currencyConversionService
+                    .getExchangeRate(sourceCurrency, targetCurrency)
+                    .blockOptional()
+                    .orElseThrow(() -> new ExchangeRateNotAvailableException(sourceCurrency, targetCurrency));
 
             BigDecimal amountInSaleCurrency = paymentRequest.getAmount().multiply(exchangeRate);
-            payment.setAmountInSaleCurrency(amountInSaleCurrency);
             payment.setExchangeRate(exchangeRate);
+            payment.setAmountInSaleCurrency(amountInSaleCurrency);
         }
 
-        return this.toCustomerPaymentResponse(customerPaymentRepository.save(payment));
-
+        return customerPaymentRepository.save(payment);
     }
 
     @Override
-    public CustomerPaymentResponse update(Long id, CustomerPaymentRequest paymentRequest) {
+    public CustomerPayment update(Long id, CustomerPaymentRequest paymentRequest) {
 
         CustomerPayment payment = customerPaymentRepository.findById(id).orElseThrow(() -> new CustomerPaymentNotFoundException(id));
         payment.setPaymentDate(LocalDate.now());
-        payment.setTravelId(paymentRequest.getTravelId());
-        payment.setCustomerId(paymentRequest.getCustomerId());
         payment.setAmount(paymentRequest.getAmount());
         payment.setCurrency(paymentRequest.getCurrency());
         payment.setPaymentMethod(paymentRequest.getPaymentMethod());
-        return this.toCustomerPaymentResponse(customerPaymentRepository.save(payment));
+        return customerPaymentRepository.save(payment);
     }
 
     @Override
@@ -76,18 +94,15 @@ public class CustomerPaymentServiceImpl implements CustomerPaymentService {
         return "Customer payment deleted successfully";
     }
 
-    public CustomerPaymentResponse toCustomerPaymentResponse(CustomerPayment payment) {
-
-        return CustomerPaymentResponse.builder().id(payment.getId()).customerId(payment.getCustomerId()).travelId(payment.getTravelId()).amount(payment.getAmount()).paymentDate(payment.getPaymentDate()).currency(payment.getCurrency()).paymentMethod(payment.getPaymentMethod()).amountInSaleCurrency(payment.getAmountInSaleCurrency()).exchangeRate(payment.getExchangeRate()).build();
-    }
-
     @Override
-    public List<CustomerPaymentResponse> getAllByCustomerIdAndTravelId(Long customerId, Long travelId) {
-        return customerPaymentRepository.findAllByCustomerIdAndTravelId(customerId, travelId).stream().map(this::toCustomerPaymentResponse).sorted(Comparator.comparing(CustomerPaymentResponse::getPaymentDate)).toList();
+    public List<CustomerPayment> getAllByCustomerIdAndTravelId(Long customerId, Long travelId) {
+        return customerPaymentRepository.findAllByCustomerIdAndTravelSaleId(customerId, travelId).stream()
+                .sorted(Comparator.comparing(CustomerPayment::getPaymentDate))
+                .toList();
     }
 
     @Override
     public List<CustomerPayment> getAllByTravelId(Long travelId) {
-        return customerPaymentRepository.findAllByTravelId(travelId);
+        return customerPaymentRepository.findAllByTravelSaleId(travelId);
     }
 }

@@ -2,20 +2,20 @@ package com.crishof.travelagent.service;
 
 
 import com.crishof.travelagent.dto.PaymentRequest;
-import com.crishof.travelagent.dto.PaymentResponse;
+import com.crishof.travelagent.model.Payment;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public interface PaymentService {
 
-    List<PaymentResponse> getAll();
+    List<Payment> getAll();
 
-    PaymentResponse getById(Long id);
+    Payment getById(Long id);
 
-    PaymentResponse create(PaymentRequest paymentRequest);
+    Payment create(PaymentRequest paymentRequest);
 
-    PaymentResponse update(Long id, PaymentRequest paymentRequest);
+    Payment update(Long id, PaymentRequest paymentRequest);
 
     String delete(Long id);
 
