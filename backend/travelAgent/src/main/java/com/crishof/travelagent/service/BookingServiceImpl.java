@@ -1,17 +1,17 @@
 package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.BookingRequest;
-import com.crishof.travelagent.dto.BookingResponse;
 import com.crishof.travelagent.dto.CurrencyExchangeResponse;
 import com.crishof.travelagent.exception.BookingNotFoundException;
 import com.crishof.travelagent.exception.ExchangeRateNotAvailableException;
+import com.crishof.travelagent.mapper.BookingMapper;
+import com.crishof.travelagent.model.Agency;
 import com.crishof.travelagent.model.Booking;
 import com.crishof.travelagent.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 
@@ -21,64 +21,63 @@ public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final CurrencyConversionService currencyConversionService;
+    private final UserService userService;
+    private final BookingMapper bookingMapper;
+    private final SupplierService supplierService;
 
 
     @Override
-    public List<BookingResponse> getAll() {
-        List<Booking> bookings = bookingRepository.findAll();
-        return bookings.stream().sorted(Comparator.comparing(Booking::getReservationDate)).map(this::toBookingResponse).toList();
+    public List<Booking> getAll() {
+        Agency agency = userService.getCurrentUser().getAgency();
+        List<Booking> bookings = bookingRepository.findAllByAgency(agency);
+        return bookings.stream().sorted(Comparator.comparing(Booking::getReservationDate)).toList();
     }
 
     @Override
-    public BookingResponse getById(Long id) {
-        return this.toBookingResponse(bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id)));
-    }
-
-    @Override
-    public BookingResponse create(BookingRequest bookingRequest, String saleCurrency) {
-
-        if (bookingRequest.getCurrency().equals(saleCurrency)) {
-
-            bookingRequest.setExchangeRate(new BigDecimal(1));
-            bookingRequest.setAmountInSaleCurrency(bookingRequest.getAmount());
-        }
-
-        CurrencyExchangeResponse currencyExchangeResponse = this.toCurrencyExchangeResponse(bookingRequest.getCurrency(), bookingRequest.getAmount());
-        bookingRequest.setExchangeRate(currencyExchangeResponse.getExchangeRate());
-        bookingRequest.setAmountInSaleCurrency(currencyExchangeResponse.getAmountInSaleCurrency());
-
-
-        return this.toBookingResponse(bookingRepository.save(this.toBooking(bookingRequest)));
+    public Booking getById(Long id) {
+        return bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id));
     }
 
     @Override
     public Booking createEntity(BookingRequest bookingRequest, String saleCurrency) {
 
+        Booking booking = bookingMapper.toEntity(bookingRequest);
+
+        // Calcular conversión
         if (bookingRequest.getCurrency().equals(saleCurrency)) {
-
-            bookingRequest.setExchangeRate(new BigDecimal(1));
-            bookingRequest.setAmountInSaleCurrency(bookingRequest.getAmount());
-
+            booking.setExchangeRate(BigDecimal.ONE);
+            booking.setAmountInSaleCurrency(bookingRequest.getAmount());
         } else {
-            CurrencyExchangeResponse currencyExchangeResponse = this.toCurrencyExchangeResponse(bookingRequest.getCurrency(), bookingRequest.getAmount());
-            bookingRequest.setExchangeRate(currencyExchangeResponse.getExchangeRate());
-            bookingRequest.setAmountInSaleCurrency(currencyExchangeResponse.getAmountInSaleCurrency());
+            CurrencyExchangeResponse currencyExchangeResponse =
+                    this.toCurrencyExchangeResponse(bookingRequest.getCurrency(), bookingRequest.getAmount());
+
+            booking.setExchangeRate(currencyExchangeResponse.getExchangeRate());
+            booking.setAmountInSaleCurrency(currencyExchangeResponse.getAmountInSaleCurrency());
         }
 
-        return bookingRepository.save(this.toBooking(bookingRequest));
+        // Set usuario y agencia actual
+        booking.setCreatedBy(userService.getCurrentUser());
+        booking.setAgency(userService.getCurrentUser().getAgency());
+
+        // Set proveedor
+        booking.setSupplier(supplierService.getById(bookingRequest.getSupplierId()));
+
+        return booking; // ❗ No se persiste aquí
     }
 
     @Override
-    public BookingResponse update(Long id, BookingRequest bookingRequest) {
+    public Booking createAndSave(BookingRequest bookingRequest, String saleCurrency) {
+        Booking booking = createEntity(bookingRequest, saleCurrency);
+        return bookingRepository.save(booking);
+    }
+
+    @Override
+    public Booking update(Long id, BookingRequest bookingRequest) {
 
         Booking booking = bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id));
+        bookingMapper.updateEntityFromRequest(bookingRequest, booking);
 
-        booking.setBookingNumber(bookingRequest.getBookingNumber());
-        booking.setAmount(bookingRequest.getAmount());
-        booking.setCurrency(bookingRequest.getCurrency());
-        booking.setSupplierId(bookingRequest.getSupplierId());
-        booking.setDescription(bookingRequest.getDescription());
-        return this.toBookingResponse(bookingRepository.save(booking));
+        return bookingRepository.save(booking);
 
     }
 
@@ -86,7 +85,9 @@ public class BookingServiceImpl implements BookingService {
 
         CurrencyExchangeResponse currencyExchangeResponse = new CurrencyExchangeResponse();
         String targetCurrency = "USD".equals(sourceCurrency) ? "EUR" : "USD";
-        BigDecimal exchangeRate = currencyConversionService.getExchangeRate(sourceCurrency, targetCurrency).blockOptional().orElseThrow(() -> new ExchangeRateNotAvailableException(sourceCurrency, targetCurrency));
+        BigDecimal exchangeRate = currencyConversionService.getExchangeRate(sourceCurrency, targetCurrency)
+                .blockOptional()
+                .orElseThrow(() -> new ExchangeRateNotAvailableException(sourceCurrency, targetCurrency));
 
         BigDecimal amountInSaleCurrency = amount.multiply(exchangeRate);
 
@@ -99,8 +100,15 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public String delete(Long id) {
         Booking booking = bookingRepository.findById(id).orElseThrow(() -> new BookingNotFoundException(id));
-        bookingRepository.delete(booking);
-        return "Booking with id: " + id + "successfully deleted";
+
+        if (booking.getSale() != null && booking.isPaid()) {
+            throw new IllegalStateException("Cannot delete a booking that is already paid.");
+        }
+
+        booking.setActive(false);
+        bookingRepository.save(booking);
+
+        return "Booking with id: " + id + " marked as inactive";
     }
 
     @Override
@@ -111,44 +119,26 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponse> findAllByBookingNumber(String searchTerm) {
-
-        return bookingRepository.findAllByBookingNumber(searchTerm).stream().map(this::toBookingResponse).toList();
+    public List<Booking> findAllByBookingNumber(String searchTerm) {
+        return bookingRepository.findAllByBookingNumber(searchTerm);
     }
 
     @Override
-    public BookingResponse toBookingResponse(Booking booking) {
+    public CurrencyExchangeResponse getCurrencyConversion(String fromCurrency, String toCurrency, BigDecimal amount) {
+        BigDecimal exchangeRate = currencyConversionService
+                .getExchangeRate(fromCurrency, toCurrency)
+                .block(); // Bloqueamos porque estamos en código síncrono
 
-        BookingResponse bookingResponse = new BookingResponse();
-        bookingResponse.setId(booking.getId());
-        bookingResponse.setSupplierId(booking.getSupplierId());
-        bookingResponse.setBookingNumber(booking.getBookingNumber());
-        bookingResponse.setBookingDate(booking.getBookingDate());
-        bookingResponse.setReservationDate(booking.getReservationDate());
-        bookingResponse.setDescription(booking.getDescription());
-        bookingResponse.setAmount(booking.getAmount());
-        bookingResponse.setCurrency(booking.getCurrency());
-        bookingResponse.setPaid(booking.isPaid());
-        bookingResponse.setAmountInSaleCurrency(booking.getAmountInSaleCurrency());
-        bookingResponse.setExchangeRate(booking.getExchangeRate());
-        bookingResponse.setSaleId(booking.getSale().getId());
+        if (exchangeRate == null || exchangeRate.compareTo(BigDecimal.ZERO) == 0) {
+            throw new IllegalStateException("Failed to retrieve exchange rate.");
+        }
 
-        return bookingResponse;
+        BigDecimal amountInSaleCurrency = amount.multiply(exchangeRate);
+        return new CurrencyExchangeResponse(
+                fromCurrency, toCurrency,
+                exchangeRate,
+                amountInSaleCurrency
+        );
     }
 
-    @Override
-    public Booking toBooking(BookingRequest bookingRequest) {
-        Booking booking = new Booking();
-        booking.setBookingNumber(bookingRequest.getBookingNumber());
-        booking.setBookingDate(LocalDate.now());
-        booking.setReservationDate(bookingRequest.getReservationDate());
-        booking.setDescription(bookingRequest.getDescription());
-        booking.setAmount(bookingRequest.getAmount());
-        booking.setCurrency(bookingRequest.getCurrency());
-        booking.setSupplierId(bookingRequest.getSupplierId());
-        booking.setPaid(bookingRequest.isPaid());
-        booking.setExchangeRate(bookingRequest.getExchangeRate());
-        booking.setAmountInSaleCurrency(bookingRequest.getAmountInSaleCurrency());
-        return booking;
-    }
 }

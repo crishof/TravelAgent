@@ -54,23 +54,9 @@ export class BookingComponent implements OnInit {
         filteredList = data.filter((booking) => ids.includes(booking.id));
       }
       this.bookingList = filteredList;
-      this.populateSupplierNames();
       setTimeout(() => {
         this.isLoading = false;
       }, 500); // Simulate a 500ms delay
-    });
-  }
-
-  private populateSupplierNames(): void {
-    this.bookingList.forEach((booking) => {
-      this._supplierService.getSupplierById(booking.supplierId).subscribe({
-        next: (supplier: ISupplier) => {
-          booking.supplierName = supplier.supplierName || 'Unknown Supplier';
-        },
-        error: () => {
-          booking.supplierName = 'Unknown Supplier';
-        },
-      });
     });
   }
 
