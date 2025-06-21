@@ -12,9 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "tbl_customer", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"dni"})
-})
+@Table(name = "tbl_customer")
+//@Table(name = "tbl_customer", uniqueConstraints = {
+//        @UniqueConstraint(columnNames = {"dni"})
+//})
 public class Customer {
 
     @Id
@@ -27,7 +28,7 @@ public class Customer {
 
     private String phone;
 
-    @Column(nullable = false)
+//    @Column(nullable = false)
     private String email;
 
     private String dni;
