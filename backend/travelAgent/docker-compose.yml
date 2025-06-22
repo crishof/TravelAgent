@@ -28,7 +28,8 @@ services:
       JDBC_DATABASE_USERNAME: postgres
       JDBC_DATABASE_PASSWORD: root1234
       SPRING_PROFILES_ACTIVE: prod
-      FREE_CURRENCY_APIKEY: ${FREE_CURRENCY_APIKEY} # Obtiene desde el  .env
+      FREE_CURRENCY_APIKEY: ${FREE_CURRENCY_APIKEY}
+      SECRET_KEY: ${SECRET_KEY}
 
   pgadmin:
     image: dpage/pgadmin4
