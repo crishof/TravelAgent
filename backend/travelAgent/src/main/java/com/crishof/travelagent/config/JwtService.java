@@ -29,7 +29,6 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
@@ -56,9 +55,7 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
