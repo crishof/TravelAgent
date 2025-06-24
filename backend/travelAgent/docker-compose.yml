@@ -1,54 +1,72 @@
 services:
-  postgres:
-    image: postgres
-    networks:
-      - travelAgent-network
-    container_name: travelagent_db
-    restart: always
-    environment:
-      POSTGRES_DB: travel_agent_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root1234
-    ports:
-      - "55432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
   backend:
     build: .
-    networks:
-      - travelAgent-network
     container_name: travelagent-backend
-    depends_on:
-      - postgres
     ports:
       - "8080:8080"
     environment:
-      JDBC_DATABASE_URL: jdbc:postgresql://postgres:5432/travel_agent_db
-      JDBC_DATABASE_USERNAME: postgres
-      JDBC_DATABASE_PASSWORD: root1234
-      SPRING_PROFILES_ACTIVE: prod
-      FREE_CURRENCY_APIKEY: ${FREE_CURRENCY_APIKEY}
-      SECRET_KEY: ${SECRET_KEY}
-
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
-      PGADMIN_DEFAULT_PASSWORD: "admin"
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    ports:
-      - "80:80"
-    depends_on:
-      - postgres
+        - POSTGRES_URL=${POSTGRES_URL}
+        - POSTGRES_USER=${POSTGRES_USER}
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        - SPRING_PROFILES_ACTIVE=prod
+        - FREE_CURRENCY_APIKEY=${FREE_CURRENCY_APIKEY}
+        - SECRET_KEY=${SECRET_KEY}
     networks:
       - travelAgent-network
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
 
-volumes:
-  postgres_data:
-  pgadmin_data:
 networks:
   travelAgent-network:
     driver: bridge
+#  postgres:
+#    image: postgres
+#    networks:
+#      - travelAgent-network
+#    container_name: travelagent_db
+#    restart: always
+#    environment:
+#      POSTGRES_DB: travel_agent_db
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: root1234
+#    ports:
+#      - "55432:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+
+#  backend:
+#    build: .
+#    networks:
+#      - travelAgent-network
+#    container_name: travelagent-backend
+##    depends_on:
+##      - postgres
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      JDBC_DATABASE_URL: ${POSTGRES_URL}
+#      JDBC_DATABASE_USERNAME: ${POSTGRES_USER}
+#      JDBC_DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+#      SPRING_PROFILES_ACTIVE: prod
+#      FREE_CURRENCY_APIKEY: ${FREE_CURRENCY_APIKEY}
+#      SECRET_KEY: ${SECRET_KEY}
+
+#  pgadmin:
+#    image: dpage/pgadmin4
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+#      PGADMIN_DEFAULT_PASSWORD: "admin"
+#      PGADMIN_CONFIG_SERVER_MODE: "False"
+#    ports:
+#      - "80:80"
+#    depends_on:
+#      - postgres
+#    networks:
+#      - travelAgent-network
+#    volumes:
+#      - pgadmin_data:/var/lib/pgadmin
+
+#volumes:
+#  postgres_data:
+#  pgadmin_data:
+#networks:
+#  travelAgent-network:
+#    driver: bridge
