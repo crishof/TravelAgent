@@ -5,12 +5,12 @@ services:
     ports:
       - "8080:8080"
     environment:
-        - POSTGRES_URL=${POSTGRES_URL}
-        - POSTGRES_USER=${POSTGRES_USER}
-        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-        - SPRING_PROFILES_ACTIVE=prod
-        - FREE_CURRENCY_APIKEY=${FREE_CURRENCY_APIKEY}
-        - SECRET_KEY=${SECRET_KEY}
+      - POSTGRES_URL=${POSTGRES_URL}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=prod
+      - FREE_CURRENCY_APIKEY=${FREE_CURRENCY_APIKEY}
+      - SECRET_KEY=${SECRET_KEY}
     networks:
       - travelAgent-network
 

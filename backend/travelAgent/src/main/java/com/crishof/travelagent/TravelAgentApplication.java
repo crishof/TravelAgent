@@ -9,8 +9,8 @@ public class TravelAgentApplication {
 
     public static void main(String[] args) {
         try {
-        SpringApplication.run(TravelAgentApplication.class, args);
-        }catch (Exception e) {
+            SpringApplication.run(TravelAgentApplication.class, args);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
