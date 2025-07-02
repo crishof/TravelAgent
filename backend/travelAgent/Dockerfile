@@ -13,5 +13,5 @@ COPY --from=builder /app/target/travelAgent-0.0.1.jar travelAgent.jar
 
 LABEL authors="cristian"
 EXPOSE 8080
-
+ENV SPRING_PROFILES_ACTIVE=prod
 ENTRYPOINT ["java", "-jar", "travelAgent.jar"]
