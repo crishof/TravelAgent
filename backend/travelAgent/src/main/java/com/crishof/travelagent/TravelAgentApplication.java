@@ -17,7 +17,8 @@ public class TravelAgentApplication {
 
     @PostConstruct
     public void logStartup() {
+        String port = System.getenv("PORT");
         System.out.println(">>> Aplicacion iniciada correctamente");
-        System.out.println("true = " + true);
+        System.out.println(">>> Puerto: " + port);
     }
 }
