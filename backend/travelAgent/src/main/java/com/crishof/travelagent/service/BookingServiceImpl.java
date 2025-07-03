@@ -140,5 +140,4 @@ public class BookingServiceImpl implements BookingService {
                 amountInSaleCurrency
         );
     }
-
 }

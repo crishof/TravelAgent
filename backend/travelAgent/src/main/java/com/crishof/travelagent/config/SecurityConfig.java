@@ -53,7 +53,7 @@ public class SecurityConfig {
         if ("dev".equalsIgnoreCase(activeProfile)) {
             config.setAllowedOrigins(List.of("http://localhost:4200"));
         } else {
-            config.setAllowedOriginPatterns(List.of("https://*.vercel.app"));
+            config.setAllowedOrigins(List.of("https://travel-agent-gold.vercel.app"));
         }
 
         config.setAllowedMethods(List.of(allowedMethods));

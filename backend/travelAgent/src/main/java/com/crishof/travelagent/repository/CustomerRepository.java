@@ -12,7 +12,6 @@ import java.util.Optional;
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
-    //TODO Corregir QUERY unaccent
     @Query(value = "SELECT * FROM tbl_customer c WHERE " +
             "(lower(c.first_name)) LIKE (lower(concat('%', :term, '%'))) OR " +
             "(lower(c.last_name)) LIKE (lower(concat('%', :term, '%'))) OR " +
@@ -20,8 +19,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             "lower(c.passport) = lower(:term)",
             nativeQuery = true)
     List<Customer> globalSearch(@Param("term") String term);
-
-    Optional<Customer> findByDniOrPassportOrEmail(String dni, String passport, String email);
 
     Optional<Customer> findByDni(String dni);
 
