@@ -38,13 +38,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-devtools</artifactId>-->
+<!--            <scope>runtime</scope>-->
+<!--            <optional>true</optional>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -131,7 +130,7 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-resolver-dns-native-macos</artifactId>
             <version>4.2.0.Alpha5</version>
-            <classifier>osx-aarch_64</classifier> <!-- o x86_64 según tu chip -->
+            <classifier>osx-aarch_64</classifier>
         </dependency>
     </dependencies>
 
@@ -141,9 +140,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version> <!-- o una versión estable -->
+                <version>3.13.0</version>
                 <configuration>
-                    <source>21</source> <!-- o 17, según tu JDK -->
+                    <source>21</source>
                     <target>21</target>
                     <annotationProcessorPaths>
                         <path>
