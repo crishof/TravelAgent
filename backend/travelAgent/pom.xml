@@ -126,6 +126,13 @@
             <artifactId>jakarta.el</artifactId>
             <version>4.0.2</version>
         </dependency>
+<!--        AGREGADA PARA OCULTAR EL WARNING-->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <version>4.2.0.Alpha5</version>
+            <classifier>osx-aarch_64</classifier> <!-- o x86_64 según tu chip -->
+        </dependency>
     </dependencies>
 
     <build>
