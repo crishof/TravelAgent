@@ -6,12 +6,10 @@ import com.crishof.travelagent.dto.RegisterRequest;
 import com.crishof.travelagent.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@CrossOrigin(origins = "https://travel-agent-gold.vercel.app")
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
