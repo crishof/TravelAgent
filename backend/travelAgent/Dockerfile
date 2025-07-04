@@ -15,4 +15,4 @@ LABEL authors="cristian"
 EXPOSE 8080
 ENV SPRING_PROFILES_ACTIVE=prod
 #ENTRYPOINT ["java", "-jar", "travelAgent.jar"]
-CMD ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "travelAgent.jar"]
+CMD java -XX:MaxRAMPercentage=75.0 -jar travelAgent.jar > log.txt 2>&1
