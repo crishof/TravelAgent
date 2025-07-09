@@ -1,18 +1,23 @@
 # Etapa 1: Construcción del JAR usando Maven
-FROM eclipse-temurin:21-jdk AS builder
+FROM openjdk:17-jdk-slim AS builder
 WORKDIR /app
+
+# Copiar archivos del proyecto
 COPY . .
+
+# Compilar el proyecto con Maven Wrapper
 RUN ./mvnw clean package -DskipTests
 
 # Etapa 2: Imagen final liviana
-FROM eclipse-temurin:21-jdk
+FROM openjdk:17-jdk-slim
 WORKDIR /app
 
-# Copia el JAR compilado desde la etapa anterior
+# Copiar el JAR generado desde la etapa de compilación
 COPY --from=builder /app/target/travelAgent-0.0.1.jar travelAgent.jar
 
 LABEL authors="cristian"
 EXPOSE 8080
 ENV SPRING_PROFILES_ACTIVE=prod
-#ENTRYPOINT ["java", "-jar", "travelAgent.jar"]
-CMD java -XX:MaxRAMPercentage=75.0 -jar travelAgent.jar > log.txt 2>&1
+
+# Ejecutar la aplicación (con uso de memoria optimizado)
+CMD ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "travelAgent.jar"]
