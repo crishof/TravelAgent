@@ -12,7 +12,8 @@
             formControlName="firstName"
             placeholder="Enter your name"
             [ngClass]="{
-              'is-invalid': submitted && registerForm.controls['firstName'].invalid
+              'is-invalid':
+                submitted && registerForm.controls['firstName'].invalid
             }"
           />
           @if(submitted && registerForm.controls['firstName'].errors){
@@ -58,6 +59,14 @@
             Email is required and must be valid.
           </div>
           }
+        </div>
+        <div
+          *ngIf="error"
+          class="alert alert-danger d-flex align-items-center gap-2 mt-2"
+          role="alert"
+        >
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>{{ error }}</span>
         </div>
         <div class="mb-3">
           <label for="password" class="form-label">Password</label>

@@ -125,7 +125,7 @@
             <artifactId>jakarta.el</artifactId>
             <version>4.0.2</version>
         </dependency>
-<!--        AGREGADA PARA OCULTAR EL WARNING-->
+        <!--        AGREGADA PARA OCULTAR EL WARNING-->
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-resolver-dns-native-macos</artifactId>

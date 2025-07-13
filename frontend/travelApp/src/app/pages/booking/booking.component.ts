@@ -81,7 +81,6 @@ export class BookingComponent implements OnInit {
     };
     this._paymentService.savePayment(payment).subscribe({
       next: (response) => {
-        console.log('Payment saved successfully:', response);
         const booking = this.bookingList.find(
           (b) => b.id === payment.bookingId
         );
@@ -93,7 +92,6 @@ export class BookingComponent implements OnInit {
         console.error('Error saving payment:', error);
       },
     });
-    console.log('Payment registered:', paymentData);
     this.closePaymentModal();
   }
 

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { RegisterRequest } from '../model/registerRequest';
-import { Observable } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -12,11 +12,14 @@ export class AuthService {
   constructor() {}
 
   register(request: RegisterRequest): Observable<any> {
-    return this._http.post(`${this._urlBase}/register`, request);
+    return this._http.post(`${this._urlBase}/register`, request).pipe(
+      catchError((error) => {
+        return throwError(() => error);
+      })
+    );
   }
 
   login(credentials: { email: string; password: string }): Observable<any> {
-    console.log('Login called with credentials:', credentials);
     return this._http.post(`${this._urlBase}/authenticate`, credentials);
   }
 
