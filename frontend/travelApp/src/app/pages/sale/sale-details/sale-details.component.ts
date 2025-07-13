@@ -133,7 +133,6 @@ export class SaleDetailsComponent implements OnInit {
     };
     this._customerPaymentService.addPayment(payment).subscribe({
       next: (data) => {
-        console.log('Payment added successfully:', data);
         this.isAddingPayment = false;
         this.resetPaymentForm();
         this.loadPayments(this.saleId!, this.sale.customerResponse.id);

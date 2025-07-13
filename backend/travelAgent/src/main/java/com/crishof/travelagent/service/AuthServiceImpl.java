@@ -4,6 +4,7 @@ import com.crishof.travelagent.config.JwtService;
 import com.crishof.travelagent.dto.AuthRequest;
 import com.crishof.travelagent.dto.AuthResponse;
 import com.crishof.travelagent.dto.RegisterRequest;
+import com.crishof.travelagent.exception.EmailAlreadyExistException;
 import com.crishof.travelagent.model.Agency;
 import com.crishof.travelagent.model.Role;
 import com.crishof.travelagent.model.User;
@@ -30,6 +31,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse register(RegisterRequest request) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistException("Email Already Exist on Database");
+        }
 
         Agency agency = agencyRepository.save(
                 Agency.builder()

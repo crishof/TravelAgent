@@ -11,11 +11,18 @@ import { RegisterRequest } from '../../../model/registerRequest';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { Router, RouterLink } from '@angular/router';
+import { HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-register-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterLink],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterLink,
+    HttpClientModule,
+  ],
   templateUrl: './register-admin.component.html',
   styleUrl: './register-admin.component.css',
 })
@@ -23,7 +30,7 @@ export class RegisterAdminComponent {
   registerForm: FormGroup;
   loading = false;
   submitted = false;
-  error = '';
+  error: string | null = null;
   formBuilder = inject(FormBuilder);
   readonly _authService = inject(AuthService);
   readonly _router = inject(Router);
@@ -42,6 +49,7 @@ export class RegisterAdminComponent {
     if (this.registerForm.invalid) return;
 
     this.loading = true;
+    this.error = null;
 
     const request: RegisterRequest = this.registerForm.value;
 
@@ -51,8 +59,20 @@ export class RegisterAdminComponent {
         this._router.navigate(['/dashboard']);
       },
       error: (err) => {
-        this.error = err.error?.message ?? 'Registration process failed';
         this.loading = false;
+
+        const errorMessage = err?.error?.message;
+
+        if (err.status === 409 && errorMessage) {
+          this.error = errorMessage;
+        } else {
+          this.error = 'Ocurrió un error al registrarse.';
+        }
+        setTimeout(() => {
+          this.error = null;
+          this.registerForm.get('email')?.reset();
+          this.registerForm.get('password')?.reset();
+        }, 5000);
       },
     });
   }
