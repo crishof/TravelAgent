@@ -21,7 +21,8 @@ export class LoginComponent {
   loginForm: FormGroup;
   formBuilder = inject(FormBuilder);
   submitted = false;
-  errorMessage: string = '';
+
+  error: string | null = null;
 
   readonly _formbBuilder = inject(FormBuilder);
   readonly _authService = inject(AuthService);
@@ -36,16 +37,28 @@ export class LoginComponent {
 
   onSubmit() {
     this.submitted = true;
-    if (this.loginForm.invalid) {
-      return;
-    }
+    if (this.loginForm.invalid) return;
+
+    this.error = null;
+
     this._authService.login(this.loginForm.value).subscribe({
       next: (res) => {
         localStorage.setItem('token', res.token);
         this._router.navigate(['/dashboard']);
       },
       error: (err) => {
-        this.errorMessage = 'Invalid email or password';
+        const errorMessage =
+          err.error?.message || 'Login failed. Please try again.';
+
+        if (err.status === 401 && errorMessage) {
+          this.error = errorMessage;
+        } else {
+          this.error = 'An unexpected error occurred. Please try again later.';
+        }
+        setTimeout(() => {
+          this.error = null;
+        }, 3000);
+        this.submitted = false;
       },
     });
   }
