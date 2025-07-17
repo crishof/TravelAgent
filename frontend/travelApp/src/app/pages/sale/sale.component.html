@@ -41,10 +41,10 @@
                   (keydown.enter)="goToDetails(sale.id)"
                   (keydown.space)="goToDetails(sale.id)"
                 >
-                  <td>{{ sale.agentId }}</td>
+                  <td>{{ sale.userResponse.firstName }}</td>
                   <td>
-                    {{ sale.customerResponse.lastname }}
-                    {{ sale.customerResponse.name }}
+                    {{ sale.customerResponse.lastName }}
+                    {{ sale.customerResponse.firstName }}
                   </td>
                   <td>{{ sale.creationDate | date : "dd/MM/yyyy" }}</td>
                   <td>{{ sale.travelDate | date : "dd/MM/yyyy" }}</td>

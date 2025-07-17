@@ -67,10 +67,12 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   loadSaleDetails(saleId: number): void {
+    console.log('Loading sale details for ID:', saleId);
+    console.log('loading: ', this.isLoading);
     this._saleService.getSaleById(saleId).subscribe({
       next: (data) => {
         this.sale = data;
-
+        console.log('Sale details loaded:', this.sale);
         if (this.sale.customerResponse) {
           // Una vez que se cargan los detalles de la venta, carga los pagos
           this.loadPayments(saleId, this.sale.customerResponse.id);
