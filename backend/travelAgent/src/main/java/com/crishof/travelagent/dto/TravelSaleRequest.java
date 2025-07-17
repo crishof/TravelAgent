@@ -1,6 +1,5 @@
 package com.crishof.travelagent.dto;
 
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +20,5 @@ public class TravelSaleRequest {
     private String description;
     private CustomerRequest customer;
 
-    @OneToMany
     private List<BookingRequest> services;
 }

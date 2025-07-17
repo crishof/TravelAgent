@@ -1,6 +1,5 @@
 package com.crishof.travelagent.dto;
 
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,7 +21,7 @@ public class TravelSaleResponse {
     private BigDecimal amount;
     private String currency;
     private String description;
+    private UserResponse userResponse;
 
-    @OneToMany
     private List<BookingResponse> services;
 }
