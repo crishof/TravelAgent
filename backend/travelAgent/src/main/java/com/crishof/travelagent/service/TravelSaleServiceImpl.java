@@ -10,6 +10,7 @@ import com.crishof.travelagent.model.*;
 import com.crishof.travelagent.repository.TravelSaleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,6 +31,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     private final SupplierService supplierService;
 
     @Override
+    @Transactional(readOnly = true)
     public List<TravelSale> getAll() {
 
         return travelSaleRepository.findAllByAgency(userService.getCurrentUser().getAgency()).stream()
@@ -41,13 +43,13 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TravelSale getById(Long id) {
-
         return travelSaleRepository.findById(id).orElseThrow(() -> new TravelSaleNotFoundException(id));
-
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TravelSale> getAllByCustomerId(Long customerId) {
 
         User currentUser = userService.getCurrentUser();
@@ -166,6 +168,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BigDecimal getTravelFee(Long id) {
         TravelSale travelSale = travelSaleRepository.findById(id)
                 .orElseThrow(() -> new TravelSaleNotFoundException(id));
