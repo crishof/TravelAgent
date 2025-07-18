@@ -5,16 +5,20 @@ import com.crishof.travelagent.dto.AuthRequest;
 import com.crishof.travelagent.dto.AuthResponse;
 import com.crishof.travelagent.dto.RegisterRequest;
 import com.crishof.travelagent.exception.EmailAlreadyExistException;
+import com.crishof.travelagent.exception.InvalidCredentialException;
 import com.crishof.travelagent.model.Agency;
 import com.crishof.travelagent.model.Role;
 import com.crishof.travelagent.model.User;
 import com.crishof.travelagent.repository.AgencyRepository;
 import com.crishof.travelagent.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyExistException("Email Already Exist on Database");
+            throw new EmailAlreadyExistException("This email is already registered. Please log in or use a different one.");
         }
 
         Agency agency = agencyRepository.save(
@@ -61,11 +65,15 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse authenticate(AuthRequest request) {
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(), request.getPassword()));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(), request.getPassword()));
+        } catch (AuthenticationException exception) {
+            throw new InvalidCredentialException("Invalid email and password");
+        }
         var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow();
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         var claims = new HashMap<String, Object>();
         claims.put("roles", List.of("ROLE_" + user.getRole().name()));
 

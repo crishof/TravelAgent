@@ -10,6 +10,7 @@ import com.crishof.travelagent.model.Booking;
 import com.crishof.travelagent.repository.BookingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -27,6 +28,7 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<Booking> getAll() {
         Agency agency = userService.getCurrentUser().getAgency();
         List<Booking> bookings = bookingRepository.findAllByAgency(agency);

@@ -12,16 +12,23 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(InvalidCredentialException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidCredentialException(InvalidCredentialException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("message", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(response);
+    }
+
     @ExceptionHandler(EmailAlreadyExistException.class)
     public ResponseEntity<Map<String, String>> handleEmailAlreadyExists(EmailAlreadyExistException ex) {
         Map<String, String> response = new HashMap<>();
-        response.put("message", ex.getMessage()); // <-- Este es el mensaje que esperás en Angular
-
-        System.out.println("response en Handler = " + response);
+        response.put("message", ex.getMessage());
 
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
-                .contentType(MediaType.APPLICATION_JSON) // <-- Esto es CRUCIAL
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(response);
     }
 

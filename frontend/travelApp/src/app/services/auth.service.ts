@@ -20,7 +20,11 @@ export class AuthService {
   }
 
   login(credentials: { email: string; password: string }): Observable<any> {
-    return this._http.post(`${this._urlBase}/authenticate`, credentials);
+    return this._http.post(`${this._urlBase}/authenticate`, credentials).pipe(
+      catchError((error) => {
+        return throwError(() => error);
+      })
+    );
   }
 
   isLoggedIn(): boolean {

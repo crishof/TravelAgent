@@ -6,7 +6,7 @@ import com.crishof.travelagent.model.TravelSale;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = { BookingMapper.class, CustomerMapper.class })
+@Mapper(componentModel = "spring", uses = {BookingMapper.class, CustomerMapper.class})
 public interface TravelSaleMapper {
 
     // Mapping inverso usado en persistencia
@@ -20,5 +20,6 @@ public interface TravelSaleMapper {
     // Mapping para DTO
     @Mapping(source = "customer", target = "customerResponse")
     @Mapping(source = "services", target = "services")
+    @Mapping(source = "user", target = "userResponse")
     TravelSaleResponse toDto(TravelSale sale);
 }

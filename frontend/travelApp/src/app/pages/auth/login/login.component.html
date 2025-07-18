@@ -4,6 +4,14 @@
       <h3 class="card-title text-center mb-4">Sign in to Travel Agent</h3>
       <form [formGroup]="loginForm" (submit)="onSubmit()">
         <div class="mb-3">
+          <div
+            *ngIf="error"
+            class="alert alert-danger d-flex align-items-center gap-2 mt-2"
+            role="alert"
+          >
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>{{ error }}</span>
+          </div>
           <label for="email" class="form-label">Email address</label>
           <input
             type="email"
