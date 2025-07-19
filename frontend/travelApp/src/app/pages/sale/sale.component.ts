@@ -29,7 +29,6 @@ export class SaleComponent implements OnInit {
     this.isLoading = true;
     this._saleService.getAllSales().subscribe((data: ISale[]) => {
       this.saleList = data;
-      console.log(this.saleList);
       setTimeout(() => {
         this.isLoading = false;
       }, 500); // Simulate a 500ms delay
