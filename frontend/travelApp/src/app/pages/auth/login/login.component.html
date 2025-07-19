@@ -1,4 +1,7 @@
 <div class="d-flex justify-content-center align-items-center">
+  <div *ngIf="sessionExpired" class="alert alert-warning" role="alert">
+    Session expired. Please log in again.
+  </div>
   <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%">
     <div class="card-body">
       <h3 class="card-title text-center mb-4">Sign in to Travel Agent</h3>

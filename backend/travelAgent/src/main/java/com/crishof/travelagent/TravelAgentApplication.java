@@ -1,12 +1,16 @@
 package com.crishof.travelagent;
 
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class TravelAgentApplication {
+
+    private static final Logger logger = LoggerFactory.getLogger(TravelAgentApplication.class);
 
     @Value("${server.port:8080}")
     private String port;
@@ -21,7 +25,7 @@ public class TravelAgentApplication {
 
     @PostConstruct
     public void logStartup() {
-        System.out.println(">>> Aplicacion iniciada correctamente");
-        System.out.println(">>> Puerto: " + port);
+        logger.info(">>> Aplicacion iniciada correctamente");
+        logger.info(">>> Puerto: {}", port);
     }
 }

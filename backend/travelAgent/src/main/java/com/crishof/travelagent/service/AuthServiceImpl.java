@@ -11,11 +11,16 @@ import com.crishof.travelagent.model.Role;
 import com.crishof.travelagent.model.User;
 import com.crishof.travelagent.repository.AgencyRepository;
 import com.crishof.travelagent.repository.UserRepository;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,6 +32,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -35,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse register(RegisterRequest request) {
+        logger.info("Register request received");
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistException("This email is already registered. Please log in or use a different one.");
@@ -64,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse authenticate(AuthRequest request) {
-
+        logger.info("Authenticate request received");
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -77,7 +85,43 @@ public class AuthServiceImpl implements AuthService {
         var claims = new HashMap<String, Object>();
         claims.put("roles", List.of("ROLE_" + user.getRole().name()));
 
-        var jwtToken = jwtService.generateToken(claims, user);
-        return AuthResponse.builder().token(jwtToken).build();
+        String jwtToken = jwtService.generateToken(claims, user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        return AuthResponse.builder()
+                .token(jwtToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    @Override
+    public AuthResponse refreshToken(String refreshToken) {
+        logger.info("Refresh Token received");
+        String email;
+
+        try {
+            email = jwtService.getUserName(refreshToken);
+        } catch (ExpiredJwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Expired refresh token");
+        } catch (JwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+        }
+
+        if (email == null || !jwtService.isTokenValid(refreshToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+        }
+
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        var claims = new HashMap<String, Object>();
+        claims.put("roles", List.of("ROLE_" + user.getRole().name()));
+
+        String newAccessToken = jwtService.generateToken(claims, user);
+        String newRefreshToken = jwtService.generateRefreshToken(user); // si quieres renovarlo
+
+        return AuthResponse.builder()
+                .token(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .build();
     }
 }
