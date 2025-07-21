@@ -2,8 +2,10 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { SessionService } from '../services/session.service';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
+  const sessionService = inject(SessionService);
 
   // 🔁 Evitar interceptar la propia petición de refresh
   if (req.url.includes('/auth/refresh')) {
@@ -35,7 +37,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             return next(retryReq);
           }),
           catchError((refreshErr) => {
-            authService.logout(); // Limpia y redirige
+            // Solo notificar si el usuario sigue logueado
+            if (authService.isLoggedIn()) {
+              sessionService.notifySessionExpired();
+            }
             return throwError(() => refreshErr);
           })
         );
