@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 
@@ -63,6 +64,8 @@ public class BookingServiceImpl implements BookingService {
 
         // Set proveedor
         booking.setSupplier(supplierService.getById(bookingRequest.getSupplierId()));
+
+        booking.setBookingDate(LocalDate.now());
 
         return booking; // ❗ No se persiste aquí
     }
