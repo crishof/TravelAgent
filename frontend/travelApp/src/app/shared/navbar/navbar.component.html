@@ -62,7 +62,7 @@
           >
         </li>
 
-                <li class="nav-item">
+        <li class="nav-item">
           <a
             class="nav-link"
             routerLink="user"
@@ -71,7 +71,6 @@
             >Users</a
           >
         </li>
-
       </ul>
 
       <div class="d-flex align-items-center ms-auto m-3">
@@ -103,7 +102,7 @@
           [(ngModel)]="searchTerm"
           class="form-control me-2"
           type="search"
-          placeholder="Search"
+          placeholder="Search by customer or booking"
           aria-label="Search"
         />
         <button class="btn btn-outline-success" type="submit">Search</button>
@@ -121,9 +120,10 @@
           (keydown.enter)="noResults = false"
           (keydown.space)="noResults = false"
         >
-          <span class="w-100"
-            >No se encontraron resultados para la búsqueda.
-            <span class="text-success">(Click para volver)</span></span
+          <span class="w-100">
+            No results found for your search.
+            <span class="text-success">(Click to go back)</span>
+          </span>
           >
         </div>
       </div>

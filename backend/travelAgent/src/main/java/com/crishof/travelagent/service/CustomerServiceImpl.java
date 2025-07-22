@@ -7,6 +7,7 @@ import com.crishof.travelagent.model.Customer;
 import com.crishof.travelagent.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -75,15 +76,19 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     public Optional<Customer> findMatchingCustomer(CustomerRequest request) {
-        if (request.getDni() != null) {
-            return customerRepository.findByDni(request.getDni());
+
+        if (StringUtils.hasText(request.getDni())) {
+            return customerRepository.findByDni(request.getDni().trim());
         }
-        if (request.getPassport() != null) {
-            return customerRepository.findByPassport(request.getPassport());
+
+        if (StringUtils.hasText(request.getPassport())) {
+            return customerRepository.findByPassport(request.getPassport().trim());
         }
-        if (request.getEmail() != null) {
-            return customerRepository.findByEmail(request.getEmail());
+
+        if (StringUtils.hasText(request.getEmail())) {
+            return customerRepository.findByEmail(request.getEmail().trim());
         }
+
         return Optional.empty();
     }
 }
