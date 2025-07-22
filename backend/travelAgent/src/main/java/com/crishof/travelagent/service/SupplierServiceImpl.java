@@ -10,6 +10,7 @@ import com.crishof.travelagent.repository.SupplierRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -24,7 +25,9 @@ public class SupplierServiceImpl implements SupplierService {
     @Override
     public List<Supplier> getAll() {
         Agency agency = userService.getCurrentUser().getAgency();
-        return supplierRepository.findAllByAgency(agency);
+        return supplierRepository.findAllByAgency(agency).stream()
+                .sorted(Comparator.comparing(Supplier::getSupplierName))
+                .toList();
 
     }
 
