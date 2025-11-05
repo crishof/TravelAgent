@@ -1,5 +1,5 @@
 # Etapa 1: Construcción del JAR usando Maven
-FROM openjdk:17-jdk-slim AS builder
+FROM openjdk:17-slim AS builder
 WORKDIR /app
 
 # Copiar archivos del proyecto
