@@ -76,7 +76,7 @@
       <div class="d-flex align-items-center ms-auto m-3">
         <button
           type="button"
-          class="badge bg-info-subtle text-dark fs-6 border-0"
+          class="badge bg-info-subtle text-dark fs-5 border-0"
           style="cursor: pointer"
           (click)="toggleExchangeDirection()"
           (keydown.enter)="toggleExchangeDirection()"
@@ -129,13 +129,13 @@
       </div>
 
       <button
-        class="btn btn-sm btn-link text-light ms-3"
-        style="text-decoration: none"
+        class="btn btn-outline-light btn-sm rounded-pill px-3 py-1 d-flex align-items-center gap-2 shadow-sm hover-glow m-lg-2"
         (click)="logout()"
         title="Cerrar sesión"
         *ngIf="isLoggedIn"
       >
-        Logout <i class="bi bi-box-arrow-right fs-4"></i>
+        <i class="bi bi-box-arrow-right fs-5"></i>
+        <span>Logout</span>
       </button>
     </div>
   </div>

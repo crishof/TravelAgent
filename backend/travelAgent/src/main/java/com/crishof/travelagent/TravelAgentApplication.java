@@ -16,11 +16,7 @@ public class TravelAgentApplication {
     private String port;
 
     public static void main(String[] args) {
-        try {
-            SpringApplication.run(TravelAgentApplication.class, args);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        SpringApplication.run(TravelAgentApplication.class, args);
     }
 
     @PostConstruct

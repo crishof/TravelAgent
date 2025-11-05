@@ -13,8 +13,6 @@ public class StartupFailureListener {
 
     @EventListener
     public void handleContextFailure(ApplicationFailedEvent event) {
-        logger.error(">>> ERROR CRÍTICO: Falló el arranque de Spring");
-        Throwable exception = event.getException();
-        exception.printStackTrace();
+        logger.error(">>> ERROR CRÍTICO: Falló el arranque de Spring ",event.getException());
     }
 }

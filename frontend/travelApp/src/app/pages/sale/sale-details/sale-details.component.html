@@ -89,15 +89,123 @@
         </div>
       </div>
 
-      <!-- Tabla de servicios contratados -->
+      <!-- SERVICIOS -->
       <div class="card mb-4">
-        <div class="card-header">
+        <div class="card-header d-flex align-items-center">
           <h5>Reservations</h5>
+          <button
+            type="button"
+            class="btn btn-success ms-3"
+            (click)="toggleReservationForm()"
+          >
+            New
+          </button>
         </div>
         <div class="card-body">
-          @if(isLoading){
-          <h2>Loading...</h2>
-          }@else{
+          <!-- Formulario para agregar un servicio -->
+          @if(isAddingBooking){
+          <div class="form-group mb-3">
+            <form [formGroup]="newServiceForm">
+              <div class="row">
+                <div class="col-md-4">
+                  <label for="supplierId">Supplier</label>
+                  <select
+                    class="form-select"
+                    id="supplierId"
+                    formControlName="supplierId"
+                    (change)="onSupplierChange()"
+                    required
+                  >
+                    <option value="">Select supplier</option>
+                    <option
+                      *ngFor="let supplier of supplierList"
+                      [value]="supplier.id"
+                    >
+                      {{ supplier.supplierName }}
+                    </option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label for="bookingNumber">Booking Number</label>
+                  <input
+                    type="text"
+                    id="bookingNumber"
+                    class="form-control"
+                    formControlName="bookingNumber"
+                    required
+                  />
+                </div>
+                <div class="col-md-4">
+                  <label for="description">Service Description</label>
+                  <input
+                    type="text"
+                    id="description"
+                    class="form-control"
+                    formControlName="description"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-md-4">
+                  <label for="reservationDate">Reservation Date</label>
+                  <input
+                    type="date"
+                    id="reservationDate"
+                    class="form-control"
+                    formControlName="reservationDate"
+                  />
+                </div>
+
+                <div class="col-md-4">
+                  <label for="serviceAmount"
+                    >Amount in {{ selectedSupplier?.currency || "" }}</label
+                  >
+                  <input
+                    type="number"
+                    id="serviceAmount"
+                    class="form-control"
+                    formControlName="amount"
+                    required
+                  />
+                </div>
+
+                <div class="col-md-4 d-flex align-items-center gap-4">
+                  <div
+                    class="form-check d-flex align-items-center mb-0"
+                    style="min-width: 120px"
+                  >
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="paid"
+                      formControlName="paid"
+                      style="transform: scale(1.5); margin-right: 1rem"
+                    />
+                    <label
+                      class="form-check-label fs-5"
+                      for="paid"
+                      style="margin-bottom: 0"
+                    >
+                      Paid
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    (click)="addService()"
+                    [disabled]="newServiceForm.invalid"
+                  >
+                    Add Service
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+          }
+
+          <!-- Tabla de servicios contratados -->
+
           <div class="table-responsive">
             <table class="table table-bordered">
               <thead class="table-light">
@@ -112,7 +220,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let service of sale.services">
+                <tr *ngFor="let service of sale?.services">
                   <td>{{ service.supplierName }}</td>
                   <td>{{ service.bookingNumber }}</td>
                   <td>{{ service.reservationDate | date : "dd/MM/yyyy" }}</td>
@@ -124,11 +232,11 @@
               </tbody>
             </table>
           </div>
-          }
         </div>
       </div>
 
-      <!-- Tabla de pagos realizados -->
+      <!-- PAGOS -->
+
       <div class="card mb-4">
         <div class="card-header d-flex align-items-center">
           <h5>Payments</h5>
@@ -141,6 +249,8 @@
           </button>
         </div>
         <div class="card-body">
+          <!-- FORMULARIO PARA AGREGAR PAGOS -->
+
           @if(isAddingPayment){
           <form #paymentForm="ngForm" (ngSubmit)="addPayment()" novalidate>
             <div class="row g-3 align-items-center">
@@ -241,6 +351,8 @@
             </div>
           </form>
           }
+
+          <!-- TABLA DE PAGOS PAGOS -->
 
           <table class="table table-bordered">
             <thead class="table-light">

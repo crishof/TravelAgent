@@ -249,6 +249,7 @@
       </div>
 
       <!-- Tabla para mostrar los servicios -->
+       @if(servicesFormArray.length > 0){
       <h3>Services Added</h3>
       <div formArrayName="services">
         <table class="table table-bordered">
@@ -295,6 +296,7 @@
           </tbody>
         </table>
       </div>
+      }
 
       <!-- Botón de Save -->
       <button
