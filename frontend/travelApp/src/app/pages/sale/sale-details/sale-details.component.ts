@@ -1,11 +1,21 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { SaleService } from '../../../services/sale.service';
 import { CommonModule, Location } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { PaymentService } from '../../../services/payment.service';
 import { CustomerPaymentService } from '../../../services/customer-payment.service';
 import { ICustomerPayment } from '../../../model/customerPayment.model';
+import { ISupplier } from '../../../model/supplier.model';
+import { BookingService } from '../../../services/booking.service';
+import { IBooking } from '../../../model/booking.model';
+import { SupplierService } from '../../../services/supplier.service';
 
 @Component({
   selector: 'app-sale-details',
@@ -25,9 +35,14 @@ export class SaleDetailsComponent implements OnInit {
   readonly _saleService = inject(SaleService);
   readonly _paymentService = inject(PaymentService);
   readonly _location = inject(Location);
+  readonly _bookingService = inject(BookingService);
+  readonly _supplierService = inject(SupplierService);
+  readonly cdr = inject(ChangeDetectorRef);
   readonly _customerPaymentService = inject(CustomerPaymentService);
+  
   isLoading: boolean = true;
   isAddingPayment: boolean = false;
+  isAddingBooking: boolean = false;
   newPayment: ICustomerPayment = {
     id: 0,
     customerId: 0,
@@ -41,14 +56,37 @@ export class SaleDetailsComponent implements OnInit {
     saleCurrency: '',
   };
 
+  newServiceForm!: FormGroup;
+  formBuilder = inject(FormBuilder);
+  selectedSupplier: ISupplier | null = null;
+  supplierList: ISupplier[] = [];
+  todayString: string = new Date().toISOString().split('T')[0];
   currentFee: number = 0;
 
-  ngOnInit() {
-    const saleId = this.route.snapshot.paramMap.get('id');
-    if (saleId && !isNaN(Number(saleId))) {
-      this.saleId = Number(saleId);
-      this.loadSaleDetails(Number(saleId));
-      this.loadCurrentFee(Number(saleId));
+  ngOnInit(): void {
+    const saleIdParam = this.route.snapshot.paramMap.get('id');
+    const saleId = Number(saleIdParam);
+
+    if (!isNaN(saleId)) {
+      this.saleId = saleId;
+
+      // Inicializar el formulario antes de usarlo
+      this.newServiceForm = this.formBuilder.group({
+        supplierId: ['', Validators.required],
+        bookingNumber: [''],
+        bookingDate: [this.todayString],
+        reservationDate: [''],
+        description: [''],
+        amount: [0, Validators.required],
+        currency: ['USD', Validators.required],
+        paid: [false],
+      });
+
+      this.loadSaleDetails(saleId);
+      this.loadCurrentFee(saleId);
+      this.loadSupplierList();
+    } else {
+      console.error('Invalid sale ID');
     }
   }
 
@@ -80,7 +118,7 @@ export class SaleDetailsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading sale details:', error);
+        alert('Error loading sale details:' + error);
       },
     });
   }
@@ -91,7 +129,7 @@ export class SaleDetailsComponent implements OnInit {
         this.currentFee = data;
       },
       error: (error) => {
-        console.error('Error loading current fee:', error);
+        alert('Error loading current fee:' + error);
       },
     });
   }
@@ -119,6 +157,43 @@ export class SaleDetailsComponent implements OnInit {
     }
   }
 
+  toggleReservationForm() {
+    this.isAddingBooking = !this.isAddingBooking;
+    if (!this.isAddingBooking) {
+      this.initNewServiceForm();
+    }
+  }
+
+  loadSupplierList() {
+    this._supplierService.getAllSuppliers().subscribe((data: ISupplier[]) => {
+      this.supplierList = data;
+    });
+  }
+
+  initNewServiceForm() {
+    this.newServiceForm = this.formBuilder.group({
+      supplierId: ['', Validators.required],
+      bookingNumber: ['', Validators.required],
+      bookingDate: [new Date().toISOString().split('T')[0]],
+      reservationDate: ['', Validators.required],
+      description: ['', Validators.required],
+      amount: [0, Validators.required],
+      currency: ['USD', Validators.required],
+      paid: [false],
+    });
+  }
+
+  onSupplierChange() {
+    const supplierId = this.newServiceForm.get('supplierId')?.value;
+    this.selectedSupplier =
+      this.supplierList.find((s) => s.id == supplierId) || null;
+    if (this.selectedSupplier) {
+      this.newServiceForm
+        .get('currency')
+        ?.setValue(this.selectedSupplier.currency);
+    }
+  }
+
   addPayment() {
     if (!this.saleId || !this.sale.customerResponse) {
       console.error('Sale ID or customer ID is missing.');
@@ -142,6 +217,39 @@ export class SaleDetailsComponent implements OnInit {
         console.error('Error adding payment:', error);
       },
     });
+  }
+
+  addService() {
+    if (!this.saleId) return;
+
+    const booking: IBooking = {
+      ...this.newServiceForm.value,
+      saleId: this.saleId,
+      saleCurrency: this.sale.currency,
+    };
+
+    this._bookingService.createBooking(booking).subscribe({
+      next: (data) => {
+        this.isAddingBooking = false;
+        this.loadSaleDetails(this.saleId!);
+      },
+      error: (error) => {
+        console.error('Error adding service:', error);
+      },
+    });
+
+    this.newServiceForm.reset({
+      supplierId: '',
+      bookingNumber: '',
+      bookingDate: new Date().toISOString().split('T')[0],
+      reservationDate: '',
+      description: '',
+      amount: 0,
+      currency: 'USD',
+      paid: false,      
+    });
+
+    this.selectedSupplier = null;
   }
 
   resetPaymentForm() {

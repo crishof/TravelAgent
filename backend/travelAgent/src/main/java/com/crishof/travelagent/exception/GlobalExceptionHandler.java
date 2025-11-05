@@ -12,10 +12,12 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String MESSAGE = "message";
+
     @ExceptionHandler(InvalidCredentialException.class)
     public ResponseEntity<Map<String, String>> handleInvalidCredentialException(InvalidCredentialException ex) {
         Map<String, String> response = new HashMap<>();
-        response.put("message", ex.getMessage());
+        response.put(MESSAGE, ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(response);
@@ -24,7 +26,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmailAlreadyExistException.class)
     public ResponseEntity<Map<String, String>> handleEmailAlreadyExists(EmailAlreadyExistException ex) {
         Map<String, String> response = new HashMap<>();
-        response.put("message", ex.getMessage());
+        response.put(MESSAGE, ex.getMessage());
 
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
@@ -35,7 +37,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("message", ex.getMessage());
+        error.put(MESSAGE, ex.getMessage());
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

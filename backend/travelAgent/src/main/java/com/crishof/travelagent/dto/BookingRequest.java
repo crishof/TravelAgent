@@ -23,5 +23,6 @@ public class BookingRequest {
     private BigDecimal exchangeRate;
     private BigDecimal amountInSaleCurrency;
     private String saleCurrency;
+    private Long saleId;
 
 }

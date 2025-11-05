@@ -43,7 +43,6 @@ export class CreateSaleComponent implements OnInit {
 
   initForm() {
     this.saleForm = this.formBuilder.group({
-      
       customer: this.formBuilder.group({
         firstName: '',
         lastName: '',
@@ -133,7 +132,6 @@ export class CreateSaleComponent implements OnInit {
     });
   }
 
-
   onSupplierChange() {
     const supplierId = this.newServiceForm.get('supplierId')?.value;
     this.selectedSupplier =
@@ -149,29 +147,29 @@ export class CreateSaleComponent implements OnInit {
     return this.supplierList.find((s) => s.id == id)?.supplierName ?? '';
   }
 
-saveSale() {
-  if (this.saleForm.valid) {
-    const formData = {
-      ...this.saleForm.value,
-      services: this.servicesFormArray.value
-    };
+  saveSale() {
+    if (this.saleForm.valid) {
+      const formData = {
+        ...this.saleForm.value,
+        services: this.servicesFormArray.value,
+      };
 
-    this._saleService.createSale(formData).subscribe({
-      next: (response) => {
-        // Asegúrate que el backend responde con 'id'
-        this._router.navigate(['/sale/sale-details', response.id]);
-      },
-      error: () => {
-        alert('An error occurred while creating the sale. Please try again.');
-      }
-    });
-  } else {
-    Object.values(this.saleForm.controls).forEach((control) => {
-      if (control instanceof FormControl || control instanceof FormGroup) {
-        control.markAsTouched();
-      }
-    });
-    alert('Please fill out all required fields before submitting.');
+      this._saleService.createSale(formData).subscribe({
+        next: (response) => {
+          // Asegúrate que el backend responde con 'id'
+          this._router.navigate(['/sale/sale-details', response.id]);
+        },
+        error: () => {
+          alert('An error occurred while creating the sale. Please try again.');
+        },
+      });
+    } else {
+      Object.values(this.saleForm.controls).forEach((control) => {
+        if (control instanceof FormControl || control instanceof FormGroup) {
+          control.markAsTouched();
+        }
+      });
+      alert('Please fill out all required fields before submitting.');
+    }
   }
-}
 }

@@ -16,4 +16,9 @@ export class BookingService {
   getAllBookings(): Observable<IBooking[]> {
     return this._http.get<IBooking[]>(`${this._urlBase}/getAll`);
   }
+
+  createBooking(bookingRequest: IBooking): Observable<any> {
+    console.log('Creating booking:', bookingRequest);
+    return this._http.post(`${this._urlBase}/save`, bookingRequest);
+  }
 }
