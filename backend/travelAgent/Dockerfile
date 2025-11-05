@@ -1,5 +1,5 @@
 # Etapa 1: Construcción del JAR usando Maven
-FROM openjdk:17-slim AS builder
+FROM eclipse-temurin:17-jdk-jammy AS builder
 WORKDIR /app
 
 # Copiar archivos del proyecto
@@ -9,7 +9,7 @@ COPY . .
 RUN ./mvnw clean package -DskipTests
 
 # Etapa 2: Imagen final liviana
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 
 # Copiar el JAR generado desde la etapa de compilación
