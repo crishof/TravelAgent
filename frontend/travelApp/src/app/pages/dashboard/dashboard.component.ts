@@ -9,6 +9,8 @@ import {
 } from '@angular/core';
 import { SaleService } from '../../services/sale.service';
 import { Chart } from 'chart.js/auto';
+import { CustomerService } from '../../services/customer.service';
+import { ISale } from '../../model/sale.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,14 +24,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   salesByMonthChart!: ElementRef<HTMLCanvasElement>;
 
   readonly _saleService = inject(SaleService);
+  readonly _customerService = inject(CustomerService);
   private chartInstance?: Chart;
 
-  totalSales = 125000;
+  totalSales = 0;
   pendingPayments = 18500;
-  totalCustomers = 320;
+  totalCustomers = 0;
+  recentSales: ISale[] = [];
 
   ngOnInit(): void {
     this.getTotalSales();
+    this.getTotalCustomers();
+    this.getRecentSales();
   }
   ngAfterViewInit(): void {
     this.loadSalesByMonthChart();
@@ -88,7 +94,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   getTotalSales(): void {
     this._saleService.getTotalSales().subscribe({
       next: (total) => {
-        this.totalSales = total;        
+        this.totalSales = total;
       },
       error: (err) => {
         console.error('❌ Error loading total sales:', err);
@@ -96,17 +102,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  recentSales = [
-    { date: new Date(), customer: 'John Doe', amount: 1200, status: 'Paid' },
-    {
-      date: new Date(),
-      customer: 'Jane Smith',
-      amount: 950,
-      status: 'Pending',
-    },
-    { date: new Date(), customer: 'Carlos Ruiz', amount: 2100, status: 'Paid' },
-    { date: new Date(), customer: 'Anna Lee', amount: 750, status: 'Pending' },
-  ];
+  getTotalCustomers(): void {
+    this._customerService.getTotalCustomers().subscribe({
+      next: (total) => {
+        this.totalCustomers = total;
+      },
+      error: (err) => {
+        console.error('❌ Error loading total customers:', err);
+      },
+    });
+  }
+
+  getRecentSales() {
+    this._saleService.getAllSales().subscribe({
+      next: (sales) => {
+        this.recentSales = sales.slice(-10);
+        console.log('✅ Recent sales loaded:', this.recentSales);
+      },
+      error: (err) => {
+        console.error('❌ Error loading recent sales:', err);
+      },
+    });
+  }
 
   topSuppliers = [
     { name: 'Global Travels', bookings: 42 },

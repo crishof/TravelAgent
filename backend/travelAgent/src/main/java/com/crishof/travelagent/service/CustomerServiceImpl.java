@@ -91,4 +91,9 @@ public class CustomerServiceImpl implements CustomerService {
 
         return Optional.empty();
     }
+
+    @Override
+    public int getTotalCustomers() {
+        return customerRepository.findAll().size();
+    }
 }

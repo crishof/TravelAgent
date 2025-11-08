@@ -1,7 +1,8 @@
 package com.crishof.travelagent.controller;
 
 import com.crishof.travelagent.dto.MonthlySalesDTO;
-import com.crishof.travelagent.service.TravelSaleServiceImpl;
+import com.crishof.travelagent.service.CustomerService;
+import com.crishof.travelagent.service.TravelSaleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,12 +16,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DashboardController {
 
-    private final TravelSaleServiceImpl travelSaleServiceImpl;
+    private final TravelSaleService travelSaleService;
+    private final CustomerService customerService;
 
     //Total Sales
     @GetMapping("/getTotalSales")
     public ResponseEntity<Double> getTotalSales() {
-        return ResponseEntity.ok(travelSaleServiceImpl.getTotalSales());
+        return ResponseEntity.ok(travelSaleService.getTotalSales());
     }
 
     //Pending Payments
@@ -31,20 +33,17 @@ public class DashboardController {
 
     //Total Customers
     @GetMapping("/getTotalCustomers")
-    public ResponseEntity<Integer> getTotalCustomers() {
-        return ResponseEntity.ok(0);
+    public ResponseEntity<Integer> totalCustomers() {
+        return ResponseEntity.ok(customerService.getTotalCustomers());
     }
 
     //Sales by month
     @GetMapping("/getSalesByMonth")
     public ResponseEntity<List<MonthlySalesDTO>> getSalesByMonth() {
-
-        List<MonthlySalesDTO> totalSales = travelSaleServiceImpl.getSalesByMonth();
-
-        System.out.println("totalSales = " + totalSales);
-
+        List<MonthlySalesDTO> totalSales = travelSaleService.getSalesByMonth();
         return ResponseEntity.ok(totalSales);
     }
+
     //Top Suppliers
     //Recent Sales
     //Recent bookings

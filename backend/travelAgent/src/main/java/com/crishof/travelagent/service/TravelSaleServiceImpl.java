@@ -30,6 +30,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     private final UserService userService;
     private final TravelSaleMapper travelSaleMapper;
     private final SupplierService supplierService;
+    private final CurrencyConversionService currencyConversionService;
 
     @Override
     @Transactional(readOnly = true)
@@ -192,6 +193,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         return totalPayments.subtract(totalBookings);
     }
 
+    @Override
     public List<MonthlySalesDTO> getSalesByMonth() {
         List<Object[]> results = travelSaleRepository.findSalesByMonthNative();
         return results.stream()
@@ -199,8 +201,15 @@ public class TravelSaleServiceImpl implements TravelSaleService {
                 .toList();
     }
 
-    public Double getTotalSales(){
-        return travelSaleRepository.getTotalSales();
+    @Override
+    public Double getTotalSales() {
+        double totalEuro = travelSaleRepository.getTotalSalesEuro();
+        double totalUsd = travelSaleRepository.getTotalSalesUsd();
+
+        BigDecimal exchangeRate = currencyConversionService.getExchangeRateSync("EUR", "USD");
+        double rate = exchangeRate != null ? exchangeRate.doubleValue() : 1.0;
+
+        return totalUsd + (totalEuro * rate);
     }
 }
 
