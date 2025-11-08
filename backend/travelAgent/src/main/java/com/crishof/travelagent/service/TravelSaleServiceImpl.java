@@ -2,6 +2,7 @@ package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.BookingRequest;
 import com.crishof.travelagent.dto.CurrencyExchangeResponse;
+import com.crishof.travelagent.dto.MonthlySalesDTO;
 import com.crishof.travelagent.dto.TravelSaleRequest;
 import com.crishof.travelagent.exception.BookingNotFoundException;
 import com.crishof.travelagent.exception.TravelSaleNotFoundException;
@@ -189,6 +190,17 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         }
 
         return totalPayments.subtract(totalBookings);
+    }
+
+    public List<MonthlySalesDTO> getSalesByMonth() {
+        List<Object[]> results = travelSaleRepository.findSalesByMonthNative();
+        return results.stream()
+                .map(r -> new MonthlySalesDTO((String) r[0], ((Number) r[1]).doubleValue()))
+                .toList();
+    }
+
+    public Double getTotalSales(){
+        return travelSaleRepository.getTotalSales();
     }
 }
 

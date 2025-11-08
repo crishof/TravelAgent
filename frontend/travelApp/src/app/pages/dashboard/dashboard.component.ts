@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
+import { SaleService } from '../../services/sale.service';
+import { Chart } from 'chart.js/auto';
 
 @Component({
   selector: 'app-dashboard',
@@ -8,10 +17,84 @@ import { Component, OnInit } from '@angular/core';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterViewInit {
+  @ViewChild('salesByMonthChart')
+  salesByMonthChart!: ElementRef<HTMLCanvasElement>;
+
+  readonly _saleService = inject(SaleService);
+  private chartInstance?: Chart;
+
   totalSales = 125000;
   pendingPayments = 18500;
   totalCustomers = 320;
+
+  ngOnInit(): void {
+    this.getTotalSales();
+  }
+  ngAfterViewInit(): void {
+    this.loadSalesByMonthChart();
+  }
+
+  loadSalesByMonthChart() {
+    this._saleService.getSalesByMonth().subscribe({
+      next: (data) => {
+        const labels = data.map((d: any) => d.month);
+        const totals = data.map((d: any) => d.totalSales);
+
+        const ctx = this.salesByMonthChart.nativeElement.getContext('2d');
+        if (!ctx) {
+          console.error('❌ No se pudo obtener el contexto 2D del canvas');
+          return;
+        }
+
+        if (this.chartInstance) {
+          this.chartInstance.destroy();
+        }
+
+        this.chartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Sales (USD)',
+                data: totals,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Total Sales ($)' },
+              },
+              x: {
+                title: { display: true, text: 'Month' },
+              },
+            },
+          },
+        });
+      },
+      error: (err) => console.error('Error loading chart data:', err),
+    });
+  }
+
+  getTotalSales(): void {
+    this._saleService.getTotalSales().subscribe({
+      next: (total) => {
+        this.totalSales = total;        
+      },
+      error: (err) => {
+        console.error('❌ Error loading total sales:', err);
+      },
+    });
+  }
 
   recentSales = [
     { date: new Date(), customer: 'John Doe', amount: 1200, status: 'Paid' },
@@ -37,6 +120,4 @@ export class DashboardComponent implements OnInit {
     { name: 'Bob White', sales: 28, total: 28000 },
     { name: 'Maria Green', sales: 22, total: 22000 },
   ];
-
-  ngOnInit(): void {}
 }
