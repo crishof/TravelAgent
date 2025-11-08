@@ -32,12 +32,12 @@ public class JwtService {
 
     @PostConstruct
     public void logValues() {
-        logger.info("✅ Access Token Expiration (ms): {}", jwtExpiration);
-        logger.info("✅ Refresh Token Expiration (ms): {}", refreshExpiration);
+//        logger.info("✅ Access Token Expiration (ms): {}", jwtExpiration);
+//        logger.info("✅ Refresh Token Expiration (ms): {}", refreshExpiration);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        logger.info("🔐 Generando access token para usuario: {}", userDetails.getUsername());
+//        logger.info("🔐 Generando access token para usuario: {}", userDetails.getUsername());
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
@@ -48,7 +48,7 @@ public class JwtService {
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
-        logger.info("🔁 Generando refresh token para usuario: {}", userDetails.getUsername());
+//        logger.info("🔁 Generando refresh token para usuario: {}", userDetails.getUsername());
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -58,46 +58,46 @@ public class JwtService {
     }
 
     public String getUserName(String token) {
-        logger.info("📤 Extrayendo username del token");
+//        logger.info("📤 Extrayendo username del token");
         return getClaim(token, Claims::getSubject);
     }
 
     public boolean isTokenValid(String token) {
-        logger.info("✅ Validando token");
+//        logger.info("✅ Validando token");
         try {
             getAllClaims(token);
             return true;
         } catch (ExpiredJwtException e) {
-            logger.warn("⚠️ Token expirado: {}", e.getMessage());
+//            logger.warn("⚠️ Token expirado: {}", e.getMessage());
             return false;
         } catch (JwtException e) {
-            logger.warn("❌ Token inválido: {}", e.getMessage());
+//            logger.warn("❌ Token inválido: {}", e.getMessage());
             return false;
         }
     }
 
     public <T> T getClaim(String token, Function<Claims, T> claimsResolver) {
-        logger.info("📦 Extrayendo claim específico del token");
+//        logger.info("📦 Extrayendo claim específico del token");
         final Claims claims = getAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
     private Claims getAllClaims(String token) {
-        logger.info("🧠 Parseando y extrayendo todos los claims del token");
+//        logger.info("🧠 Parseando y extrayendo todos los claims del token");
         Date now = new Date();
-        logger.info("🧠 Parseando claims - ahora: {}", now);
+//        logger.info("🧠 Parseando claims - ahora: {}", now);
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSignInKey())
                 .setAllowedClockSkewSeconds(CLOCK_SKEW_SECONDS)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        logger.info("📆 Token expira en: {}", claims.getExpiration());
+//        logger.info("📆 Token expira en: {}", claims.getExpiration());
         return claims;
     }
 
     private Key getSignInKey() {
-        logger.info("🔑 Obteniendo clave secreta para firmar/validar el token");
+//        logger.info("🔑 Obteniendo clave secreta para firmar/validar el token");
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
