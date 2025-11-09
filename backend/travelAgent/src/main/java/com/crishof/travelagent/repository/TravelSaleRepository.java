@@ -45,4 +45,13 @@ public interface TravelSaleRepository extends JpaRepository<TravelSale, Long> {
 
     @Query("SELECT COALESCE(SUM(s.amount), 0) FROM TravelSale s where s.currency LIKE 'USD'")
     Double getTotalSalesUsd();
+
+    @Query("""
+                SELECT
+                    COALESCE(SUM(s.amount), 0)
+                    - COALESCE(SUM(p.amountInSaleCurrency), 0)
+                FROM TravelSale s
+                LEFT JOIN CustomerPayment p ON p.travelSale.id = s.id
+            """)
+    Double getTotalPendingAmount();
 }

@@ -26,4 +26,6 @@ public interface TravelSaleService {
     List<MonthlySalesDTO> getSalesByMonth();
 
     Double getTotalSales();
+
+    Double getTotalPendingPayments();
 }

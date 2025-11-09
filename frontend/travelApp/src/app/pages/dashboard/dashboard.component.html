@@ -102,21 +102,21 @@
       </div>
       <div class="col-12 col-lg-6">
         <div class="card shadow-sm">
-          <div class="card-header">Top Agents</div>
+          <div class="card-header">Non Paid Bookings</div>
           <div class="card-body table-responsive">
             <table class="table table-sm table-hover align-middle">
               <thead>
                 <tr>
-                  <th>Agent</th>
-                  <th>Sales</th>
+                  <th>Supplier</th>
+                  <th>Booking Number</th>
                   <th>Total</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let agent of topAgents">
-                  <td>{{ agent.name }}</td>
-                  <td>{{ agent.sales }}</td>
-                  <td>{{ agent.total | currency : "USD" }}</td>
+                <tr *ngFor="let booking of nonPaidBookings">
+                  <td>{{ booking.supplierName }}</td>
+                  <td>{{ booking.bookingNumber }}</td>
+                  <td>{{ booking.amount | currency : booking.currency }}</td>
                 </tr>
               </tbody>
             </table>

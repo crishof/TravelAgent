@@ -1,5 +1,6 @@
 package com.crishof.travelagent.controller;
 
+import com.crishof.travelagent.dto.BookingResponse;
 import com.crishof.travelagent.dto.MonthlySalesDTO;
 import com.crishof.travelagent.dto.TopSupplierDTO;
 import com.crishof.travelagent.service.BookingService;
@@ -27,11 +28,6 @@ public class DashboardController {
         return ResponseEntity.ok(travelSaleService.getTotalSales());
     }
 
-    @GetMapping("/getPendingPayments")
-    public ResponseEntity<Double> getPendingPayments() {
-        return ResponseEntity.ok(0.0);
-    }
-
     @GetMapping("/getTotalCustomers")
     public ResponseEntity<Integer> totalCustomers() {
         return ResponseEntity.ok(customerService.getTotalCustomers());
@@ -45,5 +41,15 @@ public class DashboardController {
     @GetMapping("/getTopSuppliers")
     public ResponseEntity<List<TopSupplierDTO>> getTopSuppliers() {
         return ResponseEntity.ok(bookingService.getTopSuppliers());
+    }
+
+    @GetMapping("/getPendingPayments")
+    public ResponseEntity<Double> getTotalPendingPayments() {
+        return ResponseEntity.ok(travelSaleService.getTotalPendingPayments());
+    }
+
+    @GetMapping("/getNonPaidBookings")
+    public ResponseEntity<List<BookingResponse>> getNonPaidBookings() {
+        return ResponseEntity.ok(bookingService.getNonPaidBookings());
     }
 }
