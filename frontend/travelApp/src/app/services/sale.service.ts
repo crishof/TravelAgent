@@ -43,4 +43,8 @@ export class SaleService {
   getTotalSales(): Observable<number> {
     return this._http.get<number>(`${this._urlDashboard}/getTotalSales`);
   }
+
+  getPendingPayments(): Observable<number> {
+    return this._http.get<number>(`${this._urlDashboard}/getPendingPayments`);
+  }
 }

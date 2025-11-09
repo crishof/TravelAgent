@@ -211,5 +211,10 @@ public class TravelSaleServiceImpl implements TravelSaleService {
 
         return totalUsd + (totalEuro * rate);
     }
+
+    @Override
+    public Double getTotalPendingPayments() {
+        return travelSaleRepository.getTotalPendingAmount();
+    }
 }
 

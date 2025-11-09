@@ -31,7 +31,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   private chartInstance?: Chart;
 
   totalSales = 0;
-  pendingPayments = 18500;
+  pendingPayments = 0;
   totalCustomers = 0;
   recentSales: ISale[] = [];
 
@@ -40,6 +40,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.getTotalCustomers();
     this.getRecentSales();
     this.getTopSuppliers();
+    this.getPendingPayments();
   }
   ngAfterViewInit(): void {
     this.loadSalesByMonthChart();
@@ -134,10 +135,21 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this._bookingService.getTopSuppliers().subscribe({
       next: (data) => {
         this.topSuppliers = data;
-        console.log('✅ Top suppliers loaded:', this.topSuppliers);
       },
       error: (err) => {
         console.error('❌ Error loading top suppliers:', err);
+      },
+    });
+  }
+
+  getPendingPayments(): void {
+    this._saleService.getPendingPayments().subscribe({
+      next: (total) => {
+        this.pendingPayments = total;
+        console.log('✅ Pending payments loaded:', this.pendingPayments);
+      },
+      error: (err) => {
+        console.error('❌ Error loading pending payments:', err);
       },
     });
   }
