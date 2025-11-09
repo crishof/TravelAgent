@@ -12,6 +12,7 @@ export class SaleService {
 
   readonly _http = inject(HttpClient);
   readonly _urlBase = `${environment.apiUrl}/travelSale`;
+  readonly _urlDashboard = `${environment.apiUrl}/dashboard`;
 
   getAllSales(): Observable<ISale[]> {
     return this._http.get<ISale[]>(`${this._urlBase}/getAll`);
@@ -33,5 +34,13 @@ export class SaleService {
 
   getCurrentFee(saleId: number): Observable<number> {
     return this._http.get<number>(`${this._urlBase}/getTravelFee/${saleId}`);
+  }
+
+  getSalesByMonth(): Observable<any[]> {
+    return this._http.get<any[]>(`${this._urlDashboard}/getSalesByMonth`);
+  }
+
+  getTotalSales(): Observable<number> {
+    return this._http.get<number>(`${this._urlDashboard}/getTotalSales`);
   }
 }

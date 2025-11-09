@@ -1,5 +1,6 @@
 package com.crishof.travelagent.service;
 
+import com.crishof.travelagent.dto.MonthlySalesDTO;
 import com.crishof.travelagent.dto.TravelSaleRequest;
 import com.crishof.travelagent.model.TravelSale;
 
@@ -21,4 +22,8 @@ public interface TravelSaleService {
     List<TravelSale> getAllByCustomerId(Long customerId);
 
     BigDecimal getTravelFee(Long id);
+
+    List<MonthlySalesDTO> getSalesByMonth();
+
+    Double getTotalSales();
 }

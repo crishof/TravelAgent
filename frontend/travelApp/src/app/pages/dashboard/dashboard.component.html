@@ -38,7 +38,7 @@
           <div class="card-header">Sales by Month</div>
           <div class="card-body">
             <!-- Placeholder for chart -->
-            <canvas id="salesByMonthChart"></canvas>
+            <canvas #salesByMonthChart></canvas>
           </div>
         </div>
       </div>
@@ -52,12 +52,14 @@
                 <tr>
                   <th>Supplier</th>
                   <th>Bookings</th>
+                  <th>Total Sales</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let supplier of topSuppliers">
-                  <td>{{ supplier.name }}</td>
-                  <td>{{ supplier.bookings }}</td>
+                  <td>{{ supplier.supplierName }}</td>
+                  <td>{{ supplier.totalSales }}</td>
+                  <td>{{ supplier.totalAmount }}</td>
                 </tr>
               </tbody>
             </table>
@@ -78,22 +80,19 @@
                   <th>Date</th>
                   <th>Customer</th>
                   <th>Amount</th>
-                  <th>Status</th>
+                  <th>Description</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let sale of recentSales">
-                  <td>{{ sale.date | date : "dd/MM/yyyy" }}</td>
-                  <td>{{ sale.customer }}</td>
+                  <td>{{ sale.creationDate | date : "dd/MM/yyyy" }}</td>
+                  <td>
+                    {{ sale.customerResponse.firstName }}
+                    {{ sale.customerResponse.lastName }}
+                  </td>
                   <td>{{ sale.amount | currency : "USD" }}</td>
                   <td>
-                    <span
-                      [ngClass]="{
-                        'badge bg-success': sale.status === 'Paid',
-                        'badge bg-warning text-dark': sale.status === 'Pending'
-                      }"
-                      >{{ sale.status }}</span
-                    >
+                    {{ sale.description }}
                   </td>
                 </tr>
               </tbody>

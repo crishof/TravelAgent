@@ -2,6 +2,7 @@ package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.BookingRequest;
 import com.crishof.travelagent.dto.CurrencyExchangeResponse;
+import com.crishof.travelagent.dto.TopSupplierDTO;
 import com.crishof.travelagent.exception.BookingNotFoundException;
 import com.crishof.travelagent.exception.ExchangeRateNotAvailableException;
 import com.crishof.travelagent.mapper.BookingMapper;
@@ -144,5 +145,11 @@ public class BookingServiceImpl implements BookingService {
                 exchangeRate,
                 amountInSaleCurrency
         );
+    }
+
+    @Override
+    public List<TopSupplierDTO> getTopSuppliers() {
+        return bookingRepository.findTopSuppliers().stream()
+                .limit(5).toList();
     }
 }

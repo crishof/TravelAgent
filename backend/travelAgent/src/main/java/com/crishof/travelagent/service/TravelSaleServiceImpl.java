@@ -2,6 +2,7 @@ package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.BookingRequest;
 import com.crishof.travelagent.dto.CurrencyExchangeResponse;
+import com.crishof.travelagent.dto.MonthlySalesDTO;
 import com.crishof.travelagent.dto.TravelSaleRequest;
 import com.crishof.travelagent.exception.BookingNotFoundException;
 import com.crishof.travelagent.exception.TravelSaleNotFoundException;
@@ -29,6 +30,7 @@ public class TravelSaleServiceImpl implements TravelSaleService {
     private final UserService userService;
     private final TravelSaleMapper travelSaleMapper;
     private final SupplierService supplierService;
+    private final CurrencyConversionService currencyConversionService;
 
     @Override
     @Transactional(readOnly = true)
@@ -189,6 +191,25 @@ public class TravelSaleServiceImpl implements TravelSaleService {
         }
 
         return totalPayments.subtract(totalBookings);
+    }
+
+    @Override
+    public List<MonthlySalesDTO> getSalesByMonth() {
+        List<Object[]> results = travelSaleRepository.findSalesByMonthNative();
+        return results.stream()
+                .map(r -> new MonthlySalesDTO((String) r[0], ((Number) r[1]).doubleValue()))
+                .toList();
+    }
+
+    @Override
+    public Double getTotalSales() {
+        double totalEuro = travelSaleRepository.getTotalSalesEuro();
+        double totalUsd = travelSaleRepository.getTotalSalesUsd();
+
+        BigDecimal exchangeRate = currencyConversionService.getExchangeRateSync("EUR", "USD");
+        double rate = exchangeRate != null ? exchangeRate.doubleValue() : 1.0;
+
+        return totalUsd + (totalEuro * rate);
     }
 }
 

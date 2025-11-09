@@ -12,6 +12,7 @@ export class CustomerService {
 
   readonly _http = inject(HttpClient);
   readonly _urlBase = `${environment.apiUrl}/customer`;
+  readonly _urlDashboard = `${environment.apiUrl}/dashboard`;
 
   getAllCustomers(): Observable<ICustomer[]> {
     return this._http.get<ICustomer[]>(`${this._urlBase}/getAll`);
@@ -19,5 +20,9 @@ export class CustomerService {
 
   getCustomerById(id: number): Observable<ICustomer> {
     return this._http.get<ICustomer>(`${this._urlBase}/getById/${id}`);
+  }
+
+  getTotalCustomers(): Observable<number> {
+    return this._http.get<number>(`${this._urlDashboard}/getTotalCustomers`);
   }
 }

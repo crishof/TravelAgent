@@ -2,6 +2,7 @@ package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.BookingRequest;
 import com.crishof.travelagent.dto.CurrencyExchangeResponse;
+import com.crishof.travelagent.dto.TopSupplierDTO;
 import com.crishof.travelagent.model.Booking;
 
 import java.math.BigDecimal;
@@ -26,4 +27,6 @@ public interface BookingService {
     List<Booking> findAllByBookingNumber(String bookingNumber);
 
     CurrencyExchangeResponse getCurrencyConversion(String fromCurrency, String toCurrency, BigDecimal amount);
+
+    List<TopSupplierDTO> getTopSuppliers();
 }
