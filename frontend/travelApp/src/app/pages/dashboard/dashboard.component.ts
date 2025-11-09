@@ -11,6 +11,8 @@ import { SaleService } from '../../services/sale.service';
 import { Chart } from 'chart.js/auto';
 import { CustomerService } from '../../services/customer.service';
 import { ISale } from '../../model/sale.model';
+import { ITopSupplier } from '../../model/topSupplier';
+import { BookingService } from '../../services/booking.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -25,6 +27,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   readonly _saleService = inject(SaleService);
   readonly _customerService = inject(CustomerService);
+  readonly _bookingService = inject(BookingService);
   private chartInstance?: Chart;
 
   totalSales = 0;
@@ -36,6 +39,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.getTotalSales();
     this.getTotalCustomers();
     this.getRecentSales();
+    this.getTopSuppliers();
   }
   ngAfterViewInit(): void {
     this.loadSalesByMonthChart();
@@ -117,7 +121,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this._saleService.getAllSales().subscribe({
       next: (sales) => {
         this.recentSales = sales.slice(-10);
-        console.log('✅ Recent sales loaded:', this.recentSales);
       },
       error: (err) => {
         console.error('❌ Error loading recent sales:', err);
@@ -125,11 +128,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  topSuppliers = [
-    { name: 'Global Travels', bookings: 42 },
-    { name: 'Sunshine Tours', bookings: 37 },
-    { name: 'Adventure Co.', bookings: 29 },
-  ];
+  topSuppliers: ITopSupplier[] = [];
+
+  getTopSuppliers(): void {
+    this._bookingService.getTopSuppliers().subscribe({
+      next: (data) => {
+        this.topSuppliers = data;
+        console.log('✅ Top suppliers loaded:', this.topSuppliers);
+      },
+      error: (err) => {
+        console.error('❌ Error loading top suppliers:', err);
+      },
+    });
+  }
 
   topAgents = [
     { name: 'Alice Brown', sales: 34, total: 34000 },

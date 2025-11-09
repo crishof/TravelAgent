@@ -1,6 +1,8 @@
 package com.crishof.travelagent.controller;
 
 import com.crishof.travelagent.dto.MonthlySalesDTO;
+import com.crishof.travelagent.dto.TopSupplierDTO;
+import com.crishof.travelagent.service.BookingService;
 import com.crishof.travelagent.service.CustomerService;
 import com.crishof.travelagent.service.TravelSaleService;
 import lombok.RequiredArgsConstructor;
@@ -18,33 +20,30 @@ public class DashboardController {
 
     private final TravelSaleService travelSaleService;
     private final CustomerService customerService;
+    private final BookingService bookingService;
 
-    //Total Sales
     @GetMapping("/getTotalSales")
     public ResponseEntity<Double> getTotalSales() {
         return ResponseEntity.ok(travelSaleService.getTotalSales());
     }
 
-    //Pending Payments
     @GetMapping("/getPendingPayments")
     public ResponseEntity<Double> getPendingPayments() {
         return ResponseEntity.ok(0.0);
     }
 
-    //Total Customers
     @GetMapping("/getTotalCustomers")
     public ResponseEntity<Integer> totalCustomers() {
         return ResponseEntity.ok(customerService.getTotalCustomers());
     }
 
-    //Sales by month
     @GetMapping("/getSalesByMonth")
     public ResponseEntity<List<MonthlySalesDTO>> getSalesByMonth() {
-        List<MonthlySalesDTO> totalSales = travelSaleService.getSalesByMonth();
-        return ResponseEntity.ok(totalSales);
+        return ResponseEntity.ok(travelSaleService.getSalesByMonth());
     }
 
-    //Top Suppliers
-    //Recent Sales
-    //Recent bookings
+    @GetMapping("/getTopSuppliers")
+    public ResponseEntity<List<TopSupplierDTO>> getTopSuppliers() {
+        return ResponseEntity.ok(bookingService.getTopSuppliers());
+    }
 }

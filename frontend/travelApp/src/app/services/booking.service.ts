@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { IBooking } from '../model/booking.model';
 import { environment } from '../../environments/environment';
+import { ITopSupplier } from '../model/topSupplier';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,7 @@ export class BookingService {
 
   readonly _http = inject(HttpClient);
   readonly _urlBase = `${environment.apiUrl}/booking`;
+  readonly _urDashboard = `${environment.apiUrl}/dashboard`;
 
   getAllBookings(): Observable<IBooking[]> {
     return this._http.get<IBooking[]>(`${this._urlBase}/getAll`);
@@ -20,5 +22,11 @@ export class BookingService {
   createBooking(bookingRequest: IBooking): Observable<any> {
     console.log('Creating booking:', bookingRequest);
     return this._http.post(`${this._urlBase}/save`, bookingRequest);
+  }
+
+  getTopSuppliers(): Observable<ITopSupplier[]> {
+    return this._http.get<ITopSupplier[]>(
+      `${this._urDashboard}/getTopSuppliers`
+    );
   }
 }

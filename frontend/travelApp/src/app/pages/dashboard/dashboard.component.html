@@ -52,12 +52,14 @@
                 <tr>
                   <th>Supplier</th>
                   <th>Bookings</th>
+                  <th>Total Sales</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let supplier of topSuppliers">
-                  <td>{{ supplier.name }}</td>
-                  <td>{{ supplier.bookings }}</td>
+                  <td>{{ supplier.supplierName }}</td>
+                  <td>{{ supplier.totalSales }}</td>
+                  <td>{{ supplier.totalAmount }}</td>
                 </tr>
               </tbody>
             </table>
