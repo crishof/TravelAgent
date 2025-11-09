@@ -13,6 +13,7 @@ import { CustomerService } from '../../services/customer.service';
 import { ISale } from '../../model/sale.model';
 import { ITopSupplier } from '../../model/topSupplier';
 import { BookingService } from '../../services/booking.service';
+import { IBooking } from '../../model/booking.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -34,6 +35,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   pendingPayments = 0;
   totalCustomers = 0;
   recentSales: ISale[] = [];
+  nonPaidBookings: IBooking[] = [];
 
   ngOnInit(): void {
     this.getTotalSales();
@@ -41,6 +43,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.getRecentSales();
     this.getTopSuppliers();
     this.getPendingPayments();
+    this.getNonPaidBookings();
   }
   ngAfterViewInit(): void {
     this.loadSalesByMonthChart();
@@ -146,7 +149,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this._saleService.getPendingPayments().subscribe({
       next: (total) => {
         this.pendingPayments = total;
-        console.log('✅ Pending payments loaded:', this.pendingPayments);
       },
       error: (err) => {
         console.error('❌ Error loading pending payments:', err);
@@ -154,10 +156,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  topAgents = [
-    { name: 'Alice Brown', sales: 34, total: 34000 },
-    { name: 'Test Brown', sales: 34, total: 34000 },
-    { name: 'Bob White', sales: 28, total: 28000 },
-    { name: 'Maria Green', sales: 22, total: 22000 },
-  ];
+  getNonPaidBookings(): void {
+    this._bookingService.getNonPaidBookings().subscribe({
+      next: (data) => {
+        this.nonPaidBookings = data;
+      },
+      error: (err) => {
+        console.error('❌ Error loading non-paid bookings:', err);
+      },
+    });
+  }
 }

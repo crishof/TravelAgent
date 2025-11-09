@@ -1,6 +1,7 @@
 package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.BookingRequest;
+import com.crishof.travelagent.dto.BookingResponse;
 import com.crishof.travelagent.dto.CurrencyExchangeResponse;
 import com.crishof.travelagent.dto.TopSupplierDTO;
 import com.crishof.travelagent.exception.BookingNotFoundException;
@@ -151,5 +152,10 @@ public class BookingServiceImpl implements BookingService {
     public List<TopSupplierDTO> getTopSuppliers() {
         return bookingRepository.findTopSuppliers().stream()
                 .limit(5).toList();
+    }
+
+    @Override
+    public List<BookingResponse> getNonPaidBookings() {
+        return bookingRepository.findAll().stream().filter(Booking::isPaid).map(bookingMapper::toDto).toList();
     }
 }

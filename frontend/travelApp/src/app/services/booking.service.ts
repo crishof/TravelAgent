@@ -13,20 +13,25 @@ export class BookingService {
 
   readonly _http = inject(HttpClient);
   readonly _urlBase = `${environment.apiUrl}/booking`;
-  readonly _urDashboard = `${environment.apiUrl}/dashboard`;
+  readonly _urlDashboard = `${environment.apiUrl}/dashboard`;
 
   getAllBookings(): Observable<IBooking[]> {
     return this._http.get<IBooking[]>(`${this._urlBase}/getAll`);
   }
 
   createBooking(bookingRequest: IBooking): Observable<any> {
-    console.log('Creating booking:', bookingRequest);
     return this._http.post(`${this._urlBase}/save`, bookingRequest);
   }
 
   getTopSuppliers(): Observable<ITopSupplier[]> {
     return this._http.get<ITopSupplier[]>(
-      `${this._urDashboard}/getTopSuppliers`
+      `${this._urlDashboard}/getTopSuppliers`
+    );
+  }
+
+  getNonPaidBookings(): Observable<IBooking[]> {
+    return this._http.get<IBooking[]>(
+      `${this._urlDashboard}/getNonPaidBookings`
     );
   }
 }

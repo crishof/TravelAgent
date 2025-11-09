@@ -1,6 +1,7 @@
 package com.crishof.travelagent.service;
 
 import com.crishof.travelagent.dto.BookingRequest;
+import com.crishof.travelagent.dto.BookingResponse;
 import com.crishof.travelagent.dto.CurrencyExchangeResponse;
 import com.crishof.travelagent.dto.TopSupplierDTO;
 import com.crishof.travelagent.model.Booking;
@@ -29,4 +30,6 @@ public interface BookingService {
     CurrencyExchangeResponse getCurrencyConversion(String fromCurrency, String toCurrency, BigDecimal amount);
 
     List<TopSupplierDTO> getTopSuppliers();
+
+    List<BookingResponse> getNonPaidBookings();
 }
