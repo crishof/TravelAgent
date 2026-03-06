@@ -23,7 +23,6 @@ interface NavItem {
     SafeHtmlPipe,
   ],
   templateUrl: "./shell.component.html",
-  styleUrl: "./shell.component.css",
 })
 export class ShellComponent {
   auth = inject(AuthService);

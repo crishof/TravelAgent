@@ -1,0 +1,77 @@
+<div
+  class="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950"
+>
+  <div
+    class="w-full max-w-md mx-4 rounded-3xl border p-8 shadow-2xl bg-white border-slate-100 dark:bg-slate-900 dark:border-slate-700"
+  >
+    @if (loadingInvite()) {
+      <div class="text-center py-8 text-slate-400">Cargando invitación...</div>
+    } @else if (inviteError()) {
+      <div class="text-center py-8 text-red-400">{{ inviteError() }}</div>
+    } @else {
+      <div
+        class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-2xl mb-6"
+      >
+        ✈️
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+        Fuiste invitado/a
+      </h1>
+      <p class="text-sm mt-2 mb-6 text-slate-500 dark:text-slate-400">
+        Te invitaron a unirte a
+        <strong class="text-slate-900 dark:text-white">{{
+          inviteInfo()?.agency?.name
+        }}</strong>
+        como <strong>Agente</strong>.
+      </p>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="submit()"
+        class="flex flex-col gap-4"
+      >
+        <div
+          class="px-3 py-2.5 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+        >
+          {{ inviteInfo()?.email }}
+        </div>
+        <div class="flex flex-col gap-1">
+          <label
+            for="name"
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Tu nombre</label
+          >
+          <input
+            type="text"
+            formControlName="name"
+            placeholder="Juan Pérez"
+            class="form-input form-input-light dark:form-input-dark"
+          />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label
+            for="password"
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Elegí una contraseña</label
+          >
+          <input
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            class="form-input form-input-light dark:form-input-dark"
+          />
+        </div>
+        @if (error()) {
+          <p class="text-xs text-red-400">{{ error() }}</p>
+        }
+        <button
+          type="submit"
+          [disabled]="loading()"
+          class="w-full py-3 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-60"
+        >
+          {{ loading() ? "Procesando..." : "Aceptar invitación" }}
+        </button>
+      </form>
+    }
+  </div>
+</div>
