@@ -32,12 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-frontend/traveldesk-web-client/node_modules/\@angular-devkit/architect/node_modules/rxjs/dist/cjs/internal/operators/
+frontend/traveldesk-web-client/node_modules/**
 
-frontend/traveldesk-web-client/node_modules/\@angular-devkit/architect/node_modules/rxjs/dist/cjs/internal/symbol/
-
-frontend/traveldesk-web-client/node_modules/\@angular-devkit/architect/node_modules/rxjs/dist/cjs/internal/testing/
-
-frontend/traveldesk-web-client/node_modules/zone.js/
-
-frontend/traveldesk-web-client/node_modules/yocto-queue/
+.env
