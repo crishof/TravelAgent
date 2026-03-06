@@ -1,0 +1,15 @@
+{
+  "routes": [
+    "/",
+    "/agent",
+    "/booking",
+    "/customer",
+    "/dashboard",
+    "/login",
+    "/register-admin",
+    "/register-user",
+    "/sale",
+    "/sale/createSale",
+    "/supplier"
+  ]
+}

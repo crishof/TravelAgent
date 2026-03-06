@@ -21,3 +21,18 @@
     .aws-sam/
     .azure/
     .gcloud/            
+    
+node_modules/
+
+# build
+dist/
+
+# logs
+npm-debug.log
+yarn-error.log
+
+# angular cache
+.angular/
+
+# environment files if needed
+.env
