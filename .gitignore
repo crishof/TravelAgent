@@ -83,3 +83,7 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+frontend/travelApp/dist/travel-app/browser/
+
+frontend/traveldesk-web-client/.angular/cache/19.2.22/traveldesk/vite/deps/
