@@ -10,9 +10,9 @@
     </parent>
     <groupId>com.crishof</groupId>
     <artifactId>traveldesk-api</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>traveldesk-api</name>
-    <description>traveldesk-api</description>
+    <description>travel-desk-api</description>
     <url/>
     <licenses>
         <license/>
@@ -28,6 +28,7 @@
     </scm>
     <properties>
         <java.version>25</java.version>
+        
     </properties>
     <dependencies>
         <dependency>
