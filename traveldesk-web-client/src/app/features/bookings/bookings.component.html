@@ -1,0 +1,162 @@
+<div class="flex flex-col gap-6 animate-fade-in">
+  <div>
+    <h1
+      class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white"
+    >
+      Reservas a Proveedores
+    </h1>
+    <p class="text-sm mt-1 text-slate-500 dark:text-slate-400">
+      {{ pendingCount() }} servicios pendientes · aprox. USD
+      {{ pendingAmount() | number: "1.0-0" }}
+    </p>
+  </div>
+
+  <!-- Filters -->
+  <div
+    class="flex flex-wrap gap-3 p-4 rounded-2xl border bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+  >
+    <select
+      [value]="filters().payStatus"
+      (change)="setFilter('payStatus', getVal($event))"
+      class="px-3 py-2 rounded-xl text-sm border outline-none bg-slate-50 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+    >
+      <option value="">Todos los estados</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="Pagado">Pagado</option>
+      <option value="Vencido">Vencido</option>
+    </select>
+    <select
+      [value]="filters().providerId"
+      (change)="setFilter('providerId', getVal($event))"
+      class="px-3 py-2 rounded-xl text-sm border outline-none bg-slate-50 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+    >
+      <option value="">Todos los proveedores</option>
+      @for (p of providersSvc.providers(); track p.id) {
+        <option [value]="p.id">{{ p.name }}</option>
+      }
+    </select>
+    <select
+      [value]="filters().clientId"
+      (change)="setFilter('clientId', getVal($event))"
+      class="px-3 py-2 rounded-xl text-sm border outline-none bg-slate-50 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+    >
+      <option value="">Todos los clientes</option>
+      @for (c of clientsSvc.clients(); track c.id) {
+        <option [value]="c.id">{{ c.name }}</option>
+      }
+    </select>
+    @if (isAdmin()) {
+      <select
+        [value]="filters().agentId"
+        (change)="setFilter('agentId', getVal($event))"
+        class="px-3 py-2 rounded-xl text-sm border outline-none bg-slate-50 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+      >
+        <option value="">Todos los agentes</option>
+        @for (a of teamSvc.users(); track a.id) {
+          @if (a.role === "AGENT") {
+            <option [value]="a.id">{{ a.name }}</option>
+          }
+        }
+      </select>
+    }
+    <input
+      type="date"
+      [value]="filters().dateFrom"
+      (change)="setFilter('dateFrom', getVal($event))"
+      class="px-3 py-2 rounded-xl text-sm border outline-none bg-slate-50 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+    />
+  </div>
+
+  <!-- Table -->
+  <div
+    class="rounded-2xl border overflow-hidden border-slate-100 shadow-sm dark:border-slate-700/60"
+  >
+    <!-- Header -->
+    <div
+      class="hidden md:grid text-xs font-semibold uppercase tracking-wider px-4 py-3 border-b bg-slate-50 text-slate-500 border-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700/60"
+      style="grid-template-columns: 2fr 1.4fr 1fr 1fr 1fr 1fr 0.7fr 40px"
+    >
+      <span>Servicio</span>
+      <span>Proveedor</span>
+      <span>Cliente</span>
+      <span>Agente</span>
+      <span>Fecha</span>
+      <span>Costo neto</span>
+      <span>Estado</span>
+      <span></span>
+    </div>
+
+    @if (filteredBookings().length === 0) {
+      <div
+        class="px-4 py-10 text-center text-sm text-slate-400 bg-white dark:bg-slate-800/40 dark:text-slate-500"
+      >
+        Sin resultados con los filtros actuales
+      </div>
+    } @else {
+      @for (svc of filteredBookings(); track svc.id) {
+        <div
+          class="flex md:grid items-center gap-2 px-4 py-3 border-b last:border-0 transition-colors hover:bg-cyan-500/5 bg-white border-slate-50 dark:bg-slate-800/40 dark:border-slate-700/40"
+          style="grid-template-columns: 2fr 1.4fr 1fr 1fr 1fr 1fr 0.7fr 40px"
+        >
+          <div>
+            <div class="text-sm font-medium text-slate-800 dark:text-slate-200">
+              {{ svc.name }}
+            </div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">
+              Venta #{{ svc.saleId }}
+            </div>
+          </div>
+          <div class="text-sm text-slate-700 dark:text-slate-300">
+            {{ svc.providerName }}
+          </div>
+          <div class="text-sm text-slate-700 dark:text-slate-300">
+            {{ svc.clientName }}
+          </div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">
+            {{ svc.agentFirst }}
+          </div>
+          <div class="text-sm text-slate-700 dark:text-slate-300">
+            {{ svc.travelDate }}
+          </div>
+          <div>
+            <div
+              class="text-sm font-semibold text-slate-800 dark:text-slate-200"
+            >
+              {{ svc.netCost | currency: svc.currency : "symbol" : "1.2-2" }}
+            </div>
+            @if (svc.showConversion) {
+              <div class="text-xs text-slate-500 dark:text-slate-400">
+                ≈
+                {{
+                  svc.convertedCost
+                    | currency: svc.saleCurrency : "symbol" : "1.2-2"
+                }}
+              </div>
+            }
+          </div>
+          <span
+            [class]="payStatusClass(svc.payStatus)"
+            class="px-2 py-1 rounded-full text-xs font-semibold"
+            >{{ svc.payStatus }}</span
+          >
+          <button
+            (click)="togglePayStatus(svc.saleId, svc.id, svc.payStatus)"
+            [title]="
+              svc.payStatus === 'Pendiente'
+                ? 'Marcar como pagado'
+                : 'Revertir a pendiente'
+            "
+            class="p-2 rounded-lg transition-colors"
+            [class]="
+              svc.payStatus === 'Pendiente'
+                ? 'hover:bg-emerald-500/20 text-emerald-500'
+                : 'hover:bg-amber-500/20 text-amber-500'
+            "
+          >
+            {{ svc.payStatus === "Pendiente" ? "✓" : "↺" }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
