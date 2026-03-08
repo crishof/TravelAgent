@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
-import { tap } from "rxjs";
+import { tap, map } from "rxjs";
 import { environment } from "../../../environments/environment";
 import {
   AuthResponse,
@@ -15,6 +15,7 @@ import {
 const TOKEN_KEY = "td_token";
 const USER_KEY = "td_user";
 const AGENCY_KEY = "td_agency";
+
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
@@ -33,9 +34,23 @@ export class AuthService {
 
   // ── Auth actions ─────────────────────────────────────────────────────────
   login(dto: LoginDto) {
-    return this.http
-      .post<AuthResponse>(`${this.api}/auth/login`, dto)
-      .pipe(tap((res) => this.storeSession(res)));
+    return this.http.post<any>(`${this.api}/auth/login`, dto).pipe(
+      map(res => ({
+        token: res.accessToken,
+        user: {
+          id: res.id,
+          agencyId: '', // TODO: Obtener del backend o de otra llamada
+          name: res.fullName,
+          email: res.email,
+          role: res.role,
+          commissionPct: 0, // Default, ajustar según backend
+          avatar: res.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
+          status: res.status,
+        } as User,
+        agency: null, // TODO: Obtener agency del backend
+      })),
+      tap((res) => this.storeSession(res))
+    );
   }
 
   registerAgency(dto: CreateAgencyDto) {

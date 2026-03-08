@@ -40,7 +40,7 @@ export interface LoginDto {
 export interface AuthResponse {
   token: string;
   user: User;
-  agency: Agency;
+  agency: Agency | null;
 }
 
 export interface InviteAgentDto {

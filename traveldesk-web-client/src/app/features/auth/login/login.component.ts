@@ -26,11 +26,6 @@ export class LoginComponent {
   });
 
   submit() {
-
-    this.router.navigate(["/app/dashboard"]);
-    
-    // Remove above lines to enable real login -->
-    /*
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -46,6 +41,6 @@ export class LoginComponent {
         this.loading.set(false);
       },
     });
-    */
+    
   }
 }
