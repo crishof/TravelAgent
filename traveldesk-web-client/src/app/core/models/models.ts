@@ -3,7 +3,7 @@ export interface Agency {
   id: string;
   name: string;
   slug: string;
-  plan: 'Free' | 'Pro' | 'Enterprise';
+  plan: "Free" | "Pro" | "Enterprise";
   logo?: string;
   createdAt: string;
 }
@@ -16,8 +16,8 @@ export interface CreateAgencyDto {
 }
 
 // ─── User / Auth ──────────────────────────────────────────────────────────────
-export type UserRole = 'ADMIN' | 'AGENT';
-export type UserStatus = 'active' | 'pending' | 'inactive';
+export type UserRole = "ADMIN" | "AGENT";
+export type UserStatus = "active" | "pending" | "inactive";
 
 export interface User {
   id: string;
@@ -25,8 +25,8 @@ export interface User {
   fullName: string;
   email: string;
   role: UserRole;
-  commissionPct: number;      // % sobre ganancia neta de la venta
-  avatar: string;             // initials, e.g. "AR"
+  commissionPct: number; // % sobre ganancia neta de la venta
+  avatar: string; // initials, e.g. "AR"
   status: UserStatus;
   inviteToken?: string;
   createdAt?: string;
@@ -77,39 +77,45 @@ export interface CreateClientDto {
 }
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
-export type ProviderCategory = 'Hotel' | 'Aéreo' | 'Paquete' | 'Transporte' | 'Crucero' | 'Seguro' | 'Otro';
-export type Currency = 'USD' | 'EUR';
+export type ServiceType =
+  | "AIRLINE"
+  | "HOTEL"
+  | "TRANSPORT"
+  | "TOUR_OPERATOR"
+  | "INSURANCE"
+  | "OTHER";
+export type Currency = "USD" | "EUR";
 
 export interface Provider {
-  id: number;
+  id: string;
   agencyId: string;
   name: string;
-  category: ProviderCategory;
-  country: string;
-  contact: string;
+  serviceType: ServiceType;
+  email?: string;
+  phone?: string;
+  country?: string;
   currency: Currency;
-  notes?: string;
 }
 
 export interface CreateProviderDto {
   name: string;
-  category: ProviderCategory;
-  country: string;
-  contact: string;
+  serviceType: ServiceType;
+  email?: string;
+  phone?: string;
+  country?: string;
   currency: Currency;
-  notes?: string;
 }
 
 // ─── Service (Booking) ────────────────────────────────────────────────────────
-export type PaymentStatus = 'Pendiente' | 'Pagado' | 'Vencido';
+export type PaymentStatus = "Pendiente" | "Pagado" | "Vencido";
 
 export interface ServiceBooking {
   id: number;
   name: string;
-  providerId: number;
+  providerId: string;
   currency: Currency;
   netCost: number;
-  salePrice: number | null;   // null = incluido en el total general de la venta
+  salePrice: number | null; // null = incluido en el total general de la venta
   travelDate: string;
   payStatus: PaymentStatus;
   notes?: string;
@@ -117,7 +123,7 @@ export interface ServiceBooking {
 
 export interface CreateServiceDto {
   name: string;
-  providerId: number;
+  providerId: string;
   currency: Currency;
   netCost: number;
   salePrice: number | null;
@@ -126,7 +132,12 @@ export interface CreateServiceDto {
 }
 
 // ─── Sale ─────────────────────────────────────────────────────────────────────
-export type SaleStatus = 'Cotización' | 'Confirmada' | 'En proceso' | 'Completada' | 'Cancelada';
+export type SaleStatus =
+  | "Cotización"
+  | "Confirmada"
+  | "En proceso"
+  | "Completada"
+  | "Cancelada";
 
 export interface Sale {
   id: number;
@@ -138,7 +149,7 @@ export interface Sale {
   travelDate: string;
   createdAt: string;
   exchangeRate: number;
-  saleTotal: number;          // Precio total al cliente
+  saleTotal: number; // Precio total al cliente
   notes?: string;
   services: ServiceBooking[];
 }
@@ -159,7 +170,7 @@ export interface UpdateSaleTotalDto {
 }
 
 // ─── Commission ───────────────────────────────────────────────────────────────
-export type CommissionStatus = 'Pendiente' | 'Pagado';
+export type CommissionStatus = "Pendiente" | "Pagado";
 
 export interface Commission {
   id: string;

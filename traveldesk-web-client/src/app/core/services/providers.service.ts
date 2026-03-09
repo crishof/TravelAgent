@@ -28,7 +28,7 @@ export class ProvidersService {
       .pipe(tap((p) => this.providers.update((list) => [...list, p])));
   }
 
-  update(id: number, dto: Partial<CreateProviderDto>) {
+  update(id: string, dto: Partial<CreateProviderDto>) {
     return this.http
       .put<Provider>(`${this.api}/${id}`, dto)
       .pipe(
@@ -40,7 +40,7 @@ export class ProvidersService {
       );
   }
 
-  delete(id: number) {
+  delete(id: string) {
     return this.http
       .delete(`${this.api}/${id}`)
       .pipe(
@@ -50,7 +50,15 @@ export class ProvidersService {
       );
   }
 
-  getById(id: number): Provider | undefined {
-    return this.providers().find((p) => p.id === id);
+  getById(id: string | number) {
+    return this.http
+      .get<Provider>(`${this.api}/${id}`)
+      .pipe(
+        tap((provider) =>
+          this.providers.update((list) =>
+            list.map((p) => (p.id === provider.id ? provider : p)),
+          ),
+        ),
+      );
   }
 }

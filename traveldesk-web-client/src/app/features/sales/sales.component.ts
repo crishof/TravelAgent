@@ -131,7 +131,7 @@ export class SalesComponent implements OnInit {
     const v = this.serviceForm.value;
     const dto: CreateServiceDto = {
       name: v.name!,
-      providerId: Number(v.providerId),
+      providerId: v.providerId!,
       currency: (v.currency as Currency) || "USD",
       netCost: Number(v.netCost),
       salePrice: v.salePrice ? Number(v.salePrice) : null,
@@ -164,8 +164,8 @@ export class SalesComponent implements OnInit {
   getClientInitial(id: number): string {
     return (this.clientsSvc.getById(id)?.name ?? "?")[0].toUpperCase();
   }
-  getProviderName(id: number): string {
-    return this.providersSvc.getById(id)?.name ?? "—";
+  getProviderName(id: string): string {
+    return this.providersSvc.providers().find((p) => p.id === id)?.name ?? "—";
   }
   getAgentName(id: string): string {
     return this.teamSvc.getById(id)?.fullName?.split(" ")[0] ?? "";

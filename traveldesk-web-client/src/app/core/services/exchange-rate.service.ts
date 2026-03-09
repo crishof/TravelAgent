@@ -21,7 +21,7 @@ export class ExchangeRateService {
 
   fetchRate() {
     return this.http
-      .get<{ rates: { EUR: number } }>(environment.exchangeRateApiUrl)
+      .get<{ rates: { EUR: number } }>(environment.apiUrl + "/exchange-rate")
       .pipe(
         tap((res) => this.apiRate.set(res.rates["EUR"])),
         catchError(() => {
@@ -47,7 +47,7 @@ export class ExchangeRateService {
   private loadManualRate(): number | null {
     try {
       const stored = localStorage.getItem(MANUAL_RATE_KEY);
-      return stored ? parseFloat(stored) : null;
+      return stored ? Number.parseFloat(stored) : null;
     } catch {
       return null;
     }

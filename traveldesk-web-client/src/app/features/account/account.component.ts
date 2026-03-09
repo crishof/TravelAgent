@@ -3,12 +3,11 @@ import { CommonModule, CurrencyPipe } from "@angular/common";
 import { AuthService } from "../../core/services/auth.service";
 import { SalesService } from "../../core/services/sales.service";
 import { TeamService } from "../../core/services/team.service";
-import { CommissionAccountComponent } from "./commission-account/commission-account.component";
 
 @Component({
   selector: "app-account",
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, CommissionAccountComponent],
+  imports: [CommonModule, CurrencyPipe],
   templateUrl: "./account.component.html",
 })
 export class AccountComponent implements OnInit {

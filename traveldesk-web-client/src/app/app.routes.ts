@@ -68,6 +68,12 @@ export const routes: Routes = [
         title: 'Proveedores — TravelDesk'
       },
       {
+        path: 'providers/:id',
+        loadComponent: () =>
+          import('./features/providers/provider-detail/provider-detail.component').then(m => m.ProviderDetailComponent),
+        title: 'Detalle Proveedor — TravelDesk'
+      },
+      {
         path: 'team',
         canActivate: [adminGuard],
         loadComponent: () =>

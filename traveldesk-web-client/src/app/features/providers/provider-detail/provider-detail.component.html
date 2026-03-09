@@ -1,0 +1,329 @@
+<div class="flex flex-col gap-6 animate-fade-in">
+  <!-- Header with back button -->
+  <div class="flex items-center gap-4">
+    <button
+      (click)="goBack()"
+      class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+    >
+      ← Volver
+    </button>
+    <h1
+      class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white"
+    >
+      Detalle del Proveedor
+    </h1>
+  </div>
+
+  <!-- Loading state -->
+  @if (isLoading()) {
+    <div class="flex justify-center items-center py-12">
+      <div
+        class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"
+      ></div>
+    </div>
+  } @else {
+    <!-- Error message -->
+    @if (errorMessage()) {
+      <div
+        class="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200"
+      >
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <!-- Success message -->
+    @if (successMessage()) {
+      <div
+        class="p-4 rounded-lg bg-green-50 border border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-200"
+      >
+        {{ successMessage() }}
+      </div>
+    }
+
+    <!-- Provider Details Card -->
+    <div
+      class="rounded-2xl border p-6 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+    >
+      <div class="flex items-start justify-between mb-6">
+        <div class="flex items-center gap-4">
+          @if (!isEditing()) {
+            <div
+              class="w-16 h-16 rounded-xl flex items-center justify-center text-white font-bold text-2xl"
+              [class]="catGradient(form.get('serviceType')?.value)"
+            >
+              {{ form.get("name")?.value[0] }}
+            </div>
+          }
+          <div>
+            <h2 class="text-xl font-semibold text-slate-900 dark:text-white">
+              {{ form.get("name")?.value || "Nuevo Proveedor" }}
+            </h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              {{ getServiceTypeLabel(form.get("serviceType")?.value) }}
+            </p>
+          </div>
+        </div>
+        @if (!isEditing()) {
+          <button
+            (click)="isEditing.set(true)"
+            class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
+          >
+            Editar
+          </button>
+        }
+      </div>
+
+      <!-- Edit Form -->
+      @if (isEditing()) {
+        <form
+          [formGroup]="form"
+          (ngSubmit)="save()"
+          class="flex flex-col gap-4"
+        >
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Nombre
+              <input
+                type="text"
+                formControlName="name"
+                placeholder="Hotel Internacional"
+                class="form-input form-input-light dark:form-input-dark"
+              />
+            </label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1">
+              <label
+                class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
+                Tipo de Servicio
+                <select
+                  formControlName="serviceType"
+                  class="form-input form-input-light dark:form-input-dark"
+                >
+                  @for (cat of categories; track cat) {
+                    <option [value]="cat">{{ serviceTypeLabels[cat] }}</option>
+                  }
+                </select>
+              </label>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label
+                class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
+                Moneda
+                <select
+                  formControlName="currency"
+                  class="form-input form-input-light dark:form-input-dark"
+                >
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1">
+              <label
+                class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
+                Email
+                <input
+                  type="email"
+                  formControlName="email"
+                  placeholder="contacto@proveedor.com"
+                  class="form-input form-input-light dark:form-input-dark"
+                />
+              </label>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label
+                class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
+                Teléfono
+                <input
+                  type="tel"
+                  formControlName="phone"
+                  placeholder="+34 123 456 789"
+                  class="form-input form-input-light dark:form-input-dark"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              País
+              <input
+                type="text"
+                formControlName="country"
+                placeholder="España"
+                class="form-input form-input-light dark:form-input-dark"
+              />
+            </label>
+          </div>
+
+          <div class="flex gap-3 mt-4">
+            <button
+              type="submit"
+              class="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white font-semibold text-sm hover:opacity-90 transition-all"
+            >
+              Guardar Cambios
+            </button>
+            <button
+              type="button"
+              (click)="cancel()"
+              class="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition-all dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      }
+
+      <!-- View Mode -->
+      @if (!isEditing()) {
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <p
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1"
+            >
+              Email
+            </p>
+            <p class="text-sm text-slate-900 dark:text-white">
+              {{ form.get("email")?.value || "—" }}
+            </p>
+          </div>
+          <div>
+            <p
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1"
+            >
+              Teléfono
+            </p>
+            <p class="text-sm text-slate-900 dark:text-white">
+              {{ form.get("phone")?.value || "—" }}
+            </p>
+          </div>
+          <div>
+            <p
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1"
+            >
+              País
+            </p>
+            <p class="text-sm text-slate-900 dark:text-white">
+              {{ form.get("country")?.value || "—" }}
+            </p>
+          </div>
+          <div>
+            <p
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1"
+            >
+              Moneda
+            </p>
+            <p class="text-sm text-slate-900 dark:text-white">
+              {{ form.get("currency")?.value }}
+            </p>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Associated Bookings Section -->
+    <div
+      class="rounded-2xl border p-6 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+    >
+      <h3 class="text-lg font-semibold mb-4 text-slate-900 dark:text-white">
+        Reservas Asociadas
+        <span
+          class="text-sm font-normal text-slate-500 dark:text-slate-400 ml-2"
+        >
+          ({{ associatedBookings().length }})
+        </span>
+      </h3>
+
+      @if (associatedBookings().length === 0) {
+        <p class="text-sm text-slate-500 dark:text-slate-400">
+          No hay reservas asociadas a este proveedor.
+        </p>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-slate-200 dark:border-slate-700">
+                <th
+                  class="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white"
+                >
+                  Nombre
+                </th>
+                <th
+                  class="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white"
+                >
+                  Costo Neto
+                </th>
+                <th
+                  class="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white"
+                >
+                  Precio Venta
+                </th>
+                <th
+                  class="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white"
+                >
+                  Fecha Viaje
+                </th>
+                <th
+                  class="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white"
+                >
+                  Estado Pago
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (booking of associatedBookings(); track booking.id) {
+                <tr
+                  class="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                >
+                  <td class="py-3 px-4 text-slate-900 dark:text-white">
+                    {{ booking.name }}
+                  </td>
+                  <td class="py-3 px-4 text-slate-900 dark:text-white">
+                    {{ booking.netCost }} {{ booking.currency }}
+                  </td>
+                  <td class="py-3 px-4 text-slate-900 dark:text-white">
+                    {{ booking.salePrice || "—" }}
+                    @if (booking.salePrice) {
+                      {{ booking.currency }}
+                    }
+                  </td>
+                  <td class="py-3 px-4 text-slate-900 dark:text-white">
+                    {{ booking.travelDate }}
+                  </td>
+                  <td class="py-3 px-4">
+                    <span
+                      class="inline-block px-2 py-1 rounded-full text-xs font-semibold"
+                      [class]="{
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200':
+                          booking.payStatus === 'Pendiente',
+                        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200':
+                          booking.payStatus === 'Pagado',
+                        'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200':
+                          booking.payStatus === 'Vencido',
+                      }"
+                    >
+                      {{ booking.payStatus }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>

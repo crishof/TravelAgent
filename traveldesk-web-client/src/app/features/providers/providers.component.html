@@ -20,13 +20,16 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
     @for (p of providersSvc.providers(); track p.id) {
-      <div
-        class="rounded-2xl border p-5 hover:scale-[1.01] transition-all bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+      <button
+        (click)="selectProvider(p.id)"
+        (keydown.Enter)="selectProvider(p.id)"
+        class="w-full text-left rounded-2xl border p-5 hover:scale-[1.01] transition-all bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60 cursor-pointer hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+        type="button"
       >
         <div class="flex items-center gap-3 mb-3">
           <div
             class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
-            [class]="catGradient(p.category)"
+            [class]="catGradient(p.serviceType)"
           >
             {{ p.name[0] }}
           </div>
@@ -37,8 +40,8 @@
             <div class="flex items-center gap-2 mt-0.5">
               <span
                 class="text-xs px-2 py-0.5 rounded-full text-white font-medium"
-                [class]="catGradient(p.category)"
-                >{{ p.category }}</span
+                [class]="catGradient(p.serviceType)"
+                >{{ serviceTypeLabels[p.serviceType] }}</span
               >
               <span
                 class="text-xs font-bold"
@@ -51,10 +54,18 @@
             </div>
           </div>
         </div>
-        <div class="text-xs text-slate-500 dark:text-slate-400">
-          🌍 {{ p.country }} · ✉️ {{ p.contact }}
+        <div class="text-xs text-slate-500 dark:text-slate-400 space-y-1">
+          @if (p.country) {
+            <div>🌍 {{ p.country }}</div>
+          }
+          @if (p.email) {
+            <div>✉️ {{ p.email }}</div>
+          }
+          @if (p.phone) {
+            <div>📞 {{ p.phone }}</div>
+          }
         </div>
-      </div>
+      </button>
     }
   </div>
 </div>
@@ -97,13 +108,13 @@
           <div class="flex flex-col gap-1">
             <label
               class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Categoría
+              >Tipo de Servicio
               <select
-                formControlName="category"
+                formControlName="serviceType"
                 class="form-input form-input-light dark:form-input-dark"
               >
                 @for (cat of categories; track cat) {
-                  <option [value]="cat">{{ cat }}</option>
+                  <option [value]="cat">{{ serviceTypeLabels[cat] }}</option>
                 }
               </select>
             </label>
@@ -134,17 +145,31 @@
             />
           </label>
         </div>
-        <div class="flex flex-col gap-1">
-          <label
-            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Email de contacto
-            <input
-              type="email"
-              formControlName="contact"
-              placeholder="b2b@proveedor.com"
-              class="form-input form-input-light dark:form-input-dark"
-            />
-          </label>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >Email
+              <input
+                type="email"
+                formControlName="email"
+                placeholder="b2b@proveedor.com"
+                class="form-input form-input-light dark:form-input-dark"
+              />
+            </label>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >Teléfono
+              <input
+                type="tel"
+                formControlName="phone"
+                placeholder="+34 123 456 789"
+                class="form-input form-input-light dark:form-input-dark"
+              />
+            </label>
+          </div>
         </div>
         <button
           type="submit"

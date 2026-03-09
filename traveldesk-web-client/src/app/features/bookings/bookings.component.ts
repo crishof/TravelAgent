@@ -47,7 +47,9 @@ export class BookingsComponent implements OnInit {
           ...svc,
           saleId: sale.id,
           saleCurrency: sale.saleCurrency,
-          providerName: this.providersSvc.getById(svc.providerId)?.name ?? "—",
+          providerName:
+            this.providersSvc.providers().find((p) => p.id === svc.providerId)
+              ?.name ?? "—",
           clientName: this.clientsSvc.getById(sale.clientId)?.name ?? "—",
           agentFirst:
             this.teamSvc.getById(sale.agentId)?.fullName?.split(" ")[0] ?? "—",

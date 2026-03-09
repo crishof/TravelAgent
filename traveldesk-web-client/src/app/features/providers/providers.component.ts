@@ -1,8 +1,14 @@
 import { Component, inject, signal, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  Validators,
+  FormGroup,
+} from "@angular/forms";
+import { Router } from "@angular/router";
 import { ProvidersService } from "../../core/services/providers.service";
-import { ProviderCategory } from "../../core/models";
+import { ServiceType, CreateProviderDto } from "../../core/models";
 
 @Component({
   selector: "app-providers",
@@ -12,52 +18,116 @@ import { ProviderCategory } from "../../core/models";
 })
 export class ProvidersComponent implements OnInit {
   providersSvc = inject(ProvidersService);
+  private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
 
   showNew = signal(false);
-  categories: ProviderCategory[] = [
-    "Hotel",
-    "Aéreo",
-    "Paquete",
-    "Transporte",
-    "Crucero",
-    "Seguro",
-    "Otro",
+  errorMessage = signal("");
+  successMessage = signal("");
+
+  categories: ServiceType[] = [
+    "HOTEL",
+    "AIRLINE",
+    "TRANSPORT",
+    "TOUR_OPERATOR",
+    "INSURANCE",
+    "OTHER",
   ];
 
-  form = this.fb.group({
-    name: ["", Validators.required],
-    category: ["Hotel", Validators.required],
-    country: ["", Validators.required],
-    contact: ["", [Validators.required, Validators.email]],
-    currency: ["USD", Validators.required],
-    notes: [""],
+  // Mapeo de tipos de servicio a etiquetas en español
+  serviceTypeLabels: Record<ServiceType, string> = {
+    HOTEL: "Hotel",
+    AIRLINE: "Aéreo",
+    TRANSPORT: "Transporte",
+    TOUR_OPERATOR: "Operador de Tours",
+    INSURANCE: "Seguro",
+    OTHER: "Otro",
+  };
+
+  form: FormGroup = this.fb.group({
+    name: ["", [Validators.required]],
+    serviceType: ["HOTEL", [Validators.required]],
+    currency: ["USD", [Validators.required]],
+    email: ["", [Validators.email]],
+    phone: [""],
+    country: [""],
   });
 
   ngOnInit() {
-    this.providersSvc.loadAll().subscribe();
+    this.loadProviders();
+  }
+
+  loadProviders() {
+    this.providersSvc.loading.set(true);
+    this.providersSvc.loadAll().subscribe({
+      error: (err) => {
+        console.error("Error al cargar proveedores:", err);
+        this.providersSvc.loading.set(false);
+      },
+    });
   }
 
   save() {
+    console.log("Intentando guardar proveedor...");
+    this.errorMessage.set("");
+    this.successMessage.set("");
+
     if (this.form.invalid) {
+      // Log detallado de errores por campo
+      Object.keys(this.form.controls).forEach((key) => {
+        const control = this.form.get(key);
+        if (control?.errors) {
+          console.log(`Error en ${key}:`, control.errors);
+        }
+      });
       this.form.markAllAsTouched();
+      this.errorMessage.set(
+        "Por favor completa todos los campos correctamente",
+      );
       return;
     }
-    this.providersSvc.create(this.form.value as any).subscribe();
-    this.showNew.set(false);
-    this.form.reset({ category: "Hotel", currency: "USD" });
+
+    const formData = this.form.getRawValue() as CreateProviderDto;
+    console.log("Datos a enviar:", formData);
+
+    this.providersSvc.create(formData).subscribe({
+      next: (response) => {
+        console.log("Proveedor creado exitosamente:", response);
+        this.successMessage.set("Proveedor creado exitosamente");
+        this.showNew.set(false);
+        this.form.reset({ serviceType: "HOTEL", currency: "USD" });
+
+        // Limpiar mensaje de éxito después de 3 segundos
+        setTimeout(() => this.successMessage.set(""), 3000);
+      },
+      error: (err) => {
+        console.error("Error al crear proveedor:", err);
+        const errorMsg = err?.error?.message || "Error al crear el proveedor";
+        this.errorMessage.set(errorMsg);
+      },
+    });
   }
 
-  catGradient(cat: ProviderCategory): string {
-    const map: Partial<Record<ProviderCategory, string>> = {
-      Hotel: "bg-gradient-to-br from-sky-500 to-blue-600",
-      Aéreo: "bg-gradient-to-br from-cyan-500 to-teal-600",
-      Paquete: "bg-gradient-to-br from-emerald-500 to-green-600",
-      Transporte: "bg-gradient-to-br from-amber-500 to-orange-600",
-      Crucero: "bg-gradient-to-br from-violet-500 to-purple-600",
-      Seguro: "bg-gradient-to-br from-rose-500 to-pink-600",
-      Otro: "bg-gradient-to-br from-slate-500 to-slate-600",
+  cancel() {
+    this.showNew.set(false);
+    this.form.reset({ serviceType: "HOTEL", currency: "USD" });
+    this.errorMessage.set("");
+    this.successMessage.set("");
+  }
+
+  catGradient(serviceType: ServiceType): string {
+    const map: Partial<Record<ServiceType, string>> = {
+      HOTEL: "bg-gradient-to-br from-sky-500 to-blue-600",
+      AIRLINE: "bg-gradient-to-br from-cyan-500 to-teal-600",
+      TOUR_OPERATOR: "bg-gradient-to-br from-emerald-500 to-green-600",
+      TRANSPORT: "bg-gradient-to-br from-amber-500 to-orange-600",
+      INSURANCE: "bg-gradient-to-br from-rose-500 to-pink-600",
+      OTHER: "bg-gradient-to-br from-slate-500 to-slate-600",
     };
-    return map[cat] ?? map["Otro"]!;
+    return map[serviceType] ?? map["OTHER"]!;
+  }
+
+  selectProvider(providerId: string) {
+    this.router.navigate(["/app/providers", providerId]);
   }
 }
