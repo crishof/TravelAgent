@@ -1,5 +1,8 @@
 package com.crishof.traveldeskapi.service.auth;
 
+import com.crishof.traveldeskapi.dto.AuthResponse;
+import com.crishof.traveldeskapi.dto.LoginRequest;
+import com.crishof.traveldeskapi.dto.SignupRequest;
 import com.crishof.traveldeskapi.exception.EmailAlreadyExistException;
 import com.crishof.traveldeskapi.exception.InvalidCredentialException;
 import com.crishof.traveldeskapi.exception.ResourceNotFoundException;

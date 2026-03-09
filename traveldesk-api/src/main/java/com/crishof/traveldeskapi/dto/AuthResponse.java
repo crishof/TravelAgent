@@ -1,4 +1,4 @@
-package com.crishof.traveldeskapi.service.auth;
+package com.crishof.traveldeskapi.dto;
 
 import com.crishof.traveldeskapi.model.User;
 
