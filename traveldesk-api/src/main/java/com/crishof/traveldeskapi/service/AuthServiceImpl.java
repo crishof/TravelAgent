@@ -1,4 +1,4 @@
-package com.crishof.traveldeskapi.service.auth;
+package com.crishof.traveldeskapi.service;
 
 import com.crishof.traveldeskapi.dto.AuthResponse;
 import com.crishof.traveldeskapi.dto.LoginRequest;
@@ -30,7 +30,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AuthService {
+public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final AgencyRepository agencyRepository;
@@ -38,6 +38,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
+    @Override
     public AuthResponse signup(SignupRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
         String displayAgencyName = sanitizeAgencyName(request.agencyName());
@@ -69,6 +70,7 @@ public class AuthService {
         return buildAuthResponse(savedUser);
     }
 
+    @Override
     public AuthResponse login(LoginRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
 
@@ -88,7 +90,8 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
-    private AuthResponse buildAuthResponse(User user) {
+    @Override
+    public AuthResponse buildAuthResponse(User user) {
         Map<String, Object> claims = Map.of("role", user.getRole().name(), "status", user.getStatus().name());
 
         String accessToken = jwtService.generateToken(claims, user);
