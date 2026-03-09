@@ -17,9 +17,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -27,36 +26,45 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "tbl_users")
-public class User implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+@Table(name = "tbl_bookings")
+public class Booking {
 
     @Id
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false, length = 120)
-    private String fullName;
-
-    @Column(nullable = false, unique = true, length = 150)
-    private String email;
-
-    @Column(nullable = false, length = 100)
-    private String passwordHash;
-
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "agency_id", nullable = false)
     private Agency agency;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private Role role;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id", nullable = false)
+    private Client client;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "provider_id")
+    private Provider provider;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", nullable = false)
+    private User createdBy;
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String reference;
+
+    @Column(nullable = false, length = 120)
+    private String passengerName;
+
+    @Column(nullable = false, length = 120)
+    private String destination;
+
+    private LocalDate departureDate;
+
+    private LocalDate returnDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private UserStatus status;
+    private BookingStatus status;
 
     @Column(nullable = false)
     private Instant createdAt;

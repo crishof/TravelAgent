@@ -17,8 +17,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -27,36 +25,40 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "tbl_users")
-public class User implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+@Table(name = "tbl_team_invitations")
+public class TeamInvitation {
 
     @Id
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false, length = 120)
-    private String fullName;
-
-    @Column(nullable = false, unique = true, length = 150)
-    private String email;
-
-    @Column(nullable = false, length = 100)
-    private String passwordHash;
-
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "agency_id", nullable = false)
     private Agency agency;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "invited_by_user_id", nullable = false)
+    private User invitedBy;
+
+    @Column(nullable = false, length = 150)
+    private String email;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
 
+    @Column(nullable = false, unique = true, length = 120)
+    private String token;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private UserStatus status;
+    private InvitationStatus status;
+
+    @Column(nullable = false)
+    private Instant expiresAt;
+
+    @Column
+    private Instant acceptedAt;
 
     @Column(nullable = false)
     private Instant createdAt;

@@ -17,8 +17,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serial;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -27,36 +25,29 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "tbl_users")
-public class User implements Serializable {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
+@Table(name = "tbl_providers")
+public class Provider {
 
     @Id
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false, length = 120)
-    private String fullName;
-
-    @Column(nullable = false, unique = true, length = 150)
-    private String email;
-
-    @Column(nullable = false, length = 100)
-    private String passwordHash;
-
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "agency_id", nullable = false)
     private Agency agency;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private Role role;
+    @Column(nullable = false, length = 120)
+    private String name;
+
+    @Column(nullable = false, length = 150)
+    private String email;
+
+    @Column(nullable = false, length = 30)
+    private String phone;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private UserStatus status;
+    @Column(nullable = false, length = 30)
+    private ProviderType type;
 
     @Column(nullable = false)
     private Instant createdAt;
