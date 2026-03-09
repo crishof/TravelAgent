@@ -16,6 +16,7 @@ import java.util.UUID;
 public class SecurityUser implements UserDetails {
 
     private final UUID id;
+    private final UUID agencyId;
     private final String email;
     private final String password;
     private final Role role;
@@ -23,6 +24,7 @@ public class SecurityUser implements UserDetails {
 
     public SecurityUser(User user) {
         this.id = user.getId();
+        this.agencyId = user.getAgency().getId();
         this.email = user.getEmail();
         this.password = user.getPasswordHash();
         this.role = user.getRole();
