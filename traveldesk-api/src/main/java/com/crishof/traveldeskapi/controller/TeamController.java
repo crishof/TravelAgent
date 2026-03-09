@@ -4,6 +4,8 @@ import com.crishof.traveldeskapi.dto.MessageResponse;
 import com.crishof.traveldeskapi.dto.TeamInviteRequest;
 import com.crishof.traveldeskapi.dto.TeamMemberRequest;
 import com.crishof.traveldeskapi.dto.TeamMemberResponse;
+import com.crishof.traveldeskapi.security.SecurityUser;
+import com.crishof.traveldeskapi.service.TeamService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -11,14 +13,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/team")
@@ -26,16 +25,22 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class TeamController {
 
+    private final TeamService teamService;
+
     //  ===============
     //  GET TEAM MEMBERS
     //  ===============
 
     @Operation(summary = "Get team members")
     @ApiResponse(responseCode = "200", description = "Team members retrieved successfully")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public ResponseEntity<java.util.List<TeamMemberResponse>> getTeamMembers() {
-        log.info("Get team members request received");
-        return ResponseEntity.ok(java.util.List.of());
+    public ResponseEntity<java.util.List<TeamMemberResponse>> getTeamMembers(
+            @AuthenticationPrincipal SecurityUser securityUser
+    ) {
+        log.info("Get team members request received for userId={}, agencyId={}", securityUser.getId(), securityUser.getAgencyId());
+        return ResponseEntity.ok(teamService.getMembers(securityUser.getAgencyId()));
     }
 
     //  ===============
@@ -45,10 +50,18 @@ public class TeamController {
     @Operation(summary = "Invite a team member")
     @ApiResponse(responseCode = "201", description = "Invitation sent successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/invite")
-    public ResponseEntity<MessageResponse> inviteMember(@Valid @RequestBody TeamInviteRequest request) {
-        log.info("Invite team member request received for email={}", request.email());
-        return ResponseEntity.ok().build();
+    public ResponseEntity<MessageResponse> inviteMember(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @Valid @RequestBody TeamInviteRequest request
+    ) {
+        log.info("Invite team member request received for userId={}, agencyId={}, email={}",
+                securityUser.getId(), securityUser.getAgencyId(), request.email());
+
+        return ResponseEntity.status(HttpStatusCode.valueOf(201))
+                .body(teamService.inviteMember(securityUser.getAgencyId(), securityUser.getId(), request));
     }
 
     //  ===============
@@ -58,10 +71,19 @@ public class TeamController {
     @Operation(summary = "Update a team member")
     @ApiResponse(responseCode = "200", description = "Team member updated successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "404", description = "Team member not found")
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
-    public ResponseEntity<TeamMemberResponse> updateMember(@PathVariable Long id, @Valid @RequestBody TeamMemberRequest request) {
-        log.info("Update team member request received for id={}", id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<TeamMemberResponse> updateMember(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @PathVariable UUID id,
+            @Valid @RequestBody TeamMemberRequest request
+    ) {
+        log.info("Update team member request received for userId={}, agencyId={}, memberId={}",
+                securityUser.getId(), securityUser.getAgencyId(), id);
+
+        return ResponseEntity.ok(teamService.updateMember(securityUser.getAgencyId(), id, request));
     }
 
     //  ===============
@@ -69,10 +91,19 @@ public class TeamController {
     //  ===============
 
     @Operation(summary = "Delete a team member")
-    @ApiResponse(responseCode = "200", description = "Team member deleted successfully")
+    @ApiResponse(responseCode = "204", description = "Team member deleted successfully")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "404", description = "Team member not found")
+    @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{id}")
-    public ResponseEntity<MessageResponse> deleteMember(@PathVariable Long id) {
-        log.info("Delete team member request received for id={}", id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Void> deleteMember(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @PathVariable UUID id
+    ) {
+        log.info("Delete team member request received for userId={}, agencyId={}, memberId={}",
+                securityUser.getId(), securityUser.getAgencyId(), id);
+
+        teamService.removeMember(securityUser.getAgencyId(), id, securityUser.getId());
+        return ResponseEntity.noContent().build();
     }
 }

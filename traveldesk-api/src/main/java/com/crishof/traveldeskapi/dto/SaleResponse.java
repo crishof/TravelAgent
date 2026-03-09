@@ -5,7 +5,10 @@ import java.util.UUID;
 
 public record SaleResponse(
         UUID id,
-        String clientName,
+        UUID customerId,
+        String customerName,
+        UUID providerId,
+        String providerName,
         String destination,
         BigDecimal amount,
         String status

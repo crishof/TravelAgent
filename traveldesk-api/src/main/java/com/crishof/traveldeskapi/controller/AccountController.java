@@ -6,17 +6,17 @@ import com.crishof.traveldeskapi.dto.AgencySettingsRequest;
 import com.crishof.traveldeskapi.dto.AgencySettingsResponse;
 import com.crishof.traveldeskapi.dto.CommissionSettingsRequest;
 import com.crishof.traveldeskapi.dto.CommissionSettingsResponse;
+import com.crishof.traveldeskapi.security.SecurityUser;
+import com.crishof.traveldeskapi.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/account")
@@ -24,16 +24,20 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class AccountController {
 
+    private final AccountService accountService;
+
     //  ===============
     //  GET ACCOUNT
     //  ===============
 
     @Operation(summary = "Get account")
     @ApiResponse(responseCode = "200", description = "Account retrieved successfully")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
-    public ResponseEntity<AccountResponse> getAccount() {
-        log.info("Get account request received");
-        return ResponseEntity.ok().build();
+    public ResponseEntity<AccountResponse> getAccount(@AuthenticationPrincipal SecurityUser securityUser) {
+        log.info("Get account request received for userId={}", securityUser.getId());
+        return ResponseEntity.ok(accountService.getAccount(securityUser.getId()));
     }
 
     //  ===============
@@ -43,10 +47,15 @@ public class AccountController {
     @Operation(summary = "Update account")
     @ApiResponse(responseCode = "200", description = "Account updated successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @PreAuthorize("isAuthenticated()")
     @PutMapping
-    public ResponseEntity<AccountResponse> updateAccount(@Valid @RequestBody AccountRequest request) {
-        log.info("Update account request received for email={}", request.email());
-        return ResponseEntity.ok().build();
+    public ResponseEntity<AccountResponse> updateAccount(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @Valid @RequestBody AccountRequest request
+    ) {
+        log.info("Update account request received for userId={}, email={}", securityUser.getId(), request.email());
+        return ResponseEntity.ok(accountService.updateAccount(securityUser.getId(), request));
     }
 
     //  ===============
@@ -55,10 +64,12 @@ public class AccountController {
 
     @Operation(summary = "Get agency settings")
     @ApiResponse(responseCode = "200", description = "Agency settings retrieved successfully")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/agency")
-    public ResponseEntity<AgencySettingsResponse> getAgencySettings() {
-        log.info("Get agency settings request received");
-        return ResponseEntity.ok().build();
+    public ResponseEntity<AgencySettingsResponse> getAgencySettings(@AuthenticationPrincipal SecurityUser securityUser) {
+        log.info("Get agency settings request received for userId={}, agencyId={}", securityUser.getId(), securityUser.getAgencyId());
+        return ResponseEntity.ok(accountService.getAgencySettings(securityUser.getAgencyId()));
     }
 
     //  ===============
@@ -68,10 +79,15 @@ public class AccountController {
     @Operation(summary = "Update agency settings")
     @ApiResponse(responseCode = "200", description = "Agency settings updated successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/agency")
-    public ResponseEntity<AgencySettingsResponse> updateAgencySettings(@Valid @RequestBody AgencySettingsRequest request) {
-        log.info("Update agency settings request received for agencyName={}", request.agencyName());
-        return ResponseEntity.ok().build();
+    public ResponseEntity<AgencySettingsResponse> updateAgencySettings(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @Valid @RequestBody AgencySettingsRequest request
+    ) {
+        log.info("Update agency settings request received for userId={}, agencyId={}", securityUser.getId(), securityUser.getAgencyId());
+        return ResponseEntity.ok(accountService.updateAgencySettings(securityUser.getAgencyId(), request));
     }
 
     //  ===============
@@ -80,10 +96,12 @@ public class AccountController {
 
     @Operation(summary = "Get commission settings")
     @ApiResponse(responseCode = "200", description = "Commission settings retrieved successfully")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/commission")
-    public ResponseEntity<CommissionSettingsResponse> getCommissionSettings() {
-        log.info("Get commission settings request received");
-        return ResponseEntity.ok().build();
+    public ResponseEntity<CommissionSettingsResponse> getCommissionSettings(@AuthenticationPrincipal SecurityUser securityUser) {
+        log.info("Get commission settings request received for userId={}, agencyId={}", securityUser.getId(), securityUser.getAgencyId());
+        return ResponseEntity.ok(accountService.getCommissionSettings(securityUser.getAgencyId()));
     }
 
     //  ===============
@@ -93,9 +111,14 @@ public class AccountController {
     @Operation(summary = "Update commission settings")
     @ApiResponse(responseCode = "200", description = "Commission settings updated successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/commission")
-    public ResponseEntity<CommissionSettingsResponse> updateCommissionSettings(@Valid @RequestBody CommissionSettingsRequest request) {
-        log.info("Update commission settings request received");
-        return ResponseEntity.ok().build();
+    public ResponseEntity<CommissionSettingsResponse> updateCommissionSettings(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @Valid @RequestBody CommissionSettingsRequest request
+    ) {
+        log.info("Update commission settings request received for userId={}, agencyId={}", securityUser.getId(), securityUser.getAgencyId());
+        return ResponseEntity.ok(accountService.updateCommissionSettings(securityUser.getAgencyId(), request));
     }
 }

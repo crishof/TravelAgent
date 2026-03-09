@@ -10,7 +10,9 @@ import com.crishof.traveldeskapi.model.Agency;
 import com.crishof.traveldeskapi.model.Provider;
 import com.crishof.traveldeskapi.model.ProviderType;
 import com.crishof.traveldeskapi.repository.AgencyRepository;
+import com.crishof.traveldeskapi.repository.BookingRepository;
 import com.crishof.traveldeskapi.repository.ProviderRepository;
+import com.crishof.traveldeskapi.repository.SaleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class ProviderServiceImpl implements ProviderService {
 
     private final ProviderRepository providerRepository;
     private final AgencyRepository agencyRepository;
+    private final BookingRepository bookingRepository;
+    private final SaleRepository saleRepository;
     private final ProviderMapper providerMapper;
 
     @Override
@@ -91,6 +95,11 @@ public class ProviderServiceImpl implements ProviderService {
         validateAgencyId(agencyId);
 
         Provider provider = getProviderOrThrow(agencyId, id);
+
+        if (bookingRepository.existsByProviderId(provider.getId()) || saleRepository.existsByProviderId(provider.getId())) {
+            throw new ConflictException("Provider cannot be deleted because it has related bookings or sales");
+        }
+
         providerRepository.delete(provider);
     }
 

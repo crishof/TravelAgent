@@ -11,7 +11,7 @@ public record TeamInviteRequest(
         String email,
 
         @NotBlank(message = "Role is required")
-        @Size(max = 50, message = "Role must not exceed 50 characters")
+        @Size(max = 30, message = "Role must not exceed 30 characters")
         String role
 ) {
 }

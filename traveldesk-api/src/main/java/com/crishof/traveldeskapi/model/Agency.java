@@ -77,7 +77,7 @@ public class Agency implements Serializable {
     private Set<User> users = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "agency", cascade = CascadeType.ALL, orphanRemoval = false)
-    private Set<Client> clients = new LinkedHashSet<>();
+    private Set<Customer> customers = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "agency", cascade = CascadeType.ALL, orphanRemoval = false)
     private Set<Provider> providers = new LinkedHashSet<>();

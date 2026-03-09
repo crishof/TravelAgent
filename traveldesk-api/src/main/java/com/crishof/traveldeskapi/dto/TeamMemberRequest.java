@@ -1,21 +1,15 @@
 package com.crishof.traveldeskapi.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record TeamMemberRequest(
-        @NotBlank(message = "Full name is required")
-        @Size(max = 120, message = "Full name must not exceed 120 characters")
-        String fullName,
-
-        @NotBlank(message = "Email is required")
-        @Email(message = "Email format is invalid")
-        @Size(max = 150, message = "Email must not exceed 150 characters")
-        String email,
-
         @NotBlank(message = "Role is required")
-        @Size(max = 50, message = "Role must not exceed 50 characters")
-        String role
+        @Size(max = 30, message = "Role must not exceed 30 characters")
+        String role,
+
+        @NotBlank(message = "Status is required")
+        @Size(max = 30, message = "Status must not exceed 30 characters")
+        String status
 ) {
 }

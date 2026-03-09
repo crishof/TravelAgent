@@ -6,11 +6,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 public record SaleRequest(
-        @NotBlank(message = "Client name is required")
-        @Size(max = 120, message = "Client name must not exceed 120 characters")
-        String clientName,
+        @NotNull(message = "Customer id is required")
+        UUID customerId,
+
+        UUID providerId,
 
         @NotBlank(message = "Destination is required")
         @Size(max = 120, message = "Destination must not exceed 120 characters")
@@ -18,6 +20,10 @@ public record SaleRequest(
 
         @NotNull(message = "Amount is required")
         @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than zero")
-        BigDecimal amount
+        BigDecimal amount,
+
+        @NotBlank(message = "Status is required")
+        @Size(max = 30, message = "Status must not exceed 30 characters")
+        String status
 ) {
 }
