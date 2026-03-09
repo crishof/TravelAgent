@@ -4,6 +4,7 @@ import { CommonModule } from "@angular/common";
 import { AuthService } from "../../core/services/auth.service";
 import { ThemeService } from "../../core/services/theme.service";
 import { SafeHtmlPipe } from "../../shared/pipes/safe-html.pipe";
+import { ExchangeRateBannerComponent } from "../../shared/components/exchange-rate-banner/exchange-rate-banner.component";
 
 interface NavItem {
   path: string;
@@ -21,6 +22,7 @@ interface NavItem {
     RouterLinkActive,
     CommonModule,
     SafeHtmlPipe,
+    ExchangeRateBannerComponent,
   ],
   templateUrl: "./shell.component.html",
 })
@@ -74,6 +76,14 @@ export class ShellComponent {
       label: "Equipo",
       icon: this.svgIcon(
         "M12 15c-4.42 0-8 1.79-8 4v1h16v-1c0-2.21-3.58-4-8-4zM12 12a4 4 0 100-8 4 4 0 000 8z",
+      ),
+      adminOnly: true,
+    },
+    {
+      path: "agency-settings",
+      label: "Configuración",
+      icon: this.svgIcon(
+        "M12 8v8m4-4H8m6-10a9 9 0 11-18 0 9 9 0 0118 0zM12 21a8 8 0 100-16 8 8 0 000 16z",
       ),
       adminOnly: true,
     },

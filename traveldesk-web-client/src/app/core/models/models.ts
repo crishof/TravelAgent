@@ -9,10 +9,10 @@ export interface Agency {
 }
 
 export interface CreateAgencyDto {
-  name: string;
-  adminName: string;
-  adminEmail: string;
-  adminPassword: string;
+  agencyName: string;
+  fullName: string;
+  email: string;
+  password: string;
 }
 
 // ─── User / Auth ──────────────────────────────────────────────────────────────
@@ -22,7 +22,7 @@ export type UserStatus = 'active' | 'pending' | 'inactive';
 export interface User {
   id: string;
   agencyId: string;
-  name: string;
+  fullName: string;
   email: string;
   role: UserRole;
   commissionPct: number;      // % sobre ganancia neta de la venta

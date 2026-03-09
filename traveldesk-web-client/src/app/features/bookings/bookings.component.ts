@@ -50,7 +50,7 @@ export class BookingsComponent implements OnInit {
           providerName: this.providersSvc.getById(svc.providerId)?.name ?? "—",
           clientName: this.clientsSvc.getById(sale.clientId)?.name ?? "—",
           agentFirst:
-            this.teamSvc.getById(sale.agentId)?.name?.split(" ")[0] ?? "—",
+            this.teamSvc.getById(sale.agentId)?.fullName?.split(" ")[0] ?? "—",
           showConversion: svc.currency !== sale.saleCurrency,
           convertedCost: this.salesSvc.convert(
             svc.netCost,
@@ -68,7 +68,7 @@ export class BookingsComponent implements OnInit {
             s.clientName ===
               this.clientsSvc.getById(Number(f.clientId))?.name) &&
           (!f.agentId ||
-            this.teamSvc.getById(f.agentId)?.name?.split(" ")[0] ===
+            this.teamSvc.getById(f.agentId)?.fullName?.split(" ")[0] ===
               s.agentFirst) &&
           (!f.dateFrom || s.travelDate >= f.dateFrom),
       );

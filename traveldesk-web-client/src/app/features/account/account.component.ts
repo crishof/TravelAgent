@@ -1,13 +1,14 @@
-import { Component, inject, computed, OnInit } from "@angular/core";
+import { Component, inject, computed, signal, OnInit } from "@angular/core";
 import { CommonModule, CurrencyPipe } from "@angular/common";
 import { AuthService } from "../../core/services/auth.service";
 import { SalesService } from "../../core/services/sales.service";
 import { TeamService } from "../../core/services/team.service";
+import { CommissionAccountComponent } from "./commission-account/commission-account.component";
 
 @Component({
   selector: "app-account",
   standalone: true,
-  imports: [CommonModule, CurrencyPipe],
+  imports: [CommonModule, CurrencyPipe, CommissionAccountComponent],
   templateUrl: "./account.component.html",
 })
 export class AccountComponent implements OnInit {
@@ -15,6 +16,7 @@ export class AccountComponent implements OnInit {
   private readonly salesSvc = inject(SalesService);
   private readonly teamSvc = inject(TeamService);
 
+  activeTab = signal<"profile" | "commissions" | "sales">("profile");
   user = this.auth.currentUser;
 
   mySales = computed(() =>

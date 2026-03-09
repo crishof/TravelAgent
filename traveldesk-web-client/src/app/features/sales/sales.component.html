@@ -88,7 +88,7 @@
         <option value="">Todos los agentes</option>
         @for (a of teamSvc.users(); track a.id) {
           @if (a.role === "AGENT") {
-            <option [value]="a.id">{{ a.name }}</option>
+            <option [value]="a.id">{{ a.fullName }}</option>
           }
         }
       </select>
@@ -482,7 +482,7 @@
               >
                 @for (u of teamSvc.users(); track u.id) {
                   @if (u.status === "active") {
-                    <option [value]="u.id">{{ u.name }} ({{ u.role }})</option>
+                    <option [value]="u.id">{{ u.fullName }} ({{ u.role }})</option>
                   }
                 }
               </select>

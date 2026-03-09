@@ -24,7 +24,7 @@ export class DashboardComponent implements OnInit {
   agency = this.auth.currentAgency;
 
   firstName = computed(
-    () => this.auth.currentUser()?.name?.split(" ")[0] ?? "",
+    () => this.auth.currentUser()?.fullName?.split(" ")[0] ?? "",
   );
 
   private readonly mySales = computed(() => {
@@ -87,7 +87,7 @@ export class DashboardComponent implements OnInit {
       .filter((u) => u.role === "AGENT" && u.status === "active");
     const revenues = agents.map((a) => ({
       id: a.id,
-      name: a.name,
+      name: a.fullName,
       revenue: this.salesSvc
         .sales()
         .filter((s) => s.agentId === a.id)
@@ -111,7 +111,7 @@ export class DashboardComponent implements OnInit {
     return (this.clientsSvc.getById(id)?.name ?? "?")[0].toUpperCase();
   }
   getAgentFirst(id: string): string {
-    return this.teamSvc.getById(id)?.name?.split(" ")[0] ?? "";
+    return this.teamSvc.getById(id)?.fullName?.split(" ")[0] ?? "";
   }
 
   statusClass(status: string): string {

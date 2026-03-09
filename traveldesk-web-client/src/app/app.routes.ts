@@ -80,6 +80,19 @@ export const routes: Routes = [
           import('./features/account/account.component').then(m => m.AccountComponent),
         title: 'Mi Cuenta — TravelDesk'
       },
+      {
+        path: 'agency-settings',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/account/agency-settings/agency-settings.component').then(m => m.AgencySettingsComponent),
+        title: 'Configuración de Agencia — TravelDesk'
+      },
+      {
+        path: 'commission-account',
+        loadComponent: () =>
+          import('./features/account/commission-account/commission-account.component').then(m => m.CommissionAccountComponent),
+        title: 'Cuenta de Comisiones — TravelDesk'
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

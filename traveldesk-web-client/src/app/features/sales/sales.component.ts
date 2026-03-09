@@ -168,7 +168,7 @@ export class SalesComponent implements OnInit {
     return this.providersSvc.getById(id)?.name ?? "—";
   }
   getAgentName(id: string): string {
-    return this.teamSvc.getById(id)?.name?.split(" ")[0] ?? "";
+    return this.teamSvc.getById(id)?.fullName?.split(" ")[0] ?? "";
   }
 
   statusClass(status: string): string {

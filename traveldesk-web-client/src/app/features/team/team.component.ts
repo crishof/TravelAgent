@@ -77,6 +77,6 @@ export class TeamComponent implements OnInit {
   }
 
   getAgentName(id: string): string {
-    return this.teamSvc.getById(id)?.name ?? '—';
+    return this.teamSvc.getById(id)?.fullName ?? '—';
   }
 }

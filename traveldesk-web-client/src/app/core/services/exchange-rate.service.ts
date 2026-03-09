@@ -3,6 +3,8 @@ import { HttpClient } from "@angular/common/http";
 import { catchError, of, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 
+const MANUAL_RATE_KEY = "td_exchange_rate_override";
+
 @Injectable({ providedIn: "root" })
 export class ExchangeRateService {
   private readonly http = inject(HttpClient);
@@ -10,7 +12,7 @@ export class ExchangeRateService {
   /** Rate obtained from external API */
   private readonly apiRate = signal<number>(1.085);
   /** Manual override entered by the user (null = use API rate) */
-  private readonly manualRate = signal<number | null>(null);
+  private readonly manualRate = signal<number | null>(this.loadManualRate());
 
   /** Effective rate: manual takes precedence */
   readonly rate = computed(() => this.manualRate() ?? this.apiRate());
@@ -31,9 +33,23 @@ export class ExchangeRateService {
 
   setManualRate(rate: number | null) {
     this.manualRate.set(rate);
+    if (rate === null) {
+      localStorage.removeItem(MANUAL_RATE_KEY);
+    } else {
+      localStorage.setItem(MANUAL_RATE_KEY, rate.toString());
+    }
   }
 
   clearManual() {
-    this.manualRate.set(null);
+    this.setManualRate(null);
+  }
+
+  private loadManualRate(): number | null {
+    try {
+      const stored = localStorage.getItem(MANUAL_RATE_KEY);
+      return stored ? parseFloat(stored) : null;
+    } catch {
+      return null;
+    }
   }
 }

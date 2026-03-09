@@ -10,12 +10,13 @@ import {
   AcceptInviteDto,
   User,
   Agency,
+  UserRole,
+  UserStatus,
 } from "../models";
 
 const TOKEN_KEY = "td_token";
 const USER_KEY = "td_user";
 const AGENCY_KEY = "td_agency";
-
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
@@ -35,27 +36,14 @@ export class AuthService {
   // ── Auth actions ─────────────────────────────────────────────────────────
   login(dto: LoginDto) {
     return this.http.post<any>(`${this.api}/auth/login`, dto).pipe(
-      map(res => ({
-        token: res.accessToken,
-        user: {
-          id: res.id,
-          agencyId: '', // TODO: Obtener del backend o de otra llamada
-          name: res.fullName,
-          email: res.email,
-          role: res.role,
-          commissionPct: 0, // Default, ajustar según backend
-          avatar: res.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
-          status: res.status,
-        } as User,
-        agency: null, // TODO: Obtener agency del backend
-      })),
-      tap((res) => this.storeSession(res))
+      map((res) => this.mapBackendAuthResponse(res)),
+      tap((res) => this.storeSession(res)),
     );
   }
 
   registerAgency(dto: CreateAgencyDto) {
     return this.http
-      .post<AuthResponse>(`${this.api}/auth/register`, dto)
+      .post<AuthResponse>(`${this.api}/auth/signup`, dto)
       .pipe(tap((res) => this.storeSession(res)));
   }
 
@@ -83,6 +71,29 @@ export class AuthService {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+  private mapBackendAuthResponse(res: any): AuthResponse {
+    const avatar = res.fullName
+      .split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .toUpperCase();
+
+    return {
+      token: res.accessToken,
+      user: {
+        id: res.userId || res.id,
+        agencyId: res.agencyId || "",
+        fullName: res.fullName,
+        email: res.email,
+        role: res.role as UserRole,
+        commissionPct: res.commissionPct || 0,
+        avatar,
+        status: (res.status?.toLowerCase() || "active") as UserStatus,
+      },
+      agency: res.agency || null,
+    };
+  }
+
   private storeSession(res: AuthResponse) {
     localStorage.setItem(TOKEN_KEY, res.token);
     localStorage.setItem(USER_KEY, JSON.stringify(res.user));
