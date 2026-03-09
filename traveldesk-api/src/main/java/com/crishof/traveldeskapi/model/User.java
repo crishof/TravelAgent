@@ -34,6 +34,10 @@ public class User implements Serializable {
     @Column(nullable = false, length = 100)
     private String passwordHash;
 
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "agency_id", nullable = false)
+    private Agency agency;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;

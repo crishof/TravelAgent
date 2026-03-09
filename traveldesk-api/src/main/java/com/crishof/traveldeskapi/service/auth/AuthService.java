@@ -3,13 +3,16 @@ package com.crishof.traveldeskapi.service.auth;
 import com.crishof.traveldeskapi.dto.AuthResponse;
 import com.crishof.traveldeskapi.dto.LoginRequest;
 import com.crishof.traveldeskapi.dto.SignupRequest;
+import com.crishof.traveldeskapi.exception.AgencyAlreadyExistException;
 import com.crishof.traveldeskapi.exception.EmailAlreadyExistException;
 import com.crishof.traveldeskapi.exception.InvalidCredentialException;
 import com.crishof.traveldeskapi.exception.ResourceNotFoundException;
 import com.crishof.traveldeskapi.exception.UnauthorizedActionException;
+import com.crishof.traveldeskapi.model.Agency;
 import com.crishof.traveldeskapi.model.Role;
 import com.crishof.traveldeskapi.model.User;
 import com.crishof.traveldeskapi.model.UserStatus;
+import com.crishof.traveldeskapi.repository.AgencyRepository;
 import com.crishof.traveldeskapi.repository.UserRepository;
 import com.crishof.traveldeskapi.security.JwtService;
 import jakarta.transaction.Transactional;
@@ -30,21 +33,35 @@ import java.util.Map;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final AgencyRepository agencyRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
     public AuthResponse signup(SignupRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
+        String displayAgencyName = sanitizeAgencyName(request.agencyName());
+        String normalizedAgencyName = normalizeAgencyName(request.agencyName());
 
         if (userRepository.findByEmail(normalizedEmail).isPresent()) {
             throw new EmailAlreadyExistException("Email " + normalizedEmail + " is already in use");
         }
 
+        if (agencyRepository.findByNormalizedName(normalizedAgencyName).isPresent()) {
+            throw new AgencyAlreadyExistException("Agency " + displayAgencyName + " already exists");
+        }
+
+        Agency agency = new Agency();
+        agency.setName(displayAgencyName);
+        agency.setNormalizedName(normalizedAgencyName);
+
+        Agency savedAgency = agencyRepository.save(agency);
+
         User user = new User();
         user.setFullName(request.fullName().trim());
         user.setEmail(normalizedEmail);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setAgency(savedAgency);
         user.setRole(Role.USER);
         user.setStatus(UserStatus.ACTIVE);
 
@@ -72,10 +89,7 @@ public class AuthService {
     }
 
     private AuthResponse buildAuthResponse(User user) {
-        Map<String, Object> claims = Map.of(
-                "role", user.getRole().name(),
-                "status", user.getStatus().name()
-        );
+        Map<String, Object> claims = Map.of("role", user.getRole().name(), "status", user.getStatus().name());
 
         String accessToken = jwtService.generateToken(claims, user);
         String refreshToken = jwtService.generateRefreshToken(user);
@@ -85,5 +99,13 @@ public class AuthService {
 
     private String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String sanitizeAgencyName(String agencyName) {
+        return agencyName.trim().replaceAll("\\s+", " ");
+    }
+
+    private String normalizeAgencyName(String agencyName) {
+        return sanitizeAgencyName(agencyName).toLowerCase(Locale.ROOT);
     }
 }
