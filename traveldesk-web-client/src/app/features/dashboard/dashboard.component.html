@@ -7,8 +7,8 @@
       Hola, {{ firstName() }} 👋
     </h1>
     <p class="text-sm mt-1 text-slate-500 dark:text-slate-400">
-      {{ agency()?.name }} ·
-      {{ isAdmin() ? "Vista de administrador" : "Vista de agente" }}
+      TravelDesk ·
+      {{ isAdmin() ? "Vista de administrador" : "Vista de usuario" }}
     </p>
   </div>
 
@@ -46,9 +46,12 @@
         <h3 class="font-semibold text-slate-900 dark:text-white">
           Ventas recientes
         </h3>
-        <a routerLink="/app/sales" class="text-xs text-cyan-500 hover:underline"
-          >Ver todas →</a
+        <a
+          routerLink="/app/sales"
+          class="text-xs text-cyan-500 hover:underline"
         >
+          Ver todas →
+        </a>
       </div>
       <div class="flex flex-col gap-2">
         @for (sale of recentSales(); track sale.id) {
@@ -58,16 +61,16 @@
             <div
               class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
             >
-              {{ getClientInitial(sale.clientId) }}
+              {{ getClientInitial(sale.customerId) }}
             </div>
             <div class="flex-1 min-w-0">
               <div
                 class="text-sm font-medium truncate text-slate-800 dark:text-slate-200"
               >
-                {{ getClientName(sale.clientId) }}
+                {{ getClientName(sale.customerId) }}
               </div>
               <div class="text-xs text-slate-500 dark:text-slate-400">
-                #{{ sale.id }} · {{ getAgentFirst(sale.agentId) }}
+                #{{ sale.id }} · {{ sale.customerName }}
               </div>
             </div>
             <span
@@ -76,10 +79,7 @@
               >{{ sale.status }}</span
             >
             <span class="text-sm font-bold text-slate-900 dark:text-white">
-              {{
-                sale.saleTotal
-                  | currency: sale.saleCurrency : "symbol" : "1.0-0"
-              }}
+              {{ sale.amount | currency: "USD" : "symbol" : "1.0-0" }}
             </span>
           </div>
         }
@@ -130,29 +130,27 @@
         class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
       >
         <h3 class="font-semibold mb-4 text-slate-900 dark:text-white">
-          Pagos pendientes a proveedores
+          Estado de pagos
         </h3>
         <div class="flex flex-col gap-2">
-          @for (svc of pendingServices(); track svc.id) {
-            <div
-              class="flex items-center justify-between p-3 rounded-xl border-l-2 border-amber-500 bg-amber-50 dark:bg-amber-500/5"
-            >
-              <div>
-                <div
-                  class="text-sm font-medium text-slate-800 dark:text-slate-200"
-                >
-                  {{ svc.name }}
-                </div>
-                <div class="text-xs text-slate-500 dark:text-slate-400">
-                  {{ svc.travelDate }}
-                </div>
+          <div
+            class="flex items-center justify-between p-3 rounded-xl border-l-2 border-amber-500 bg-amber-50 dark:bg-amber-500/5"
+          >
+            <div>
+              <div
+                class="text-sm font-medium text-slate-800 dark:text-slate-200"
+              >
+                Monto pendiente
               </div>
-              <span class="text-sm font-semibold text-amber-500">
-                {{ svc.netCost | currency: svc.currency : "symbol" : "1.2-2" }}
-              </span>
+              <div class="text-xs text-slate-500 dark:text-slate-400">
+                Ventas en estado PENDING
+              </div>
             </div>
-          }
-          @if (pendingServices().length === 0) {
+            <span class="text-sm font-semibold text-amber-500">
+              {{ pendingAmount() | currency: "USD" : "symbol" : "1.2-2" }}
+            </span>
+          </div>
+          @if (pendingAmount() === 0) {
             <p class="text-sm text-slate-400 py-4 text-center">
               Sin pagos pendientes 🎉
             </p>

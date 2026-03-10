@@ -7,17 +7,17 @@ import {
   FormGroup,
 } from "@angular/forms";
 import { Router } from "@angular/router";
-import { ProvidersService } from "../../core/services/providers.service";
-import { ServiceType, CreateProviderDto } from "../../core/models";
+import { SuppliersService } from "../../core/services/suppliers.service";
+import { ServiceType, CreateSupplierDto } from "../../core/models";
 
 @Component({
-  selector: "app-providers",
+  selector: "app-suppliers",
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: "./providers.component.html",
+  templateUrl: "./suppliers.component.html",
 })
-export class ProvidersComponent implements OnInit {
-  providersSvc = inject(ProvidersService);
+export class SuppliersComponent implements OnInit {
+  suppliersSvc = inject(SuppliersService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
 
@@ -54,15 +54,15 @@ export class ProvidersComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.loadProviders();
+    this.loadSuppliers();
   }
 
-  loadProviders() {
-    this.providersSvc.loading.set(true);
-    this.providersSvc.loadAll().subscribe({
+  loadSuppliers() {
+    this.suppliersSvc.loading.set(true);
+    this.suppliersSvc.loadAll().subscribe({
       error: (err) => {
         console.error("Error al cargar proveedores:", err);
-        this.providersSvc.loading.set(false);
+        this.suppliersSvc.loading.set(false);
       },
     });
   }
@@ -87,10 +87,10 @@ export class ProvidersComponent implements OnInit {
       return;
     }
 
-    const formData = this.form.getRawValue() as CreateProviderDto;
+    const formData = this.form.getRawValue() as CreateSupplierDto;
     console.log("Datos a enviar:", formData);
 
-    this.providersSvc.create(formData).subscribe({
+    this.suppliersSvc.create(formData).subscribe({
       next: (response) => {
         console.log("Proveedor creado exitosamente:", response);
         this.successMessage.set("Proveedor creado exitosamente");
@@ -127,7 +127,7 @@ export class ProvidersComponent implements OnInit {
     return map[serviceType] ?? map["OTHER"]!;
   }
 
-  selectProvider(providerId: string) {
-    this.router.navigate(["/app/providers", providerId]);
+  selectSupplier(supplierId: string) {
+    this.router.navigate(["/app/suppliers", supplierId]);
   }
 }

@@ -2,15 +2,7 @@ import { Injectable, inject, signal, computed } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { tap } from "rxjs";
 import { environment } from "../../../environments/environment";
-import {
-  Sale,
-  CreateSaleDto,
-  UpdateSaleTotalDto,
-  ServiceBooking,
-  CreateServiceDto,
-  SaleFilters,
-  Currency,
-} from "../models";
+import { SaleResponse, SaleRequest, SaleFilters } from "../models";
 
 @Injectable({ providedIn: "root" })
 export class SalesService {
@@ -18,7 +10,7 @@ export class SalesService {
   private readonly api = `${environment.apiUrl}/sales`;
 
   // ── Local state ───────────────────────────────────────────────────────────
-  readonly sales = signal<Sale[]>([]);
+  readonly sales = signal<SaleResponse[]>([]);
   readonly loading = signal(false);
   readonly filters = signal<SaleFilters>({
     search: "",
@@ -32,21 +24,20 @@ export class SalesService {
   readonly filtered = computed(() => {
     const f = this.filters();
     return this.sales().filter((s) => {
-      const matchSearch = !f.search || String(s.id).includes(f.search);
+      const matchSearch =
+        !f.search ||
+        s.id.includes(f.search) ||
+        s.destination.toLowerCase().includes(f.search.toLowerCase());
       const matchStatus = !f.status || s.status === f.status;
-      const matchAgent = !f.agentId || s.agentId === f.agentId;
-      const matchClient = !f.clientId || String(s.clientId) === f.clientId;
-      const matchDate = !f.dateFrom || s.travelDate >= f.dateFrom;
-      return (
-        matchSearch && matchStatus && matchAgent && matchClient && matchDate
-      );
+      const matchClient = !f.clientId || s.customerId === f.clientId;
+      return matchSearch && matchStatus && matchClient;
     });
   });
 
   // ── API calls ─────────────────────────────────────────────────────────────
   loadAll() {
     this.loading.set(true);
-    return this.http.get<Sale[]>(this.api).pipe(
+    return this.http.get<SaleResponse[]>(this.api).pipe(
       tap((data) => {
         this.sales.set(data);
         this.loading.set(false);
@@ -54,55 +45,37 @@ export class SalesService {
     );
   }
 
-  getById(id: number) {
-    return this.http.get<Sale>(`${this.api}/${id}`);
-  }
-
-  create(dto: CreateSaleDto) {
+  create(dto: SaleRequest) {
     return this.http
-      .post<Sale>(this.api, dto)
-      .pipe(tap((sale) => this.sales.update((list) => [sale, ...list])));
+      .post<SaleResponse>(this.api, dto)
+      .pipe(tap((s) => this.sales.update((list) => [...list, s])));
   }
 
-  updateStatus(id: number, status: Sale["status"]) {
+  update(id: string, dto: Partial<SaleRequest>) {
     return this.http
-      .patch<Sale>(`${this.api}/${id}/status`, { status })
-      .pipe(tap((updated) => this.updateLocal(updated)));
+      .put<SaleResponse>(`${this.api}/${id}`, dto)
+      .pipe(
+        tap((updated) =>
+          this.sales.update((list) =>
+            list.map((s) => (s.id === id ? updated : s)),
+          ),
+        ),
+      );
   }
 
-  updateTotal(id: number, dto: UpdateSaleTotalDto) {
+  delete(id: string) {
     return this.http
-      .patch<Sale>(`${this.api}/${id}/total`, dto)
-      .pipe(tap((updated) => this.updateLocal(updated)));
+      .delete(`${this.api}/${id}`)
+      .pipe(
+        tap(() => this.sales.update((list) => list.filter((s) => s.id !== id))),
+      );
   }
 
-  // ── Services (Bookings) ───────────────────────────────────────────────────
-  addService(saleId: number, dto: CreateServiceDto) {
-    return this.http
-      .post<Sale>(`${this.api}/${saleId}/services`, dto)
-      .pipe(tap((updated) => this.updateLocal(updated)));
+  getById(id: string) {
+    return this.http.get<SaleResponse>(`${this.api}/${id}`);
   }
 
-  removeService(saleId: number, serviceId: number) {
-    return this.http
-      .delete<Sale>(`${this.api}/${saleId}/services/${serviceId}`)
-      .pipe(tap((updated) => this.updateLocal(updated)));
-  }
-
-  updateServicePayStatus(
-    saleId: number,
-    serviceId: number,
-    payStatus: ServiceBooking["payStatus"],
-  ) {
-    return this.http
-      .patch<Sale>(`${this.api}/${saleId}/services/${serviceId}/pay-status`, {
-        payStatus,
-      })
-      .pipe(tap((updated) => this.updateLocal(updated)));
-  }
-
-  // ── Utilities ─────────────────────────────────────────────────────────────
-  setFilter<K extends keyof SaleFilters>(key: K, value: SaleFilters[K]) {
+  setFilter(key: keyof SaleFilters, value: string) {
     this.filters.update((f) => ({ ...f, [key]: value }));
   }
 
@@ -115,34 +88,5 @@ export class SalesService {
       dateFrom: "",
       dateTo: "",
     });
-  }
-
-  private updateLocal(updated: Sale) {
-    this.sales.update((list) =>
-      list.map((s) => (s.id === updated.id ? updated : s)),
-    );
-  }
-
-  // ── Currency helpers (used also in templates via service) ─────────────────
-  convert(amount: number, from: Currency, to: Currency, rate: number): number {
-    if (from === to) return amount;
-    return from === "USD" ? amount / rate : amount * rate;
-  }
-
-  calcNetTotal(sale: Sale, rate: number): number {
-    return sale.services.reduce(
-      (acc, s) =>
-        acc + this.convert(s.netCost, s.currency, sale.saleCurrency, rate),
-      0,
-    );
-  }
-
-  calcProfit(sale: Sale, rate: number): number {
-    return sale.saleTotal - this.calcNetTotal(sale, rate);
-  }
-
-  calcMargin(sale: Sale, rate: number): number {
-    if (!sale.saleTotal) return 0;
-    return (this.calcProfit(sale, rate) / sale.saleTotal) * 100;
   }
 }

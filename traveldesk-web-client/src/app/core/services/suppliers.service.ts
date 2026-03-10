@@ -2,38 +2,38 @@ import { Injectable, inject, signal } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { tap } from "rxjs";
 import { environment } from "../../../environments/environment";
-import { Provider, CreateProviderDto } from "../models";
+import { Supplier, CreateSupplierDto } from "../models";
 
 @Injectable({ providedIn: "root" })
-export class ProvidersService {
+export class SuppliersService {
   private readonly http = inject(HttpClient);
-  private readonly api = `${environment.apiUrl}/providers`;
+  private readonly api = `${environment.apiUrl}/suppliers`;
 
-  readonly providers = signal<Provider[]>([]);
+  readonly suppliers = signal<Supplier[]>([]);
   readonly loading = signal(false);
 
   loadAll() {
     this.loading.set(true);
-    return this.http.get<Provider[]>(this.api).pipe(
+    return this.http.get<Supplier[]>(this.api).pipe(
       tap((data) => {
-        this.providers.set(data);
+        this.suppliers.set(data);
         this.loading.set(false);
       }),
     );
   }
 
-  create(dto: CreateProviderDto) {
+  create(dto: CreateSupplierDto) {
     return this.http
-      .post<Provider>(this.api, dto)
-      .pipe(tap((p) => this.providers.update((list) => [...list, p])));
+      .post<Supplier>(this.api, dto)
+      .pipe(tap((p) => this.suppliers.update((list) => [...list, p])));
   }
 
-  update(id: string, dto: Partial<CreateProviderDto>) {
+  update(id: string, dto: Partial<CreateSupplierDto>) {
     return this.http
-      .put<Provider>(`${this.api}/${id}`, dto)
+      .put<Supplier>(`${this.api}/${id}`, dto)
       .pipe(
         tap((updated) =>
-          this.providers.update((list) =>
+          this.suppliers.update((list) =>
             list.map((p) => (p.id === id ? updated : p)),
           ),
         ),
@@ -45,18 +45,18 @@ export class ProvidersService {
       .delete(`${this.api}/${id}`)
       .pipe(
         tap(() =>
-          this.providers.update((list) => list.filter((p) => p.id !== id)),
+          this.suppliers.update((list) => list.filter((p) => p.id !== id)),
         ),
       );
   }
 
   getById(id: string | number) {
     return this.http
-      .get<Provider>(`${this.api}/${id}`)
+      .get<Supplier>(`${this.api}/${id}`)
       .pipe(
-        tap((provider) =>
-          this.providers.update((list) =>
-            list.map((p) => (p.id === provider.id ? provider : p)),
+        tap((supplier) =>
+          this.suppliers.update((list) =>
+            list.map((p) => (p.id === supplier.id ? supplier : p)),
           ),
         ),
       );

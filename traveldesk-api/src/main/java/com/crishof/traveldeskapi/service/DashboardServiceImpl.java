@@ -6,7 +6,7 @@ import com.crishof.traveldeskapi.exception.ResourceNotFoundException;
 import com.crishof.traveldeskapi.repository.AgencyRepository;
 import com.crishof.traveldeskapi.repository.BookingRepository;
 import com.crishof.traveldeskapi.repository.CustomerRepository;
-import com.crishof.traveldeskapi.repository.ProviderRepository;
+import com.crishof.traveldeskapi.repository.SupplierRepository;
 import com.crishof.traveldeskapi.repository.SaleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final SaleRepository saleRepository;
     private final BookingRepository bookingRepository;
     private final CustomerRepository customerRepository;
-    private final ProviderRepository providerRepository;
+    private final SupplierRepository supplierRepository;
 
     @Override
     public DashboardStatsResponse getStats(UUID agencyId) {
@@ -33,13 +33,13 @@ public class DashboardServiceImpl implements DashboardService {
         long totalSales = saleRepository.countByAgencyId(agencyId);
         long totalBookings = bookingRepository.countByAgencyId(agencyId);
         long totalCustomers = customerRepository.countByAgencyId(agencyId);
-        long totalProviders = providerRepository.countByAgencyId(agencyId);
+        long totalSuppliers = supplierRepository.countByAgencyId(agencyId);
 
         return new DashboardStatsResponse(
                 safeLongToInt(totalSales),
                 safeLongToInt(totalBookings),
                 safeLongToInt(totalCustomers),
-                safeLongToInt(totalProviders)
+                safeLongToInt(totalSuppliers)
         );
     }
 

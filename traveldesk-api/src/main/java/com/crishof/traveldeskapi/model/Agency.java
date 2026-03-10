@@ -80,7 +80,7 @@ public class Agency implements Serializable {
     private Set<Customer> customers = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "agency", cascade = CascadeType.ALL, orphanRemoval = false)
-    private Set<Provider> providers = new LinkedHashSet<>();
+    private Set<Supplier> suppliers = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "agency", cascade = CascadeType.ALL, orphanRemoval = false)
     private Set<Sale> sales = new LinkedHashSet<>();

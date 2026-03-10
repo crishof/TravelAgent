@@ -48,8 +48,8 @@ public class Booking {
     private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "provider_id")
-    private Provider provider;
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", nullable = false)

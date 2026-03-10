@@ -86,7 +86,7 @@
         class="px-3 py-2 rounded-xl text-sm border outline-none bg-slate-50 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
       >
         <option value="">Todos los agentes</option>
-        @for (a of teamSvc.users(); track a.id) {
+        @for (a of teamSvc.members(); track a.id) {
           @if (a.role === "AGENT") {
             <option [value]="a.id">{{ a.fullName }}</option>
           }
@@ -99,19 +99,14 @@
   <div class="flex flex-col gap-3">
     @for (sale of salesSvc.filtered(); track sale.id) {
       <div
-        class="rounded-2xl border overflow-hidden bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+        class="rounded-2xl border p-4 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
       >
-        <!-- Sale header row -->
-        <div
-          class="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
-          (click)="toggleExpand(sale.id)"
-          (keydown)="toggleExpand(sale.id)"
-        >
+        <div class="flex items-center gap-3">
           <!-- Avatar -->
           <div
-            class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+            class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
           >
-            {{ getClientInitial(sale.clientId) }}
+            {{ sale.customerName[0].toUpperCase() }}
           </div>
           <!-- Info -->
           <div class="flex-1 min-w-0">
@@ -119,10 +114,10 @@
               <span
                 class="font-semibold text-sm text-slate-900 dark:text-white"
               >
-                {{ getClientName(sale.clientId) }}
+                {{ sale.customerName }}
               </span>
               <span class="text-xs text-slate-400 dark:text-slate-500"
-                >#{{ sale.id }}</span
+                >#{{ sale.id.substring(0, 8) }}</span
               >
               <span
                 [class]="statusClass(sale.status)"
@@ -134,180 +129,18 @@
                 ></span>
                 {{ sale.status }}
               </span>
-              @if (getAgentName(sale.agentId)) {
-                <span
-                  class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
-                >
-                  {{ getAgentName(sale.agentId) }}
-                </span>
-              }
             </div>
             <div class="text-xs mt-0.5 text-slate-500 dark:text-slate-400">
-              Viaje: {{ sale.travelDate }} ·
-              {{ sale.services.length }} servicio{{
-                sale.services.length !== 1 ? "s" : ""
-              }}
+              Destino: {{ sale.destination }} · {{ sale.supplierName }}
             </div>
           </div>
-          <!-- Totals -->
+          <!-- Total -->
           <div class="text-right flex-shrink-0">
-            <div class="font-bold text-sm text-slate-900 dark:text-white">
-              {{
-                sale.saleTotal
-                  | currency: sale.saleCurrency : "symbol" : "1.2-2"
-              }}
-            </div>
-            <div class="text-xs text-slate-500 dark:text-slate-400">
-              Neto:
-              {{
-                salesSvc.calcNetTotal(sale, xr.rate())
-                  | currency: sale.saleCurrency : "symbol" : "1.2-2"
-              }}
+            <div class="font-bold text-lg text-slate-900 dark:text-white">
+              ${{ sale.amount.toFixed(2) }}
             </div>
           </div>
-          <span class="text-slate-400">{{
-            expandedId() === sale.id ? "▼" : "▶"
-          }}</span>
         </div>
-
-        <!-- Expanded services -->
-        @if (expandedId() === sale.id) {
-          <div
-            class="border-t border-slate-100 dark:border-slate-700/60 px-4 pb-4 pt-3"
-          >
-            <!-- Sale total editor -->
-            <div
-              class="flex items-center justify-between mb-3 p-3 rounded-xl bg-blue-50 dark:bg-slate-700/40"
-            >
-              <div>
-                <p
-                  class="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-slate-400"
-                >
-                  Precio total al cliente
-                </p>
-                <p class="text-lg font-bold text-slate-900 dark:text-white">
-                  {{
-                    sale.saleTotal
-                      | currency: sale.saleCurrency : "symbol" : "1.2-2"
-                  }}
-                </p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">
-                  Margen:
-                  {{ salesSvc.calcMargin(sale, xr.rate()) | number: "1.1-1" }}%
-                  · Ganancia:
-                  {{
-                    salesSvc.calcProfit(sale, xr.rate())
-                      | currency: sale.saleCurrency : "symbol" : "1.2-2"
-                  }}
-                </p>
-              </div>
-              <button
-                (click)="openEditTotal(sale)"
-                class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-500 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
-              >
-                ✎ Editar total
-              </button>
-            </div>
-
-            <!-- Services header -->
-            <div class="flex items-center justify-between mb-3">
-              <h4
-                class="text-sm font-semibold text-slate-700 dark:text-slate-300"
-              >
-                Servicios reservados
-              </h4>
-              <button
-                (click)="openAddService(sale.id)"
-                class="text-xs text-cyan-500 hover:text-cyan-400 font-medium flex items-center gap-1"
-              >
-                + Agregar servicio
-              </button>
-            </div>
-
-            <!-- Services list -->
-            @if (sale.services.length === 0) {
-              <p
-                class="text-xs text-center py-4 text-slate-400 dark:text-slate-500"
-              >
-                Sin servicios aún
-              </p>
-            } @else {
-              <div class="flex flex-col gap-2">
-                @for (svc of sale.services; track svc.id) {
-                  <div
-                    class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/40"
-                  >
-                    <div class="flex-1 min-w-0">
-                      <div
-                        class="text-sm font-medium text-slate-800 dark:text-slate-200"
-                      >
-                        {{ svc.name }}
-                      </div>
-                      <div class="text-xs text-slate-500 dark:text-slate-400">
-                        {{ getProviderName(svc.providerId) }} ·
-                        {{ svc.travelDate }}
-                      </div>
-                      @if (svc.notes) {
-                        <div
-                          class="text-xs italic text-slate-400 dark:text-slate-500 mt-0.5"
-                        >
-                          {{ svc.notes }}
-                        </div>
-                      }
-                    </div>
-                    <div class="text-right text-sm">
-                      <div class="text-slate-600 dark:text-slate-300">
-                        Neto:
-                        {{
-                          svc.netCost
-                            | currency: svc.currency : "symbol" : "1.2-2"
-                        }}
-                      </div>
-                      @if (svc.salePrice !== null) {
-                        <div class="text-emerald-500 font-medium">
-                          Precio:
-                          {{
-                            svc.salePrice
-                              | currency: svc.currency : "symbol" : "1.2-2"
-                          }}
-                        </div>
-                      } @else {
-                        <div class="text-xs italic text-slate-400">
-                          Precio en total general
-                        </div>
-                      }
-                      @if (svc.currency !== sale.saleCurrency) {
-                        <div class="text-xs text-slate-400">
-                          ≈
-                          {{
-                            salesSvc.convert(
-                              svc.netCost,
-                              svc.currency,
-                              sale.saleCurrency,
-                              xr.rate()
-                            ) | currency: sale.saleCurrency : "symbol" : "1.2-2"
-                          }}
-                        </div>
-                      }
-                    </div>
-                    <span
-                      [class]="payStatusClass(svc.payStatus)"
-                      class="px-2 py-1 rounded-full text-xs font-semibold"
-                    >
-                      {{ svc.payStatus }}
-                    </span>
-                    <button
-                      (click)="deleteService(sale.id, svc.id)"
-                      class="p-1.5 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
-                    >
-                      🗑
-                    </button>
-                  </div>
-                }
-              </div>
-            }
-          </div>
-        }
       </div>
     }
 
@@ -350,152 +183,85 @@
         (ngSubmit)="createSale()"
         class="flex flex-col gap-4"
       >
-        <!-- Client selector tabs -->
-        <div class="flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
-          @for (tab of ["Existente", "Nuevo"]; track tab; let i = $index) {
-            <button
-              type="button"
-              (click)="isNewClient.set(!!i)"
-              class="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
-              [class]="
-                isNewClient() === !!i
-                  ? 'bg-gradient-to-r from-cyan-500 to-teal-600 text-white shadow'
-                  : 'text-slate-600 dark:text-slate-400'
-              "
+        <div class="flex flex-col gap-1">
+          <label
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Cliente
+            <select
+              formControlName="customerId"
+              class="form-input form-input-light dark:form-input-dark"
             >
-              Cliente {{ tab }}
-            </button>
-          }
+              <option value="">— Elegir cliente —</option>
+              @for (c of clientsSvc.clients(); track c.id) {
+                <option [value]="c.id">{{ c.fullName }}</option>
+              }
+            </select>
+          </label>
         </div>
 
-        @if (!isNewClient()) {
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Cliente
-              <select
-                formControlName="clientId"
-                class="form-input form-input-light dark:form-input-dark"
-              >
-                <option value="">— Elegir cliente —</option>
-                @for (c of clientsSvc.clients(); track c.id) {
-                  <option [value]="c.id">{{ c.name }}</option>
-                }
-              </select>
-            </label>
-          </div>
-        } @else {
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Nombre
-              <input
-                type="text"
-                formControlName="newClientName"
-                placeholder="Juan Pérez"
-                class="form-input form-input-light dark:form-input-dark"
-              />
-            </label>
-          </div>
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Email
-              <input
-                type="email"
-                formControlName="newClientEmail"
-                placeholder="juan@email.com"
-                class="form-input form-input-light dark:form-input-dark"
-              />
-            </label>
-          </div>
-        }
-
-        <div class="grid grid-cols-2 gap-3">
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Moneda
-              <select
-                formControlName="saleCurrency"
-                class="form-input form-input-light dark:form-input-dark"
-              >
-                <option value="USD">USD — Dólar</option>
-                <option value="EUR">EUR — Euro</option>
-              </select>
-            </label>
-          </div>
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Estado
-              <select
-                formControlName="status"
-                class="form-input form-input-light dark:form-input-dark"
-              >
-                @for (
-                  s of ["Cotización", "Confirmada", "En proceso"];
-                  track s
-                ) {
-                  <option [value]="s">{{ s }}</option>
-                }
-              </select>
-            </label>
-          </div>
+        <div class="flex flex-col gap-1">
+          <label
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Proveedor
+            <select
+              formControlName="supplierId"
+              class="form-input form-input-light dark:form-input-dark"
+            >
+              <option value="">— Elegir proveedor —</option>
+              @for (p of suppliersSvc.suppliers(); track p.id) {
+                <option [value]="p.id">{{ p.name }}</option>
+              }
+            </select>
+          </label>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Fecha de viaje
-              <input
-                type="date"
-                formControlName="travelDate"
-                class="form-input form-input-light dark:form-input-dark"
-              />
-            </label>
-          </div>
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Precio total al cliente
-              <input
-                type="number"
-                step="0.01"
-                formControlName="saleTotal"
-                placeholder="Opcional"
-                class="form-input form-input-light dark:form-input-dark"
-              />
-            </label>
-          </div>
+        <div class="flex flex-col gap-1">
+          <label
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Destino
+            <input
+              type="text"
+              formControlName="destination"
+              placeholder="Madrid, España"
+              class="form-input form-input-light dark:form-input-dark"
+            />
+          </label>
         </div>
 
-        @if (isAdmin()) {
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Agente asignado
-              <select
-                formControlName="agentId"
-                class="form-input form-input-light dark:form-input-dark"
-              >
-                @for (u of teamSvc.users(); track u.id) {
-                  @if (u.status === "active") {
-                    <option [value]="u.id">{{ u.fullName }} ({{ u.role }})</option>
-                  }
-                }
-              </select>
-            </label>
-          </div>
-        }
+        <div class="flex flex-col gap-1">
+          <label
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Monto total
+            <input
+              type="number"
+              step="0.01"
+              formControlName="amount"
+              placeholder="0.00"
+              class="form-input form-input-light dark:form-input-dark"
+            />
+          </label>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Estado
+            <select
+              formControlName="status"
+              class="form-input form-input-light dark:form-input-dark"
+            >
+              @for (s of saleStatuses; track s) {
+                <option [value]="s">{{ s }}</option>
+              }
+            </select>
+          </label>
+        </div>
 
         <div
           class="text-xs p-3 rounded-xl bg-blue-50 text-blue-600 dark:bg-slate-800 dark:text-slate-400"
         >
-          <strong>Precio total:</strong> Al agregar servicios con precio de
-          venta, el total se actualiza automáticamente. También podés editarlo
-          manualmente en cualquier momento.
+          <strong>Nota:</strong> Una vez creada la venta, puedes agregar
+          bookings individuales desde el módulo de Bookings.
         </div>
 
         <button
@@ -523,7 +289,7 @@
       (keydown)="$event.stopPropagation()"
     >
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-semibold">Agregar servicio</h2>
+        <h2 class="text-xl font-semibold">Crear booking</h2>
         <button
           (click)="showAddService.set(null)"
           class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -532,20 +298,23 @@
         </button>
       </div>
       <form
-        [formGroup]="serviceForm"
+        [formGroup]="bookingForm"
         (ngSubmit)="addService()"
         class="flex flex-col gap-4"
       >
         <div class="flex flex-col gap-1">
           <label
             class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Nombre del servicio
-            <input
-              type="text"
-              formControlName="name"
-              placeholder="Vuelo BUE-MAD"
+            >Cliente
+            <select
+              formControlName="customerId"
               class="form-input form-input-light dark:form-input-dark"
-            />
+            >
+              <option value="">— Elegir cliente —</option>
+              @for (c of clientsSvc.clients(); track c.id) {
+                <option [value]="c.id">{{ c.fullName }}</option>
+              }
+            </select>
           </label>
         </div>
         <div class="flex flex-col gap-1">
@@ -553,52 +322,60 @@
             class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
             >Proveedor
             <select
-              formControlName="providerId"
+              formControlName="supplierId"
               class="form-input form-input-light dark:form-input-dark"
             >
               <option value="">— Elegir proveedor —</option>
-              @for (p of providersSvc.providers(); track p.id) {
+              @for (p of suppliersSvc.suppliers(); track p.id) {
                 <option [value]="p.id">{{ p.name }} ({{ p.currency }})</option>
               }
             </select>
+          </label>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Referencia
+            <input
+              type="text"
+              formControlName="reference"
+              placeholder="REF-12345"
+              class="form-input form-input-light dark:form-input-dark"
+            />
+          </label>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Nombre del pasajero
+            <input
+              type="text"
+              formControlName="passengerName"
+              placeholder="Juan Pérez"
+              class="form-input form-input-light dark:form-input-dark"
+            />
+          </label>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Destino
+            <input
+              type="text"
+              formControlName="destination"
+              placeholder="Madrid, España"
+              class="form-input form-input-light dark:form-input-dark"
+            />
           </label>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div class="flex flex-col gap-1">
             <label
               class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Moneda
-              <select
-                formControlName="currency"
-                class="form-input form-input-light dark:form-input-dark"
-              >
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-              </select>
-            </label>
-          </div>
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Fecha
+              >Fecha salida
               <input
                 type="date"
-                formControlName="travelDate"
-                class="form-input form-input-light dark:form-input-dark"
-              />
-            </label>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Costo neto
-              <input
-                type="number"
-                step="0.01"
-                formControlName="netCost"
-                placeholder="0.00"
+                formControlName="departureDate"
                 class="form-input form-input-light dark:form-input-dark"
               />
             </label>
@@ -606,82 +383,36 @@
           <div class="flex flex-col gap-1">
             <label
               class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Precio venta (opcional)
+              >Fecha regreso
               <input
-                type="number"
-                step="0.01"
-                formControlName="salePrice"
-                placeholder="Suma al total"
+                type="date"
+                formControlName="returnDate"
                 class="form-input form-input-light dark:form-input-dark"
               />
             </label>
           </div>
-        </div>
-        <div
-          class="text-xs p-3 rounded-xl bg-amber-50 text-amber-700 dark:bg-slate-800 dark:text-slate-400"
-        >
-          Si indicás precio de venta, se sumará automáticamente al total de la
-          venta.
         </div>
         <div class="flex flex-col gap-1">
           <label
             class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Notas
-            <input
-              type="text"
-              formControlName="notes"
-              placeholder="Observaciones..."
+            >Estado
+            <select
+              formControlName="status"
               class="form-input form-input-light dark:form-input-dark"
-            />
+            >
+              <option value="PENDING">Pendiente</option>
+              <option value="CONFIRMED">Confirmado</option>
+              <option value="CANCELLED">Cancelado</option>
+            </select>
           </label>
         </div>
         <button
           type="submit"
           class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold text-sm hover:opacity-90 transition-all mt-1"
         >
-          Agregar servicio
+          Crear booking
         </button>
       </form>
-    </div>
-  </div>
-}
-
-<!-- ── Edit Total Modal ────────────────────────────────────────────────────── -->
-@if (editingSale()) {
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center p-4"
-    (click)="editingSale.set(null)"
-    (keydown)="editingSale.set(null)"
-  >
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-    <div
-      class="relative w-full max-w-md rounded-2xl shadow-2xl border p-6 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-      (click)="$event.stopPropagation()"
-      (keydown)="$event.stopPropagation()"
-    >
-      <h2 class="text-xl font-semibold mb-4">Editar precio total</h2>
-      <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
-        Precio final al cliente. Podés ajustarlo independientemente de los
-        costos.
-      </p>
-      <div class="flex flex-col gap-1 mb-4">
-        <label
-          class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-          >Nuevo precio total
-          <input
-            type="number"
-            step="0.01"
-            [(ngModel)]="editTotalValue"
-            class="form-input form-input-light dark:form-input-dark"
-          />
-        </label>
-      </div>
-      <button
-        (click)="confirmEditTotal()"
-        class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold text-sm hover:opacity-90 transition-all"
-      >
-        Confirmar
-      </button>
     </div>
   </div>
 }

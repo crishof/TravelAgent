@@ -6,7 +6,7 @@
       Mi cuenta
     </h1>
     <p class="text-sm mt-1 text-slate-500 dark:text-slate-400">
-      Estado de tus ventas y comisiones
+      Información de tu perfil
     </p>
   </div>
 
@@ -22,7 +22,10 @@
           : 'bg-gradient-to-br from-cyan-500 to-teal-600'
       "
     >
-      {{ user()!.avatar }}
+      {{
+        (user()!.email.charAt(0) || "") +
+          (user()!.email.split(".")[1]?.charAt(0) || "")
+      }}
     </div>
     <div class="flex-1">
       <div class="text-lg font-bold text-slate-900 dark:text-white">
@@ -42,32 +45,9 @@
         {{ user()!.role === "ADMIN" ? "Admin" : "Agente" }}
       </span>
     </div>
-    @if (user()!.role === "AGENT") {
-      <div class="text-right p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50">
-        <div class="text-2xl font-bold text-cyan-500">
-          {{ user()!.commissionPct }}%
-        </div>
-        <div class="text-xs text-slate-500 dark:text-slate-400">
-          Tasa de comisión
-        </div>
-      </div>
-    }
   </div>
 
-  <!-- Stats grid -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    @for (s of stats(); track s.label) {
-      <div
-        class="rounded-2xl p-4 text-white bg-gradient-to-br"
-        [class]="s.gradient"
-      >
-        <div class="text-xl font-bold">{{ s.value }}</div>
-        <div class="text-xs opacity-80 mt-1">{{ s.label }}</div>
-      </div>
-    }
-  </div>
-
-  <!-- Commissions history -->
+  <!-- Account details -->
   <div
     class="rounded-2xl border overflow-hidden border-slate-100 shadow-sm dark:border-slate-700/60"
   >
@@ -75,90 +55,33 @@
       class="px-5 py-4 border-b bg-slate-50 border-slate-100 dark:bg-slate-800 dark:border-slate-700/60"
     >
       <h3 class="font-semibold text-slate-900 dark:text-white">
-        Historial de comisiones
+        Detalles de la cuenta
       </h3>
     </div>
-
-    @if (myCommissions().length === 0) {
+    <div class="px-5 py-4">
       <div
-        class="px-5 py-10 text-center text-sm bg-white dark:bg-slate-800/40 text-slate-400 dark:text-slate-500"
+        class="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-700/40"
       >
-        Sin comisiones registradas aún
+        <div class="text-sm text-slate-600 dark:text-slate-400">
+          ID de usuario
+        </div>
+        <div class="font-mono text-sm text-slate-900 dark:text-white">
+          {{ user()!.id }}
+        </div>
       </div>
-    } @else {
-      @for (c of myCommissions(); track c.id) {
-        <div
-          class="flex items-center justify-between px-5 py-3.5 border-b last:border-0 transition-colors bg-white border-slate-50 hover:bg-slate-50 dark:bg-slate-800/40 dark:border-slate-700/40 dark:hover:bg-slate-700/40"
-        >
-          <div>
-            <div class="text-sm font-medium text-slate-800 dark:text-slate-200">
-              {{ c.description }}
-            </div>
-            @if (c.paidAt) {
-              <div class="text-xs text-slate-500 dark:text-slate-400">
-                Pagado el {{ c.paidAt }}
-              </div>
-            }
-          </div>
-          <div class="flex items-center gap-3">
-            <span
-              class="font-bold text-sm"
-              [class]="
-                c.status === 'Pagado' ? 'text-emerald-500' : 'text-amber-500'
-              "
-            >
-              ${{ c.amount.toFixed(2) }}
-            </span>
-            <span
-              class="text-xs px-2.5 py-1 rounded-full font-semibold"
-              [class]="
-                c.status === 'Pagado'
-                  ? 'bg-emerald-500/10 text-emerald-500'
-                  : 'bg-amber-500/10 text-amber-500'
-              "
-            >
-              {{ c.status }}
-            </span>
-          </div>
-        </div>
-      }
-    }
-  </div>
-
-  <!-- My sales summary -->
-  <div
-    class="rounded-2xl border overflow-hidden border-slate-100 shadow-sm dark:border-slate-700/60"
-  >
-    <div
-      class="px-5 py-4 border-b bg-slate-50 border-slate-100 dark:bg-slate-800 dark:border-slate-700/60"
-    >
-      <h3 class="font-semibold text-slate-900 dark:text-white">
-        Mis ventas ({{ mySales().length }})
-      </h3>
-    </div>
-    @for (sale of mySales(); track sale.id) {
-      <div
-        class="flex items-center gap-3 px-5 py-3 border-b last:border-0 bg-white border-slate-50 dark:bg-slate-800/40 dark:border-slate-700/40"
-      >
-        <div class="flex-1">
-          <div class="text-sm font-medium text-slate-800 dark:text-slate-200">
-            Venta #{{ sale.id }}
-          </div>
-          <div class="text-xs text-slate-500 dark:text-slate-400">
-            {{ sale.travelDate }}
-          </div>
-        </div>
+      <div class="flex items-center justify-between py-3">
+        <div class="text-sm text-slate-600 dark:text-slate-400">Estado</div>
         <span
           class="text-xs font-semibold px-2 py-0.5 rounded-full"
-          [class]="statusClass(sale.status)"
-          >{{ sale.status }}</span
+          [class]="
+            user()!.status === 'ACTIVE'
+              ? 'bg-emerald-500/10 text-emerald-500'
+              : 'bg-amber-500/10 text-amber-500'
+          "
         >
-        <span class="font-bold text-sm text-slate-900 dark:text-white">
-          {{
-            sale.saleTotal | currency: sale.saleCurrency : "symbol" : "1.2-2"
-          }}
+          {{ user()!.status === "ACTIVE" ? "Activo" : user()!.status }}
         </span>
       </div>
-    }
+    </div>
   </div>
 </div>

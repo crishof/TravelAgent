@@ -23,7 +23,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final AgencyRepository agencyRepository;
     private final CustomerRepository customerRepository;
-    private final ProviderRepository providerRepository;
+    private final SupplierRepository supplierRepository;
     private final UserRepository userRepository;
 
     @Override
@@ -44,7 +44,7 @@ public class BookingServiceImpl implements BookingService {
 
         Agency agency = getAgencyOrThrow(agencyId);
         Customer customer = getCustomerOrThrow(agencyId, request.customerId());
-        Provider provider = getProviderOrNull(agencyId, request.providerId());
+        Supplier supplier = getSupplierOrNull(agencyId, request.supplierId());
         User createdBy = getUserOrThrow(userId, agencyId);
 
         String normalizedReference = normalizeReference(request.reference());
@@ -57,7 +57,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = new Booking();
         booking.setAgency(agency);
         booking.setCustomer(customer);
-        booking.setProvider(provider);
+        booking.setSupplier(supplier);
         booking.setCreatedBy(createdBy);
         booking.setReference(normalizedReference);
         booking.setPassengerName(normalizedPassengerName);
@@ -76,7 +76,7 @@ public class BookingServiceImpl implements BookingService {
 
         Booking booking = getBookingOrThrow(agencyId, id);
         Customer customer = getCustomerOrThrow(agencyId, request.customerId());
-        Provider provider = getProviderOrNull(agencyId, request.providerId());
+        Supplier supplier = getSupplierOrNull(agencyId, request.supplierId());
 
         String normalizedReference = normalizeReference(request.reference());
         String normalizedPassengerName = normalizeText(request.passengerName());
@@ -86,7 +86,7 @@ public class BookingServiceImpl implements BookingService {
         validateReferenceUniquenessForUpdate(agencyId, normalizedReference, id);
 
         booking.setCustomer(customer);
-        booking.setProvider(provider);
+        booking.setSupplier(supplier);
         booking.setReference(normalizedReference);
         booking.setPassengerName(normalizedPassengerName);
         booking.setDestination(normalizedDestination);
@@ -125,13 +125,13 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + customerId));
     }
 
-    private Provider getProviderOrNull(UUID agencyId, UUID providerId) {
-        if (providerId == null) {
+    private Supplier getSupplierOrNull(UUID agencyId, UUID supplierId) {
+        if (supplierId == null) {
             return null;
         }
 
-        return providerRepository.findByIdAndAgencyId(providerId, agencyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Provider not found with id: " + providerId));
+        return supplierRepository.findByIdAndAgencyId(supplierId, agencyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier not found with id: " + supplierId));
     }
 
     private User getUserOrThrow(UUID userId, UUID agencyId) {
@@ -198,8 +198,8 @@ public class BookingServiceImpl implements BookingService {
                 booking.getId(),
                 booking.getCustomer().getId(),
                 booking.getCustomer().getFullName(),
-                booking.getProvider() != null ? booking.getProvider().getId() : null,
-                booking.getProvider() != null ? booking.getProvider().getName() : null,
+                booking.getSupplier() != null ? booking.getSupplier().getId() : null,
+                booking.getSupplier() != null ? booking.getSupplier().getName() : null,
                 booking.getReference(),
                 booking.getPassengerName(),
                 booking.getDestination(),

@@ -2,14 +2,16 @@ import { Injectable, signal, computed, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { catchError, of, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
+import { ExchangeRateResponse } from "../models";
 
 const MANUAL_RATE_KEY = "td_exchange_rate_override";
 
 @Injectable({ providedIn: "root" })
 export class ExchangeRateService {
   private readonly http = inject(HttpClient);
+  private readonly api = `${environment.apiUrl}/exchange-rate`;
 
-  /** Rate obtained from external API */
+  /** Rate obtained from backend API */
   private readonly apiRate = signal<number>(1.085);
   /** Manual override entered by the user (null = use API rate) */
   private readonly manualRate = signal<number | null>(this.loadManualRate());
@@ -18,6 +20,19 @@ export class ExchangeRateService {
   readonly rate = computed(() => this.manualRate() ?? this.apiRate());
   readonly isManual = computed(() => this.manualRate() !== null);
   readonly displayRate = computed(() => this.rate().toFixed(4));
+
+  loadRate() {
+    return this.http.get<ExchangeRateResponse>(this.api).pipe(
+      tap((response) => {
+        this.apiRate.set(response.rate);
+      }),
+      catchError(() => {
+        // Fallback to default rate if API fails
+        console.warn("Failed to load exchange rate from API, using default");
+        return of({ baseCurrency: "USD", targetCurrency: "EUR", rate: 1.085 });
+      }),
+    );
+  }
 
   fetchRate() {
     return this.http

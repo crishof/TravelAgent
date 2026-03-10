@@ -8,17 +8,12 @@ import {
 } from "@angular/forms";
 import { SalesService } from "../../core/services/sales.service";
 import { ClientsService } from "../../core/services/clients.service";
-import { ProvidersService } from "../../core/services/providers.service";
+import { SuppliersService } from "../../core/services/suppliers.service";
+import { BookingsService } from "../../core/services/bookings.service";
 import { TeamService } from "../../core/services/team.service";
 import { ExchangeRateService } from "../../core/services/exchange-rate.service";
 import { AuthService } from "../../core/services/auth.service";
-import {
-  Sale,
-  CreateSaleDto,
-  CreateServiceDto,
-  SaleStatus,
-  Currency,
-} from "../../core/models";
+import { SaleRequest, BookingRequest } from "../../core/models";
 
 @Component({
   selector: "app-sales",
@@ -29,23 +24,20 @@ import {
 export class SalesComponent implements OnInit {
   salesSvc = inject(SalesService);
   clientsSvc = inject(ClientsService);
-  providersSvc = inject(ProvidersService);
+  suppliersSvc = inject(SuppliersService);
+  bookingsSvc = inject(BookingsService);
   teamSvc = inject(TeamService);
   xr = inject(ExchangeRateService);
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
 
-  isAdmin = this.auth.isAdmin;
+  isAdmin = this.auth.isLoggedIn;
 
-  expandedId = signal<number | null>(null);
   showNewSale = signal(false);
-  showAddService = signal<number | null>(null);
-  editingSale = signal<Sale | null>(null);
-  editTotalValue = 0;
-  isNewClient = signal(false);
+  showAddService = signal<string | null>(null);
   manualRateInput = signal("");
 
-  saleStatuses: SaleStatus[] = [
+  saleStatuses: string[] = [
     "Cotización",
     "Confirmada",
     "En proceso",
@@ -54,98 +46,80 @@ export class SalesComponent implements OnInit {
   ];
 
   saleForm = this.fb.group({
-    clientId: [""],
-    newClientName: [""],
-    newClientEmail: [""],
-    saleCurrency: ["USD"],
-    status: ["Cotización"],
-    travelDate: [""],
-    saleTotal: [0],
-    agentId: [this.auth.currentUser()?.id ?? ""],
+    customerId: ["", Validators.required],
+    supplierId: ["", Validators.required],
+    destination: ["", Validators.required],
+    amount: [0, [Validators.required, Validators.min(0.01)]],
+    status: ["Cotización", Validators.required],
   });
 
-  serviceForm = this.fb.group({
-    name: ["", Validators.required],
-    providerId: ["", Validators.required],
-    currency: ["USD"],
-    netCost: [0, [Validators.required, Validators.min(0.01)]],
-    salePrice: [null],
-    travelDate: [""],
-    notes: [""],
+  bookingForm = this.fb.group({
+    customerId: ["", Validators.required],
+    supplierId: ["", Validators.required],
+    reference: ["", Validators.required],
+    passengerName: ["", Validators.required],
+    destination: ["", Validators.required],
+    departureDate: ["", Validators.required],
+    returnDate: [""],
+    status: ["PENDING", Validators.required],
   });
 
   ngOnInit() {
     this.salesSvc.loadAll().subscribe();
     this.clientsSvc.loadAll().subscribe();
-    this.providersSvc.loadAll().subscribe();
-    this.teamSvc.loadUsers().subscribe();
-    this.xr.fetchRate().subscribe();
+    this.suppliersSvc.loadAll().subscribe();
+    this.teamSvc.loadAll().subscribe();
+    this.xr.loadRate().subscribe();
   }
 
-  toggleExpand(id: number) {
-    this.expandedId.update((cur) => (cur === id ? null : id));
-  }
-
-  openAddService(saleId: number) {
+  openAddService(saleId: string) {
     this.showAddService.set(saleId);
-    this.serviceForm.reset({ currency: "USD", netCost: 0 });
-  }
-
-  openEditTotal(sale: Sale) {
-    this.editingSale.set(sale);
-    this.editTotalValue = sale.saleTotal;
-  }
-
-  confirmEditTotal() {
-    const sale = this.editingSale();
-    if (!sale) return;
-    this.salesSvc
-      .updateTotal(sale.id, { saleTotal: this.editTotalValue })
-      .subscribe();
-    this.editingSale.set(null);
+    this.bookingForm.reset({ status: "PENDING" });
   }
 
   createSale() {
+    if (this.saleForm.invalid) return;
+
     const v = this.saleForm.value;
-    const dto: CreateSaleDto = {
-      clientId: Number(v.clientId) || 0,
-      agentId: v.agentId || this.auth.currentUser()!.id,
-      status: (v.status as SaleStatus) || "Cotización",
-      saleCurrency: (v.saleCurrency as Currency) || "USD",
-      travelDate: v.travelDate || "",
-      exchangeRate: this.xr.rate(),
-      saleTotal: Number(v.saleTotal) || 0,
+    const dto: SaleRequest = {
+      customerId: v.customerId!,
+      supplierId: v.supplierId!,
+      destination: v.destination!,
+      amount: Number(v.amount),
+      status: v.status!,
     };
-    this.salesSvc.create(dto).subscribe();
-    this.showNewSale.set(false);
-    this.saleForm.reset({
-      saleCurrency: "USD",
-      status: "Cotización",
-      agentId: this.auth.currentUser()?.id,
+
+    this.salesSvc.create(dto).subscribe({
+      next: () => {
+        this.showNewSale.set(false);
+        this.saleForm.reset();
+      },
+      error: (err) => console.error("Error creating sale:", err),
     });
   }
 
   addService() {
-    const saleId = this.showAddService();
-    if (!saleId || this.serviceForm.invalid) return;
-    const v = this.serviceForm.value;
-    const dto: CreateServiceDto = {
-      name: v.name!,
-      providerId: v.providerId!,
-      currency: (v.currency as Currency) || "USD",
-      netCost: Number(v.netCost),
-      salePrice: v.salePrice ? Number(v.salePrice) : null,
-      travelDate: v.travelDate || "",
-      notes: v.notes || "",
-    };
-    this.salesSvc.addService(saleId, dto).subscribe();
-    this.showAddService.set(null);
-  }
+    if (this.bookingForm.invalid) return;
 
-  deleteService(saleId: number, serviceId: number) {
-    if (confirm("¿Eliminar este servicio?")) {
-      this.salesSvc.removeService(saleId, serviceId).subscribe();
-    }
+    const v = this.bookingForm.value;
+    const dto: BookingRequest = {
+      customerId: v.customerId!,
+      supplierId: v.supplierId!,
+      reference: v.reference!,
+      passengerName: v.passengerName!,
+      destination: v.destination!,
+      departureDate: v.departureDate!,
+      returnDate: v.returnDate || undefined,
+      status: v.status!,
+    };
+
+    this.bookingsSvc.create(dto).subscribe({
+      next: () => {
+        this.showAddService.set(null);
+        this.bookingForm.reset({ status: "PENDING" });
+      },
+      error: (err) => console.error("Error creating booking:", err),
+    });
   }
 
   onManualRateChange(event: Event) {
@@ -158,17 +132,16 @@ export class SalesComponent implements OnInit {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
-  getClientName(id: number): string {
-    return this.clientsSvc.getById(id)?.name ?? "—";
+  getClientName(id: string): string {
+    return this.clientsSvc.getById(id)?.fullName ?? "—";
   }
-  getClientInitial(id: number): string {
-    return (this.clientsSvc.getById(id)?.name ?? "?")[0].toUpperCase();
+
+  getClientInitial(id: string): string {
+    return (this.clientsSvc.getById(id)?.fullName ?? "?")[0].toUpperCase();
   }
-  getProviderName(id: string): string {
-    return this.providersSvc.providers().find((p) => p.id === id)?.name ?? "—";
-  }
-  getAgentName(id: string): string {
-    return this.teamSvc.getById(id)?.fullName?.split(" ")[0] ?? "";
+
+  getSupplierName(id: string): string {
+    return this.suppliersSvc.suppliers().find((p) => p.id === id)?.name ?? "—";
   }
 
   statusClass(status: string): string {
@@ -189,15 +162,6 @@ export class SalesComponent implements OnInit {
       "En proceso": "bg-blue-500",
       Completada: "bg-slate-400",
       Cancelada: "bg-red-500",
-    };
-    return map[status] ?? "";
-  }
-
-  payStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      Pendiente: "bg-amber-500/10 text-amber-500",
-      Pagado: "bg-emerald-500/10 text-emerald-500",
-      Vencido: "bg-red-500/10 text-red-500",
     };
     return map[status] ?? "";
   }

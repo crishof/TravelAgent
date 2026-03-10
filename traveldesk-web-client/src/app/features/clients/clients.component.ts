@@ -24,7 +24,7 @@ export class ClientsComponent implements OnInit {
       .filter(
         (c) =>
           !this.search() ||
-          c.name.toLowerCase().includes(this.search().toLowerCase()) ||
+          c.fullName.toLowerCase().includes(this.search().toLowerCase()) ||
           c.email.toLowerCase().includes(this.search().toLowerCase()),
       ),
   );
@@ -86,8 +86,9 @@ export class ClientsComponent implements OnInit {
     this.form.reset();
   }
 
-  getSaleCount(clientId: number): number {
-    return this.salesSvc.sales().filter((s) => s.clientId === clientId).length;
+  getSaleCount(clientId: string): number {
+    return this.salesSvc.sales().filter((s) => s.customerId === clientId)
+      .length;
   }
 
   getVal(e: Event): string {

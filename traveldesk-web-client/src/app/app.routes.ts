@@ -62,15 +62,15 @@ export const routes: Routes = [
         title: 'Clientes — TravelDesk'
       },
       {
-        path: 'providers',
+        path: 'suppliers',
         loadComponent: () =>
-          import('./features/providers/providers.component').then(m => m.ProvidersComponent),
+          import('./features/suppliers/suppliers.component').then(m => m.SuppliersComponent),
         title: 'Proveedores — TravelDesk'
       },
       {
-        path: 'providers/:id',
+        path: 'suppliers/:id',
         loadComponent: () =>
-          import('./features/providers/provider-detail/provider-detail.component').then(m => m.ProviderDetailComponent),
+          import('./features/suppliers/supplier-detail/supplier-detail.component').then(m => m.SupplierDetailComponent),
         title: 'Detalle Proveedor — TravelDesk'
       },
       {

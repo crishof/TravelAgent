@@ -20,34 +20,30 @@ export class DashboardComponent implements OnInit {
   private readonly xr = inject(ExchangeRateService);
   private readonly auth = inject(AuthService);
 
-  isAdmin = this.auth.isAdmin;
-  agency = this.auth.currentAgency;
-
   firstName = computed(
-    () => this.auth.currentUser()?.fullName?.split(" ")[0] ?? "",
+    () => this.auth.currentUser()?.email?.split("@")[0] ?? "",
   );
 
+  isAdmin = computed(() => this.auth.currentUser()?.role === "ADMIN");
+
   private readonly mySales = computed(() => {
-    const user = this.auth.currentUser();
-    if (!user) return [];
-    return this.isAdmin()
-      ? this.salesSvc.sales()
-      : this.salesSvc.sales().filter((s) => s.agentId === user.id);
+    // Por ahora mostramos todas las ventas, después se puede filtrar por usuario si es necesario
+    return this.salesSvc.sales();
   });
 
   recentSales = computed(() => this.mySales().slice(0, 4));
-  pendingServices = computed(() =>
-    this.mySales().flatMap((s) =>
-      s.services.filter((sv) => sv.payStatus === "Pendiente"),
-    ),
+
+  pendingAmount = computed(() =>
+    this.mySales()
+      .filter((s) => s.status === "PENDING")
+      .reduce((a, s) => a + s.amount, 0),
   );
 
   stats = computed(() => {
     const sales = this.mySales();
-    const pending = this.pendingServices();
-    const revenue = sales.reduce((a, s) => a + s.saleTotal, 0);
+    const revenue = sales.reduce((a, s) => a + s.amount, 0);
     const active = sales.filter(
-      (s) => !["Cancelada", "Completada"].includes(s.status),
+      (s) => !["CANCELLED", "COMPLETED"].includes(s.status),
     ).length;
     return [
       {
@@ -60,55 +56,46 @@ export class DashboardComponent implements OnInit {
       {
         label: "Clientes",
         value: this.clientsSvc.clients().length,
-        sub: this.agency()?.name ?? "",
+        sub: "registrados",
         icon: "👥",
         gradient: "bg-gradient-to-br from-violet-500 to-purple-600",
       },
       {
-        label: "Pagos pendientes",
-        value: pending.length,
-        sub: "a proveedores",
+        label: "Monto pendiente",
+        value: this.pendingAmount(),
+        sub: "USD",
         icon: "⚠️",
         gradient: "bg-gradient-to-br from-amber-500 to-orange-600",
       },
       {
-        label: "Facturación est.",
+        label: "Facturación total",
         value: `$${(revenue / 1000).toFixed(1)}k`,
-        sub: "USD equiv.",
+        sub: "USD",
         icon: "📈",
         gradient: "bg-gradient-to-br from-emerald-500 to-green-600",
       },
     ];
   });
 
-  agentStats = computed(() => {
-    const agents = this.teamSvc
-      .users()
-      .filter((u) => u.role === "AGENT" && u.status === "active");
-    const revenues = agents.map((a) => ({
-      id: a.id,
-      name: a.fullName,
-      revenue: this.salesSvc
-        .sales()
-        .filter((s) => s.agentId === a.id)
-        .reduce((acc, s) => acc + s.saleTotal, 0),
-    }));
-    const max = Math.max(...revenues.map((r) => r.revenue), 1);
-    return revenues.map((r) => ({ ...r, pct: (r.revenue / max) * 100 }));
-  });
+  agentStats = computed(
+    (): Array<{ id: string; name: string; revenue: number; pct: number }> => {
+      // Por ahora simplificado, ya que no hay agentId en SaleResponse
+      return [];
+    },
+  );
 
   ngOnInit() {
     this.salesSvc.loadAll().subscribe();
     this.clientsSvc.loadAll().subscribe();
-    this.teamSvc.loadUsers().subscribe();
+    this.teamSvc.loadAll().subscribe();
     this.xr.fetchRate().subscribe();
   }
 
-  getClientName(id: number): string {
-    return this.clientsSvc.getById(id)?.name ?? "—";
+  getClientName(id: string): string {
+    return this.clientsSvc.getById(id)?.fullName ?? "—";
   }
-  getClientInitial(id: number): string {
-    return (this.clientsSvc.getById(id)?.name ?? "?")[0].toUpperCase();
+  getClientInitial(id: string): string {
+    return (this.clientsSvc.getById(id)?.fullName ?? "?")[0].toUpperCase();
   }
   getAgentFirst(id: string): string {
     return this.teamSvc.getById(id)?.fullName?.split(" ")[0] ?? "";
@@ -116,11 +103,11 @@ export class DashboardComponent implements OnInit {
 
   statusClass(status: string): string {
     const map: Record<string, string> = {
-      Cotización: "bg-amber-500/10 text-amber-500",
-      Confirmada: "bg-emerald-500/10 text-emerald-500",
-      "En proceso": "bg-blue-500/10 text-blue-500",
-      Completada: "bg-slate-500/10 text-slate-400",
-      Cancelada: "bg-red-500/10 text-red-500",
+      PENDING: "bg-amber-500/10 text-amber-500",
+      CONFIRMED: "bg-emerald-500/10 text-emerald-500",
+      IN_PROGRESS: "bg-blue-500/10 text-blue-500",
+      COMPLETED: "bg-slate-500/10 text-slate-400",
+      CANCELLED: "bg-red-500/10 text-red-500",
     };
     return map[status] ?? "";
   }

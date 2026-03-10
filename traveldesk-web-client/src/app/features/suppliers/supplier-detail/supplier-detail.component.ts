@@ -7,33 +7,33 @@ import {
   FormGroup,
 } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
-import { ProvidersService } from "../../../core/services/providers.service";
-import { SalesService } from "../../../core/services/sales.service";
+import { SuppliersService } from "../../../core/services/suppliers.service";
+import { BookingsService } from "../../../core/services/bookings.service";
 import {
   ServiceType,
-  CreateProviderDto,
-  ServiceBooking,
+  CreateSupplierDto,
+  BookingResponse,
 } from "../../../core/models";
 
 @Component({
-  selector: "app-provider-detail",
+  selector: "app-supplier-detail",
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: "./provider-detail.component.html",
+  templateUrl: "./supplier-detail.component.html",
 })
-export class ProviderDetailComponent implements OnInit {
+export class SupplierDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
-  providersSvc = inject(ProvidersService);
-  salesSvc = inject(SalesService);
+  suppliersSvc = inject(SuppliersService);
+  bookingsSvc = inject(BookingsService);
 
-  providerId: string | null = null;
+  supplierId: string | null = null;
   isEditing = signal(false);
   isLoading = signal(true);
   errorMessage = signal("");
   successMessage = signal("");
-  associatedBookings = signal<ServiceBooking[]>([]);
+  associatedBookings = signal<BookingResponse[]>([]);
 
   categories: ServiceType[] = [
     "HOTEL",
@@ -64,17 +64,17 @@ export class ProviderDetailComponent implements OnInit {
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
-      this.providerId = params["id"]; // Mantener como string (UUID)
-      this.loadProvider();
+      this.supplierId = params["id"]; // Mantener como string (UUID)
+      this.loadSupplier();
     });
   }
 
-  loadProvider() {
-    if (!this.providerId) return;
+  loadSupplier() {
+    if (!this.supplierId) return;
 
-    this.providersSvc.getById(this.providerId).subscribe({
-      next: (provider) => {
-        this.form.patchValue(provider);
+    this.suppliersSvc.getById(this.supplierId).subscribe({
+      next: (supplier) => {
+        this.form.patchValue(supplier);
         this.loadAssociatedBookings();
         this.isLoading.set(false);
       },
@@ -87,20 +87,14 @@ export class ProviderDetailComponent implements OnInit {
   }
 
   loadAssociatedBookings() {
-    // Cargar todas las ventas y filtrar los servicios que usen este proveedor
-    this.salesSvc.sales().forEach((sale) => {
-      const bookingsForProvider = sale.services.filter(
-        (service) => service.providerId === this.providerId,
-      );
-      this.associatedBookings.update((current) => [
-        ...current,
-        ...bookingsForProvider,
-      ]);
-    });
+    // Cargar todas las reservas y filtrar las que usan este proveedor
+    const bookings = this.bookingsSvc.bookings();
+    const filtered = bookings.filter((b) => b.supplierId === this.supplierId);
+    this.associatedBookings.set(filtered);
   }
 
   save() {
-    if (!this.providerId) return;
+    if (!this.supplierId) return;
 
     this.errorMessage.set("");
     this.successMessage.set("");
@@ -119,10 +113,10 @@ export class ProviderDetailComponent implements OnInit {
       return;
     }
 
-    const formData = this.form.getRawValue() as CreateProviderDto;
+    const formData = this.form.getRawValue() as CreateSupplierDto;
     console.log("Datos a actualizar:", formData);
 
-    this.providersSvc.update(this.providerId, formData).subscribe({
+    this.suppliersSvc.update(this.supplierId, formData).subscribe({
       next: (response) => {
         console.log("Proveedor actualizado exitosamente:", response);
         this.successMessage.set("Proveedor actualizado exitosamente");
@@ -143,11 +137,11 @@ export class ProviderDetailComponent implements OnInit {
     this.isEditing.set(false);
     this.errorMessage.set("");
     this.successMessage.set("");
-    this.loadProvider();
+    this.loadSupplier();
   }
 
   goBack() {
-    this.router.navigate(["/app/providers"]);
+    this.router.navigate(["/app/suppliers"]);
   }
 
   catGradient(serviceType: ServiceType): string {

@@ -1,6 +1,6 @@
 package com.crishof.traveldeskapi.repository;
 
-import com.crishof.traveldeskapi.model.Provider;
+import com.crishof.traveldeskapi.model.Supplier;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,11 +9,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface ProviderRepository extends JpaRepository<Provider, UUID> {
+public interface SupplierRepository extends JpaRepository<Supplier, UUID> {
 
-    List<Provider> findAllByAgencyIdOrderByNameAsc(UUID agencyId);
+    List<Supplier> findAllByAgencyIdOrderByNameAsc(UUID agencyId);
 
-    Optional<Provider> findByIdAndAgencyId(UUID id, UUID agencyId);
+    Optional<Supplier> findByIdAndAgencyId(UUID id, UUID agencyId);
 
     boolean existsByAgencyIdAndEmailIgnoreCase(UUID agencyId, String email);
 

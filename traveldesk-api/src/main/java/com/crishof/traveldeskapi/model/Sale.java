@@ -42,8 +42,8 @@ public class Sale {
     private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "provider_id")
-    private Provider provider;
+    @JoinColumn(name = "supplier_id")
+    private Supplier supplier;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", nullable = false)
@@ -55,12 +55,19 @@ public class Sale {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
+    @Column(nullable = false, length = 10)
+    private String currency;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SaleStatus status;
 
     @Column(nullable = false)
     private Instant saleDate;
+
+    private Instant departureDate;
+
+    private String description;
 
     @Column(nullable = false)
     private Instant createdAt;

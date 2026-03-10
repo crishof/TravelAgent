@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -15,12 +17,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(
-        name = "tbl_providers",
+        name = "tbl_suppliers",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_provider_agency_email", columnNames = {"agency_id", "email"})
+                @UniqueConstraint(name = "uk_supplier_agency_email", columnNames = {"agency_id", "email"})
         }
 )
-public class Provider {
+public class Supplier implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue
@@ -41,7 +46,7 @@ public class Provider {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private ProviderType type;
+    private SupplierType type;
 
     @Column(nullable = false)
     private Instant createdAt;

@@ -16,6 +16,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -30,7 +32,10 @@ import java.util.UUID;
                 @UniqueConstraint(name = "uk_customer_agency_email", columnNames = {"agency_id", "email"})
         }
 )
-public class Customer {
+public class Customer implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue
@@ -48,6 +53,9 @@ public class Customer {
 
     @Column(nullable = false, length = 30)
     private String phone;
+
+    @Column(length = 10)
+    private String passportNumber;
 
     @Column(nullable = false)
     private Instant createdAt;

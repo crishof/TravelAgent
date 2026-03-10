@@ -75,7 +75,7 @@ export class RegisterComponent {
     }
     this.loading.set(true);
     this.auth
-      .registerAgency({
+      .register({
         agencyName: this.agencyNameCtrl.value!,
         fullName: fullName!,
         email: email!,
@@ -84,7 +84,7 @@ export class RegisterComponent {
       .subscribe({
         next: () => void this.router.navigate(["/app/dashboard"]),
         error: (e) => {
-          this.error.set(e?.error?.message || "Error al crear la agencia");
+          this.error.set(e?.error?.message || "Error al registrarse");
           this.loading.set(false);
         },
       });

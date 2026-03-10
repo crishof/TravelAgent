@@ -21,7 +21,7 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
 
     boolean existsByCustomerId(UUID customerId);
 
-    boolean existsByProviderId(UUID providerId);
+    boolean existsBySupplierId(UUID supplierId);
 
     long countByAgencyId(UUID agencyId);
 }

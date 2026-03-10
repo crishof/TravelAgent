@@ -40,7 +40,7 @@
       </div>
     }
 
-    <!-- Provider Details Card -->
+    <!-- Supplier Details Card -->
     <div
       class="rounded-2xl border p-6 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
     >
@@ -259,27 +259,27 @@
                 <th
                   class="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white"
                 >
-                  Nombre
+                  Pasajero
                 </th>
                 <th
                   class="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white"
                 >
-                  Costo Neto
+                  Referencia
                 </th>
                 <th
                   class="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white"
                 >
-                  Precio Venta
+                  Destino
                 </th>
                 <th
                   class="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white"
                 >
-                  Fecha Viaje
+                  Fecha Salida
                 </th>
                 <th
                   class="text-left py-3 px-4 font-semibold text-slate-900 dark:text-white"
                 >
-                  Estado Pago
+                  Estado
                 </th>
               </tr>
             </thead>
@@ -289,33 +289,30 @@
                   class="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 >
                   <td class="py-3 px-4 text-slate-900 dark:text-white">
-                    {{ booking.name }}
+                    {{ booking.passengerName }}
                   </td>
                   <td class="py-3 px-4 text-slate-900 dark:text-white">
-                    {{ booking.netCost }} {{ booking.currency }}
+                    {{ booking.reference }}
                   </td>
                   <td class="py-3 px-4 text-slate-900 dark:text-white">
-                    {{ booking.salePrice || "—" }}
-                    @if (booking.salePrice) {
-                      {{ booking.currency }}
-                    }
+                    {{ booking.destination }}
                   </td>
                   <td class="py-3 px-4 text-slate-900 dark:text-white">
-                    {{ booking.travelDate }}
+                    {{ booking.departureDate }}
                   </td>
                   <td class="py-3 px-4">
                     <span
                       class="inline-block px-2 py-1 rounded-full text-xs font-semibold"
                       [class]="{
                         'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200':
-                          booking.payStatus === 'Pendiente',
+                          booking.status === 'PENDING',
                         'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200':
-                          booking.payStatus === 'Pagado',
+                          booking.status === 'CONFIRMED',
                         'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200':
-                          booking.payStatus === 'Vencido',
+                          booking.status === 'CANCELLED',
                       }"
                     >
-                      {{ booking.payStatus }}
+                      {{ booking.status }}
                     </span>
                   </td>
                 </tr>

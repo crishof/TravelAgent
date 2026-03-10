@@ -22,7 +22,7 @@ public class SalesServiceImpl implements SalesService {
     private final SaleRepository saleRepository;
     private final AgencyRepository agencyRepository;
     private final CustomerRepository customerRepository;
-    private final ProviderRepository providerRepository;
+    private final SupplierRepository supplierRepository;
     private final UserRepository userRepository;
 
     @Override
@@ -42,13 +42,13 @@ public class SalesServiceImpl implements SalesService {
 
         Agency agency = getAgencyOrThrow(agencyId);
         Customer customer = getCustomerOrThrow(agencyId, request.customerId());
-        Provider provider = getProviderOrNull(agencyId, request.providerId());
+        Supplier supplier = getSupplierOrNull(agencyId, request.supplierId());
         User createdBy = getUserOrThrow(userId, agencyId);
 
         Sale sale = new Sale();
         sale.setAgency(agency);
         sale.setCustomer(customer);
-        sale.setProvider(provider);
+        sale.setSupplier(supplier);
         sale.setCreatedBy(createdBy);
         sale.setDestination(normalizeText(request.destination()));
         sale.setAmount(request.amount());
@@ -63,10 +63,10 @@ public class SalesServiceImpl implements SalesService {
 
         Sale sale = getSaleOrThrow(agencyId, id);
         Customer customer = getCustomerOrThrow(agencyId, request.customerId());
-        Provider provider = getProviderOrNull(agencyId, request.providerId());
+        Supplier supplier = getSupplierOrNull(agencyId, request.supplierId());
 
         sale.setCustomer(customer);
-        sale.setProvider(provider);
+        sale.setSupplier(supplier);
         sale.setDestination(normalizeText(request.destination()));
         sale.setAmount(request.amount());
         sale.setStatus(parseSaleStatus(request.status()));
@@ -102,13 +102,13 @@ public class SalesServiceImpl implements SalesService {
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + customerId));
     }
 
-    private Provider getProviderOrNull(UUID agencyId, UUID providerId) {
-        if (providerId == null) {
+    private Supplier getSupplierOrNull(UUID agencyId, UUID supplierId) {
+        if (supplierId == null) {
             return null;
         }
 
-        return providerRepository.findByIdAndAgencyId(providerId, agencyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Provider not found with id: " + providerId));
+        return supplierRepository.findByIdAndAgencyId(supplierId, agencyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier not found with id: " + supplierId));
     }
 
     private User getUserOrThrow(UUID userId, UUID agencyId) {
@@ -153,8 +153,8 @@ public class SalesServiceImpl implements SalesService {
                 sale.getId(),
                 sale.getCustomer().getId(),
                 sale.getCustomer().getFullName(),
-                sale.getProvider() != null ? sale.getProvider().getId() : null,
-                sale.getProvider() != null ? sale.getProvider().getName() : null,
+                sale.getSupplier() != null ? sale.getSupplier().getId() : null,
+                sale.getSupplier() != null ? sale.getSupplier().getName() : null,
                 sale.getDestination(),
                 sale.getAmount(),
                 sale.getStatus().name()

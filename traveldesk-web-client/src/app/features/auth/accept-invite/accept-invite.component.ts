@@ -18,13 +18,13 @@ export class AcceptInviteComponent implements OnInit {
   private readonly router = inject(Router);
 
   loadingInvite = signal(true);
-  inviteInfo = signal<{ email: string; agency: { name: string } } | null>(null);
+  inviteInfo = signal<{ email: string; agencyName: string } | null>(null);
   inviteError = signal("");
   loading = signal(false);
   error = signal("");
 
   form = this.fb.group({
-    name: ["", Validators.required],
+    fullName: ["", Validators.required],
     password: ["", [Validators.required, Validators.minLength(8)]],
   });
 
@@ -50,7 +50,8 @@ export class AcceptInviteComponent implements OnInit {
     this.auth
       .acceptInvite({
         token: this.token,
-        name: this.form.value.name!,
+        fullName: this.form.value.fullName!,
+        email: this.inviteInfo()!.email,
         password: this.form.value.password!,
       })
       .subscribe({

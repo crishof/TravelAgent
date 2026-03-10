@@ -31,7 +31,6 @@ export class ShellComponent {
   theme = inject(ThemeService);
 
   user = this.auth.currentUser;
-  agency = this.auth.currentAgency;
 
   sidebarOpen = signal(true);
 
@@ -65,7 +64,7 @@ export class ShellComponent {
       ),
     },
     {
-      path: "providers",
+      path: "suppliers",
       label: "Proveedores",
       icon: this.svgIcon(
         "M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2zM9 22V12h6v10",
@@ -101,7 +100,7 @@ export class ShellComponent {
   );
 
   toggleSidebar() {
-    this.sidebarOpen.update(v => !v);
+    this.sidebarOpen.update((v) => !v);
   }
 
   logout() {
