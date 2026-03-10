@@ -11,7 +11,7 @@ public record BookingRequest(
         @NotNull(message = "Customer id is required")
         UUID customerId,
 
-        UUID providerId,
+        UUID supplierId,
 
         @NotBlank(message = "Reference is required")
         @Size(max = 50, message = "Reference must not exceed 50 characters")

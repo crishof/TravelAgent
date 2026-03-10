@@ -12,7 +12,7 @@ public record SaleRequest(
         @NotNull(message = "Customer id is required")
         UUID customerId,
 
-        UUID providerId,
+        UUID supplierId,
 
         @NotBlank(message = "Destination is required")
         @Size(max = 120, message = "Destination must not exceed 120 characters")

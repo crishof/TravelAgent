@@ -2,7 +2,7 @@ package com.crishof.traveldeskapi.dto;
 
 import java.util.UUID;
 
-public record ProviderResponse(
+public record SupplierResponse(
         UUID id,
         String name,
         String email,

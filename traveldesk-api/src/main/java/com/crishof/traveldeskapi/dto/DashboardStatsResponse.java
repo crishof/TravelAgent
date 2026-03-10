@@ -4,6 +4,6 @@ public record DashboardStatsResponse(
         int totalSales,
         int totalBookings,
         int totalCustomers,
-        int totalProviders
+        int totalSuppliers
 ) {
 }
