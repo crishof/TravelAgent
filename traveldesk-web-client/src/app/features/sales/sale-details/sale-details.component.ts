@@ -6,6 +6,8 @@ import {
   BookingRequest,
   BookingResponse,
   Currency,
+  SalePaymentRequest,
+  SalePaymentResponse,
   SaleRequest,
   SaleResponse,
 } from "../../../core/models";
@@ -14,15 +16,7 @@ import { ExchangeRateService } from "../../../core/services/exchange-rate.servic
 import { SalesService } from "../../../core/services/sales.service";
 import { SuppliersService } from "../../../core/services/suppliers.service";
 
-interface PaymentItem {
-  id: string;
-  originalAmount: number;
-  sourceCurrency: Currency;
-  description: string;
-  exchangeRate: number;
-  convertedAmount: number;
-  createdAt: string;
-}
+type PaymentItem = SalePaymentResponse;
 
 @Component({
   selector: "app-sale-details",
@@ -106,7 +100,10 @@ export class SaleDetailsComponent implements OnInit {
   });
 
   readonly paymentsReceived = computed(() =>
-    this.payments().reduce((acc, p) => acc + p.convertedAmount, 0),
+    this.payments().reduce(
+      (acc, p) => acc + Number(p.convertedAmount ?? p.originalAmount ?? 0),
+      0,
+    ),
   );
 
   readonly pendingBalance = computed(() => {
@@ -187,40 +184,46 @@ export class SaleDetailsComponent implements OnInit {
         ? originalAmount
         : originalAmount * exchangeRate;
 
-    const payment: PaymentItem = {
-      id: crypto.randomUUID(),
+    const payment: SalePaymentRequest = {
+      customerId: currentSale.customerId,
       originalAmount,
       sourceCurrency,
       description,
       exchangeRate,
       convertedAmount,
-      createdAt: new Date().toISOString(),
     };
 
-    this.payments.update((list) => [payment, ...list]);
-    this.persistPayments(currentSale.id);
-    this.paymentForm.reset({
-      amount: 0,
-      currency: this.currency(),
-      description: "",
-      exchangeRate: 0,
-    });
-    this.showAddPayment.set(false);
+    this.salesSvc.addPayment(currentSale.id, payment).subscribe({
+      next: (createdPayment) => {
+        const normalized = this.normalizePayment(createdPayment, payment, currentSale.customerId);
+        this.payments.update((list) => [normalized, ...list]);
+        this.paymentForm.reset({
+          amount: 0,
+          currency: this.currency(),
+          description: "",
+          exchangeRate: 0,
+        });
+        this.showAddPayment.set(false);
 
-    if (currentSale.status !== "CONFIRMED") {
-      this.salesSvc.update(currentSale.id, { status: "CONFIRMED" }).subscribe({
-        next: (updated) => this.sale.set(updated),
-        error: (err) => console.error("Error updating sale status:", err),
-      });
-    }
+        if (currentSale.status !== "CONFIRMED") {
+          this.salesSvc.update(currentSale.id, { status: "CONFIRMED" }).subscribe({
+            next: (updated) => this.sale.set(updated),
+            error: (err) => console.error("Error updating sale status:", err),
+          });
+        }
+      },
+      error: (err) => console.error("Error adding payment:", err),
+    });
   }
 
   removePayment(id: string) {
     const currentSale = this.sale();
     if (!currentSale) return;
 
-    this.payments.update((list) => list.filter((p) => p.id !== id));
-    this.persistPayments(currentSale.id);
+    this.salesSvc.deletePayment(currentSale.id, id).subscribe({
+      next: () => this.payments.update((list) => list.filter((p) => p.id !== id)),
+      error: (err) => console.error("Error deleting payment:", err),
+    });
   }
 
   openAddPayment() {
@@ -338,49 +341,53 @@ export class SaleDetailsComponent implements OnInit {
     return this.suppliersSvc.suppliers().find((s) => s.id === id)?.name ?? "—";
   }
 
-  private paymentsKey(saleId: string): string {
-    return `td_sale_payments_${saleId}`;
-  }
-
   private loadPayments(saleId: string) {
-    const raw = localStorage.getItem(this.paymentsKey(saleId));
-    if (!raw) {
-      this.payments.set([]);
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(raw) as Array<
-        PaymentItem & { amount?: number }
-      >;
-
-      // Backward-compatible migration from old persisted shape.
-      const normalized: PaymentItem[] = parsed.map((p) => {
-        if (typeof p.originalAmount === "number") return p;
-
-        const amount = Number(p.amount ?? 0);
-        return {
-          id: p.id,
-          originalAmount: amount,
-          sourceCurrency: this.currency(),
-          description: "Pago",
-          exchangeRate: 1,
-          convertedAmount: amount,
-          createdAt: p.createdAt,
-        };
-      });
-
-      this.payments.set(normalized);
-    } catch {
-      this.payments.set([]);
-      localStorage.removeItem(this.paymentsKey(saleId));
-    }
+    this.salesSvc.getPayments(saleId).subscribe({
+      next: (payments) => {
+        const customerId = this.sale()?.customerId ?? "";
+        const normalized = payments.map((p) => this.normalizePayment(p, undefined, customerId));
+        this.payments.set(normalized);
+      },
+      error: (err) => {
+        if (err?.status !== 405) {
+          console.error("Error loading payments:", err);
+        }
+        this.payments.set([]);
+      },
+    });
   }
 
-  private persistPayments(saleId: string) {
-    localStorage.setItem(
-      this.paymentsKey(saleId),
-      JSON.stringify(this.payments()),
+  private normalizePayment(
+    payment: Partial<SalePaymentResponse>,
+    fallback?: SalePaymentRequest,
+    fallbackCustomerId?: string,
+  ): PaymentItem {
+    const sourceCurrency =
+      payment.sourceCurrency ??
+      fallback?.sourceCurrency ??
+      this.currency();
+
+    const originalAmount = Number(
+      payment.originalAmount ?? fallback?.originalAmount ?? 0,
     );
+
+    const convertedAmount = Number(
+      payment.convertedAmount ??
+        fallback?.convertedAmount ??
+        (sourceCurrency === this.currency()
+          ? originalAmount
+          : originalAmount * Number(payment.exchangeRate ?? fallback?.exchangeRate ?? 1)),
+    );
+
+    return {
+      id: payment.id ?? crypto.randomUUID(),
+      customerId: payment.customerId ?? fallback?.customerId ?? fallbackCustomerId ?? "",
+      originalAmount,
+      sourceCurrency,
+      description: (payment.description ?? fallback?.description ?? "Pago").trim(),
+      exchangeRate: Number(payment.exchangeRate ?? fallback?.exchangeRate ?? 1),
+      convertedAmount,
+      createdAt: payment.createdAt ?? new Date().toISOString(),
+    };
   }
 }

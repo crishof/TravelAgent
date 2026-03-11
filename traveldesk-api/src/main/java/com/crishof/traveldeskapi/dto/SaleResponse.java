@@ -9,6 +9,7 @@ public record SaleResponse(
         String customerName,
         String destination,
         BigDecimal amount,
-        String status
+        String status,
+        BigDecimal paidAmount
 ) {
 }

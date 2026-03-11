@@ -1,5 +1,7 @@
 package com.crishof.traveldeskapi.service;
 
+import com.crishof.traveldeskapi.dto.PaymentRequest;
+import com.crishof.traveldeskapi.dto.PaymentResponse;
 import com.crishof.traveldeskapi.dto.SaleRequest;
 import com.crishof.traveldeskapi.dto.SaleResponse;
 import jakarta.validation.Valid;
@@ -18,4 +20,10 @@ public interface SalesService {
     void delete(UUID agencyId, UUID id);
 
     SaleResponse findById(UUID agencyId, UUID id);
+
+    SaleResponse registerPayment(UUID agencyId, UUID saleId, @Valid PaymentRequest request);
+
+    List<PaymentResponse> getPaymentsForSale(UUID agencyId, UUID saleId);
+
+    SaleResponse deletePayment(UUID agencyId, UUID saleId, UUID paymentId);
 }

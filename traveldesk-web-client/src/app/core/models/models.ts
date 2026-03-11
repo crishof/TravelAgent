@@ -192,6 +192,20 @@ export interface SaleResponse {
 export type Sale = SaleResponse;
 export type CreateSaleDto = SaleRequest;
 
+export interface SalePaymentRequest {
+  customerId: string;
+  originalAmount: number;
+  sourceCurrency: Currency;
+  description: string;
+  exchangeRate: number;
+  convertedAmount: number;
+}
+
+export interface SalePaymentResponse extends SalePaymentRequest {
+  id: string;
+  createdAt: string;
+}
+
 // ─── Booking ──────────────────────────────────────────────────────────────────
 export interface BookingRequest {
   customerId: string;

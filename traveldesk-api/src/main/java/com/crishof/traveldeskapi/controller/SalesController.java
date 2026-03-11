@@ -1,7 +1,9 @@
 package com.crishof.traveldeskapi.controller;
 
+import com.crishof.traveldeskapi.dto.PaymentRequest;
 import com.crishof.traveldeskapi.dto.SaleRequest;
 import com.crishof.traveldeskapi.dto.SaleResponse;
+import com.crishof.traveldeskapi.dto.PaymentResponse;
 import com.crishof.traveldeskapi.security.SecurityUser;
 import com.crishof.traveldeskapi.service.SalesService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -113,5 +116,53 @@ public class SalesController {
         log.info("Delete sale request received for userId={}, saleId={}", securityUser.getId(), id);
         salesService.delete(securityUser.getAgencyId(), id);
         return ResponseEntity.noContent().build();
+    }
+
+    //  ===============
+    //  REGISTER PAYMENT
+    //  ===============
+    @Operation(summary = "Register a partial payment for a sale")
+    @ApiResponse(responseCode = "200", description = "Payment registered successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "404", description = "Sale not found")
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/{saleId}/payments")
+    public ResponseEntity<SaleResponse> registerPayment(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @PathVariable UUID saleId,
+            @Valid @RequestBody PaymentRequest request
+    ) {
+        log.info("Register payment request received for saleId={}, userId={}", saleId, securityUser.getId());
+        return ResponseEntity.ok(salesService.registerPayment(securityUser.getAgencyId(), saleId, request));
+    }
+
+    @Operation(summary = "Get payments for a sale")
+    @ApiResponse(responseCode = "200", description = "Payments retrieved successfully")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "404", description = "Sale not found")
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/{saleId}/payments")
+    public ResponseEntity<List<PaymentResponse>> getPaymentsForSale(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @PathVariable UUID saleId
+    ) {
+        log.info("Get payments request received for saleId={}, userId={}", saleId, securityUser.getId());
+        return ResponseEntity.ok(salesService.getPaymentsForSale(securityUser.getAgencyId(), saleId));
+    }
+
+    @Operation(summary = "Delete a payment for a sale")
+    @ApiResponse(responseCode = "200", description = "Payment deleted successfully, updated sale returned")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "404", description = "Sale or payment not found")
+    @PreAuthorize("isAuthenticated()")
+    @DeleteMapping("/{saleId}/payments/{paymentId}")
+    public ResponseEntity<SaleResponse> deletePayment(
+            @AuthenticationPrincipal SecurityUser securityUser,
+            @PathVariable UUID saleId,
+            @PathVariable UUID paymentId
+    ) {
+        log.info("Delete payment request received for saleId={}, paymentId={}, userId={}", saleId, paymentId, securityUser.getId());
+        return ResponseEntity.ok(salesService.deletePayment(securityUser.getAgencyId(), saleId, paymentId));
     }
 }

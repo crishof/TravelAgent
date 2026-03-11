@@ -1,5 +1,7 @@
 package com.crishof.traveldeskapi.service;
 
+import com.crishof.traveldeskapi.dto.PaymentRequest;
+import com.crishof.traveldeskapi.dto.PaymentResponse;
 import com.crishof.traveldeskapi.dto.SaleRequest;
 import com.crishof.traveldeskapi.dto.SaleResponse;
 import com.crishof.traveldeskapi.exception.InvalidRequestException;
@@ -7,6 +9,7 @@ import com.crishof.traveldeskapi.exception.ResourceNotFoundException;
 import com.crishof.traveldeskapi.model.*;
 import com.crishof.traveldeskapi.repository.*;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -152,6 +155,87 @@ public class SalesServiceImpl implements SalesService {
                 sale.getCustomer().getFullName(),
                 sale.getDestination(),
                 sale.getAmount(),
-                sale.getStatus().name());
+                sale.getStatus().name(),
+                sale.getPaidAmount());
+    }
+
+    @Override
+    public SaleResponse registerPayment(UUID agencyId, UUID saleId, @Valid PaymentRequest request) {
+        validateAgencyId(agencyId);
+
+        Sale sale = getSaleOrThrow(agencyId, saleId);
+
+        if (!sale.getCustomer().getId().equals(request.customerId())) {
+            throw new InvalidRequestException("Customer ID does not match the sale's customer");
+        }
+
+        Payment payment = new Payment();
+        payment.setSale(sale);
+        payment.setOriginalAmount(request.originalAmount());
+        payment.setSourceCurrency(request.sourceCurrency().toUpperCase(Locale.ROOT));
+        payment.setDescription(normalizeText(request.description()));
+        payment.setExchangeRate(request.exchangeRate());
+        payment.setConvertedAmount(request.convertedAmount());
+
+        sale.getPayments().add(payment);
+        sale.setPaidAmount(sale.getPaidAmount().add(payment.getConvertedAmount()));
+
+        if (sale.getPaidAmount().compareTo(sale.getAmount()) >= 0 && sale.getStatus() == SaleStatus.CREATED) {
+            sale.setStatus(SaleStatus.CONFIRMED);
+        }
+
+        saleRepository.save(sale);
+
+        return toResponse(sale);
+    }
+
+    @Override
+    @Transactional(Transactional.TxType.SUPPORTS)
+    public List<PaymentResponse> getPaymentsForSale(UUID agencyId, UUID saleId) {
+        validateAgencyId(agencyId);
+
+        Sale sale = saleRepository.findByIdAndAgencyIdWithPayments(saleId, agencyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + saleId));
+
+        return sale.getPayments().stream()
+                .sorted((p1, p2) -> p2.getPaymentDate().compareTo(p1.getPaymentDate())) // Latest first
+                .map(this::toPaymentResponse)
+                .toList();
+    }
+
+    private PaymentResponse toPaymentResponse(Payment payment) {
+        return new PaymentResponse(
+                payment.getId(),
+                payment.getOriginalAmount(),
+                payment.getSourceCurrency(),
+                payment.getDescription(),
+                payment.getExchangeRate(),
+                payment.getConvertedAmount(),
+                payment.getPaymentDate()
+        );
+    }
+
+    @Override
+    public SaleResponse deletePayment(UUID agencyId, UUID saleId, UUID paymentId) {
+        validateAgencyId(agencyId);
+
+        Sale sale = saleRepository.findByIdAndAgencyIdWithPayments(saleId, agencyId)
+                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + saleId));
+
+        Payment paymentToDelete = sale.getPayments().stream()
+                .filter(p -> p.getId().equals(paymentId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Payment not found with id: " + paymentId + " for sale: " + saleId));
+
+        sale.getPayments().remove(paymentToDelete);
+        sale.setPaidAmount(sale.getPaidAmount().subtract(paymentToDelete.getConvertedAmount()));
+
+        if (sale.getPaidAmount().compareTo(sale.getAmount()) < 0 && sale.getStatus() == SaleStatus.CONFIRMED) {
+            sale.setStatus(SaleStatus.CREATED);
+        }
+
+        saleRepository.save(sale);
+
+        return toResponse(sale);
     }
 }

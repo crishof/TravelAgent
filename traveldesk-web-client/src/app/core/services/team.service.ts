@@ -17,19 +17,19 @@ export class TeamService {
 
   loadAll() {
     return this.http
-      .get<TeamMemberResponse[]>(`${this.api}/api/v1/team`)
+      .get<TeamMemberResponse[]>(`${this.api}/team`)
       .pipe(tap((data) => this.members.set(data)));
   }
 
   invite(dto: TeamInviteRequest) {
     return this.http
-      .post<TeamMemberResponse>(`${this.api}/api/v1/team/invite`, dto)
+      .post<TeamMemberResponse>(`${this.api}/team/invite`, dto)
       .pipe(tap((member) => this.members.update((list) => [...list, member])));
   }
 
   update(memberId: string, dto: TeamMemberRequest) {
     return this.http
-      .put<TeamMemberResponse>(`${this.api}/api/v1/team/${memberId}`, dto)
+      .put<TeamMemberResponse>(`${this.api}/team/${memberId}`, dto)
       .pipe(
         tap((updated) =>
           this.members.update((list) =>
@@ -41,7 +41,7 @@ export class TeamService {
 
   remove(memberId: string) {
     return this.http
-      .delete(`${this.api}/api/v1/team/${memberId}`)
+      .delete(`${this.api}/team/${memberId}`)
       .pipe(
         tap(() =>
           this.members.update((list) => list.filter((m) => m.id !== memberId)),
