@@ -143,6 +143,10 @@
       </button>
 
       <div class="flex items-center gap-3">
+        <app-exchange-rate-banner></app-exchange-rate-banner>
+
+        <div class="w-px h-5 bg-slate-200 dark:bg-slate-700"></div>
+
         <span class="text-xs text-slate-500 dark:text-slate-500">{{
           theme.isDark() ? "Dark" : "Light"
         }}</span>
@@ -190,9 +194,6 @@
         </button>
       </div>
     </header>
-
-    <!-- Exchange Rate Banner -->
-    <app-exchange-rate-banner></app-exchange-rate-banner>
 
     <!-- Page content -->
     <main class="flex-1 overflow-y-auto p-6 animate-fade-in">

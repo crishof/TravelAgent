@@ -1,4 +1,4 @@
-import { CommonModule, CurrencyPipe } from "@angular/common";
+import { CommonModule } from "@angular/common";
 import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -10,19 +10,24 @@ import {
   SaleResponse,
 } from "../../../core/models";
 import { BookingsService } from "../../../core/services/bookings.service";
+import { ExchangeRateService } from "../../../core/services/exchange-rate.service";
 import { SalesService } from "../../../core/services/sales.service";
 import { SuppliersService } from "../../../core/services/suppliers.service";
 
 interface PaymentItem {
   id: string;
-  amount: number;
+  originalAmount: number;
+  sourceCurrency: Currency;
+  description: string;
+  exchangeRate: number;
+  convertedAmount: number;
   createdAt: string;
 }
 
 @Component({
   selector: "app-sale-details",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CurrencyPipe],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: "./sale-details.component.html",
 })
 export class SaleDetailsComponent implements OnInit {
@@ -33,12 +38,15 @@ export class SaleDetailsComponent implements OnInit {
   readonly salesSvc = inject(SalesService);
   readonly bookingsSvc = inject(BookingsService);
   readonly suppliersSvc = inject(SuppliersService);
+  readonly xr = inject(ExchangeRateService);
 
   readonly sale = signal<SaleResponse | null>(null);
   readonly loading = signal(true);
   readonly error = signal("");
 
   readonly showAddBooking = signal(false);
+  readonly showAddPayment = signal(false);
+  readonly editingAmount = signal(false);
   readonly editingBookingId = signal<string | null>(null);
 
   readonly payments = signal<PaymentItem[]>([]);
@@ -49,6 +57,20 @@ export class SaleDetailsComponent implements OnInit {
 
   readonly paymentForm = this.fb.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
+    currency: ["USD", Validators.required],
+    description: ["", Validators.required],
+    exchangeRate: [0],
+  });
+
+  readonly effectiveExchangeRate = computed(() => {
+    const currentSaleCurrency = this.currency();
+    const paymentCurrency = this.paymentForm.value.currency as Currency;
+    if (!paymentCurrency || paymentCurrency === currentSaleCurrency) return 1;
+
+    const override = Number(this.paymentForm.value.exchangeRate ?? 0);
+    return override > 0
+      ? override
+      : this.defaultExchangeRate(paymentCurrency, currentSaleCurrency);
   });
 
   readonly bookingForm = this.fb.group({
@@ -72,8 +94,19 @@ export class SaleDetailsComponent implements OnInit {
 
   readonly currency = computed<Currency>(() => this.sale()?.currency ?? "USD");
 
+  readonly travelDate = computed<string | null>(() => {
+    const bookings = this.saleBookings();
+    if (!bookings.length) return null;
+    return (
+      bookings
+        .map((b) => b.departureDate)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b))[0] ?? null
+    );
+  });
+
   readonly paymentsReceived = computed(() =>
-    this.payments().reduce((acc, p) => acc + p.amount, 0),
+    this.payments().reduce((acc, p) => acc + p.convertedAmount, 0),
   );
 
   readonly pendingBalance = computed(() => {
@@ -106,6 +139,7 @@ export class SaleDetailsComponent implements OnInit {
         this.amountForm.patchValue({ amount: sale.amount });
         this.bookingForm.patchValue({ destination: sale.destination });
         this.loadPayments(sale.id);
+        this.xr.loadRate().subscribe();
 
         this.bookingsSvc.loadAll().subscribe();
         this.suppliersSvc.loadAll().subscribe();
@@ -132,7 +166,10 @@ export class SaleDetailsComponent implements OnInit {
     };
 
     this.salesSvc.update(currentSale.id, dto).subscribe({
-      next: (updated) => this.sale.set(updated),
+      next: (updated) => {
+        this.sale.set(updated);
+        this.editingAmount.set(false);
+      },
       error: (err) => console.error("Error updating sale amount:", err),
     });
   }
@@ -141,15 +178,34 @@ export class SaleDetailsComponent implements OnInit {
     const currentSale = this.sale();
     if (!currentSale || this.paymentForm.invalid) return;
 
+    const originalAmount = Number(this.paymentForm.value.amount);
+    const sourceCurrency = this.paymentForm.value.currency as Currency;
+    const description = (this.paymentForm.value.description ?? "").trim();
+    const exchangeRate = this.effectiveExchangeRate();
+    const convertedAmount =
+      sourceCurrency === this.currency()
+        ? originalAmount
+        : originalAmount * exchangeRate;
+
     const payment: PaymentItem = {
       id: crypto.randomUUID(),
-      amount: Number(this.paymentForm.value.amount),
+      originalAmount,
+      sourceCurrency,
+      description,
+      exchangeRate,
+      convertedAmount,
       createdAt: new Date().toISOString(),
     };
 
     this.payments.update((list) => [payment, ...list]);
     this.persistPayments(currentSale.id);
-    this.paymentForm.reset({ amount: 0 });
+    this.paymentForm.reset({
+      amount: 0,
+      currency: this.currency(),
+      description: "",
+      exchangeRate: 0,
+    });
+    this.showAddPayment.set(false);
 
     if (currentSale.status !== "CONFIRMED") {
       this.salesSvc.update(currentSale.id, { status: "CONFIRMED" }).subscribe({
@@ -165,6 +221,40 @@ export class SaleDetailsComponent implements OnInit {
 
     this.payments.update((list) => list.filter((p) => p.id !== id));
     this.persistPayments(currentSale.id);
+  }
+
+  openAddPayment() {
+    const saleCurrency = this.currency();
+    this.showAddPayment.set(true);
+    this.paymentForm.reset({
+      amount: 0,
+      currency: saleCurrency,
+      description: "",
+      exchangeRate: 0,
+    });
+  }
+
+  onPaymentCurrencyChange() {
+    const saleCurrency = this.currency();
+    const paymentCurrency = this.paymentForm.value.currency as Currency;
+    if (!paymentCurrency || paymentCurrency === saleCurrency) {
+      this.paymentForm.patchValue({ exchangeRate: 0 });
+      return;
+    }
+
+    this.paymentForm.patchValue({
+      exchangeRate: this.defaultExchangeRate(paymentCurrency, saleCurrency),
+    });
+  }
+
+  private defaultExchangeRate(from: Currency, to: Currency): number {
+    if (from === to) return 1;
+
+    const usdToEur = this.xr.rate();
+    if (from === "USD" && to === "EUR") return usdToEur;
+    if (from === "EUR" && to === "USD") return 1 / usdToEur;
+
+    return 1;
   }
 
   openAddBooking() {
@@ -260,8 +350,27 @@ export class SaleDetailsComponent implements OnInit {
     }
 
     try {
-      const parsed = JSON.parse(raw) as PaymentItem[];
-      this.payments.set(parsed);
+      const parsed = JSON.parse(raw) as Array<
+        PaymentItem & { amount?: number }
+      >;
+
+      // Backward-compatible migration from old persisted shape.
+      const normalized: PaymentItem[] = parsed.map((p) => {
+        if (typeof p.originalAmount === "number") return p;
+
+        const amount = Number(p.amount ?? 0);
+        return {
+          id: p.id,
+          originalAmount: amount,
+          sourceCurrency: this.currency(),
+          description: "Pago",
+          exchangeRate: 1,
+          convertedAmount: amount,
+          createdAt: p.createdAt,
+        };
+      });
+
+      this.payments.set(normalized);
     } catch {
       this.payments.set([]);
       localStorage.removeItem(this.paymentsKey(saleId));

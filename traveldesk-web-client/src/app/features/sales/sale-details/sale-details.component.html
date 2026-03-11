@@ -43,7 +43,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <div
         class="rounded-2xl border p-4 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
       >
@@ -63,10 +63,10 @@
         <p
           class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
         >
-          Moneda
+          Destino
         </p>
         <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
-          {{ currency() }}
+          {{ sale()!.destination }}
         </p>
       </div>
 
@@ -76,17 +76,77 @@
         <p
           class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
         >
-          Destino
+          Fecha de viaje
         </p>
         <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
-          {{ sale()!.destination }}
+          @if (travelDate()) {
+            {{ travelDate()! | date: "dd/MM/yyyy" }}
+          } @else {
+            —
+          }
         </p>
+      </div>
+
+      <div
+        class="rounded-2xl border p-4 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+      >
+        <div class="flex items-center justify-between">
+          <p
+            class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
+          >
+            Importe total
+          </p>
+          @if (!editingAmount()) {
+            <button
+              type="button"
+              (click)="
+                editingAmount.set(true);
+                amountForm.patchValue({ amount: sale()!.amount })
+              "
+              class="text-xs text-cyan-600 dark:text-cyan-400 font-semibold hover:underline"
+            >
+              Editar
+            </button>
+          }
+        </div>
+        @if (editingAmount()) {
+          <form
+            [formGroup]="amountForm"
+            (ngSubmit)="updateAmount()"
+            class="mt-2 flex gap-2"
+          >
+            <input
+              type="number"
+              step="0.01"
+              formControlName="amount"
+              class="form-input form-input-light dark:form-input-dark"
+            />
+            <button
+              type="submit"
+              class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500"
+            >
+              OK
+            </button>
+            <button
+              type="button"
+              (click)="editingAmount.set(false)"
+              class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+            >
+              ✕
+            </button>
+          </form>
+        } @else {
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+            {{ sale()!.amount | number: "1.2-2" }} {{ currency() }}
+          </p>
+        }
       </div>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <!-- Bookings -->
       <div
-        class="xl:col-span-2 rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+        class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
       >
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-base font-semibold text-slate-900 dark:text-white">
@@ -146,115 +206,186 @@
         </div>
       </div>
 
+      <!-- Pagos recibidos -->
       <div
         class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
       >
-        <h2 class="text-base font-semibold text-slate-900 dark:text-white mb-4">
-          Resumen financiero
-        </h2>
-
-        <form
-          [formGroup]="amountForm"
-          (ngSubmit)="updateAmount()"
-          class="space-y-2 mb-4"
-        >
-          <p
-            class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
-          >
-            Importe de la venta (editable)
-          </p>
-          <div class="flex gap-2">
-            <input
-              type="number"
-              step="0.01"
-              formControlName="amount"
-              class="form-input form-input-light dark:form-input-dark"
-            />
-            <button
-              type="submit"
-              class="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500"
-            >
-              Guardar
-            </button>
-          </div>
-        </form>
-
-        <form
-          [formGroup]="paymentForm"
-          (ngSubmit)="addPayment()"
-          class="space-y-2 mb-3"
-        >
-          <p
-            class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
-          >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white">
             Pagos recibidos
-          </p>
-          <div class="flex gap-2">
+          </h2>
+          <button
+            type="button"
+            (click)="openAddPayment()"
+            class="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500"
+          >
+            + Nuevo pago
+          </button>
+        </div>
+
+        @if (showAddPayment()) {
+          <form
+            [formGroup]="paymentForm"
+            (ngSubmit)="addPayment()"
+            class="mb-4 p-3 rounded-xl border bg-slate-50 border-slate-200 dark:bg-slate-900/40 dark:border-slate-700 space-y-3"
+          >
+            <p
+              class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Nuevo pago parcial
+            </p>
+
+            <div class="grid grid-cols-2 gap-2">
+              <input
+                type="number"
+                step="0.01"
+                formControlName="amount"
+                placeholder="Importe"
+                class="form-input form-input-light dark:form-input-dark"
+              />
+              <select
+                formControlName="currency"
+                (change)="onPaymentCurrencyChange()"
+                class="form-input form-input-light dark:form-input-dark"
+              >
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+
             <input
-              type="number"
-              step="0.01"
-              formControlName="amount"
-              placeholder="0.00"
+              type="text"
+              formControlName="description"
+              placeholder="Descripción del pago"
               class="form-input form-input-light dark:form-input-dark"
             />
-            <button
-              type="submit"
-              class="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500"
-            >
-              + Pago
-            </button>
-          </div>
-        </form>
 
-        @if (payments().length > 0) {
-          <div class="space-y-1.5 mb-4">
-            @for (p of payments(); track p.id) {
-              <div
-                class="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900/40"
+            @if (paymentForm.value.currency !== currency()) {
+              <div class="space-y-1">
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                  Tipo de cambio ({{ paymentForm.value.currency }} →
+                  {{ currency() }})
+                </p>
+                <input
+                  type="number"
+                  step="0.0001"
+                  formControlName="exchangeRate"
+                  class="form-input form-input-light dark:form-input-dark"
+                />
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  Valor sugerido API: {{ xr.displayRate() }}
+                </p>
+              </div>
+            }
+
+            <div class="flex gap-2">
+              <button
+                type="submit"
+                class="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500"
               >
-                <span>{{
-                  p.amount | currency: currency() : "symbol" : "1.2-2"
-                }}</span>
+                Guardar pago
+              </button>
+              <button
+                type="button"
+                (click)="showAddPayment.set(false)"
+                class="px-3 py-2 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        }
+
+        <div class="space-y-2">
+          @for (p of payments(); track p.id) {
+            <div
+              class="rounded-xl border p-3 bg-slate-50 border-slate-200 dark:bg-slate-900/40 dark:border-slate-700"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <div class="space-y-0.5 min-w-0">
+                  <div
+                    class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate"
+                  >
+                    {{ p.description }}
+                  </div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400">
+                    {{ p.createdAt | date: "dd/MM/yyyy HH:mm" }}
+                  </div>
+                  <div class="text-xs text-slate-600 dark:text-slate-300">
+                    {{ p.originalAmount | number: "1.2-2" }}
+                    {{ p.sourceCurrency }}
+                    @if (p.sourceCurrency !== currency()) {
+                      → {{ p.convertedAmount | number: "1.2-2" }}
+                      {{ currency() }}
+                    }
+                  </div>
+                </div>
                 <button
                   type="button"
                   (click)="removePayment(p.id)"
-                  class="text-red-500 font-semibold"
+                  class="shrink-0 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-500 hover:bg-red-500/20"
                 >
                   Eliminar
                 </button>
               </div>
-            }
-          </div>
-        }
+            </div>
+          }
 
-        <div class="space-y-2 text-sm">
+          @if (payments().length === 0) {
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              No hay pagos registrados todavía.
+            </p>
+          }
+        </div>
+      </div>
+
+      <!-- Resumen financiero -->
+      <div
+        class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+      >
+        <h2 class="text-base font-semibold text-slate-900 dark:text-white mb-5">
+          Resumen financiero
+        </h2>
+
+        <div class="h-px bg-slate-200 dark:bg-slate-700 mb-4"></div>
+
+        <div class="space-y-3 text-sm">
           <div class="flex items-center justify-between">
             <span class="text-slate-500 dark:text-slate-400"
-              >Total recibido</span
+              >Importe recibido</span
             >
-            <strong>{{
-              paymentsReceived() | currency: currency() : "symbol" : "1.2-2"
-            }}</strong>
+            <strong class="text-slate-900 dark:text-white"
+              >{{ paymentsReceived() | number: "1.2-2" }}
+              {{ currency() }}</strong
+            >
           </div>
           <div class="flex items-center justify-between">
             <span class="text-slate-500 dark:text-slate-400"
               >Saldo pendiente</span
             >
-            <strong>{{
-              pendingBalance() | currency: currency() : "symbol" : "1.2-2"
-            }}</strong>
+            <strong
+              [class]="
+                pendingBalance() > 0 ? 'text-amber-500' : 'text-emerald-500'
+              "
+              >{{ pendingBalance() | number: "1.2-2" }} {{ currency() }}</strong
+            >
           </div>
+
+          <div class="h-px bg-slate-200 dark:bg-slate-700"></div>
+
           <div class="flex items-center justify-between">
-            <span class="text-slate-500 dark:text-slate-400">Ganancia %</span>
-            <strong>{{ gainPercent() | number: "1.2-2" }}%</strong>
+            <span class="text-slate-500 dark:text-slate-400">Fee %</span>
+            <strong class="text-slate-900 dark:text-white"
+              >{{ gainPercent() | number: "1.2-2" }}%</strong
+            >
           </div>
           <div class="flex items-center justify-between">
             <span class="text-slate-500 dark:text-slate-400"
-              >Ganancia importe</span
+              >Importe de fee</span
             >
-            <strong>{{
-              gainAmount() | currency: currency() : "symbol" : "1.2-2"
-            }}</strong>
+            <strong class="text-slate-900 dark:text-white"
+              >{{ gainAmount() | number: "1.2-2" }} {{ currency() }}</strong
+            >
           </div>
         </div>
       </div>
