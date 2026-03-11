@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
-import { tap } from "rxjs";
+import { tap, throwError } from "rxjs";
 import { environment } from "../../../environments/environment";
 import {
   AuthResponse,
@@ -12,6 +12,7 @@ import {
 } from "../models";
 
 const TOKEN_KEY = "td_token";
+const REFRESH_KEY = "td_refresh";
 const USER_KEY = "td_user";
 
 @Injectable({ providedIn: "root" })
@@ -23,6 +24,7 @@ export class AuthService {
   // ── Signals ──────────────────────────────────────────────────────────────
   readonly currentUser = signal<AuthMeResponse | null>(this.loadUser());
   readonly token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
+  readonly refreshToken = signal<string | null>(localStorage.getItem(REFRESH_KEY));
 
   readonly isLoggedIn = computed(() => !!this.token() && !!this.currentUser());
   readonly isAdmin = computed(() => this.currentUser()?.role === "ADMIN");
@@ -56,6 +58,19 @@ export class AuthService {
     );
   }
 
+  refresh() {
+    const rt = this.refreshToken();
+    if (!rt) {
+      this.clearSession();
+      return throwError(() => new Error('No refresh token'));
+    }
+    return this.http
+      .get<AuthResponse>(`${this.api}/auth/refresh`, {
+        headers: { Authorization: `Bearer ${rt}` },
+      })
+      .pipe(tap((res) => this.storeSession(res)));
+  }
+
   logout() {
     this.clearSession();
   }
@@ -74,6 +89,11 @@ export class AuthService {
     localStorage.setItem(TOKEN_KEY, res.accessToken);
     this.token.set(res.accessToken);
 
+    if (res.refreshToken) {
+      localStorage.setItem(REFRESH_KEY, res.refreshToken);
+      this.refreshToken.set(res.refreshToken);
+    }
+
     // Store basic user info from response
     const userInfo: AuthMeResponse = {
       id: res.userId,
@@ -88,8 +108,10 @@ export class AuthService {
 
   private clearSession() {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem(USER_KEY);
     this.token.set(null);
+    this.refreshToken.set(null);
     this.currentUser.set(null);
     this.router.navigate(["/auth/login"]);
   }
