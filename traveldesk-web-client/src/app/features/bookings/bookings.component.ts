@@ -1,10 +1,10 @@
-import { Component, computed, inject, signal } from "@angular/core";
+import { Component, computed, inject, signal, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { BookingsService } from "../../core/services/bookings.service";
 import { ClientsService } from "../../core/services/clients.service";
 import { SuppliersService } from "../../core/services/suppliers.service";
-import { BookingResponse, BookingFilters } from "../../core/models/models";
+import { BookingFilters } from "../../core/models/models";
 
 @Component({
   selector: "app-bookings",
@@ -12,7 +12,7 @@ import { BookingResponse, BookingFilters } from "../../core/models/models";
   imports: [CommonModule, FormsModule],
   templateUrl: "./bookings.component.html",
 })
-export class BookingsComponent {
+export class BookingsComponent implements OnInit {
   readonly bookingsSvc = inject(BookingsService);
   readonly clientsSvc = inject(ClientsService);
   readonly suppliersSvc = inject(SuppliersService);
@@ -55,10 +55,12 @@ export class BookingsComponent {
     });
   });
 
-  constructor() {
-    this.bookingsSvc.loadAll();
-    this.clientsSvc.loadAll();
-    this.suppliersSvc.loadAll();
+  constructor() {}
+
+  ngOnInit() {
+    this.bookingsSvc.loadAll().subscribe();
+    this.clientsSvc.loadAll().subscribe();
+    this.suppliersSvc.loadAll().subscribe();
   }
 
   setFilter<K extends keyof BookingFilters>(key: K, value: BookingFilters[K]) {
