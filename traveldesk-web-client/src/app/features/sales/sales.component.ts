@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from "@angular/core";
+import { Component, inject, signal, computed, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import {
   ReactiveFormsModule,
@@ -14,6 +14,12 @@ import { TeamService } from "../../core/services/team.service";
 import { ExchangeRateService } from "../../core/services/exchange-rate.service";
 import { AuthService } from "../../core/services/auth.service";
 import { SaleRequest, BookingRequest } from "../../core/models";
+import { of, switchMap } from "rxjs";
+
+interface CustomerOption {
+  id: string;
+  fullName: string;
+}
 
 @Component({
   selector: "app-sales",
@@ -22,6 +28,8 @@ import { SaleRequest, BookingRequest } from "../../core/models";
   templateUrl: "./sales.component.html",
 })
 export class SalesComponent implements OnInit {
+  private readonly pendingCustomerId = "__pending_new_customer__";
+
   salesSvc = inject(SalesService);
   clientsSvc = inject(ClientsService);
   suppliersSvc = inject(SuppliersService);
@@ -35,7 +43,10 @@ export class SalesComponent implements OnInit {
 
   showNewSale = signal(false);
   showAddService = signal<string | null>(null);
+  showQuickNewClient = signal(false);
   manualRateInput = signal("");
+  customerSearch = signal("");
+  pendingNewCustomerName = signal("");
 
   saleStatuses: string[] = [
     "Cotización",
@@ -47,9 +58,9 @@ export class SalesComponent implements OnInit {
 
   saleForm = this.fb.group({
     customerId: ["", Validators.required],
-    supplierId: ["", Validators.required],
     destination: ["", Validators.required],
     amount: [0, [Validators.required, Validators.min(0.01)]],
+    currency: ["USD", Validators.required],
     status: ["Cotización", Validators.required],
   });
 
@@ -62,6 +73,31 @@ export class SalesComponent implements OnInit {
     departureDate: ["", Validators.required],
     returnDate: [""],
     status: ["PENDING", Validators.required],
+  });
+
+  quickClientForm = this.fb.group({
+    fullName: ["", Validators.required],
+  });
+
+  filteredCustomers = computed(() => {
+    const term = this.customerSearch().trim().toLowerCase();
+    if (!term) return this.clientsSvc.clients();
+
+    return this.clientsSvc
+      .clients()
+      .filter((c) => c.fullName.toLowerCase().includes(term));
+  });
+
+  customerOptions = computed<CustomerOption[]>(() => {
+    const options = this.filteredCustomers().map((c) => ({
+      id: c.id,
+      fullName: c.fullName,
+    }));
+
+    const pendingName = this.pendingNewCustomerName().trim();
+    if (!pendingName) return options;
+
+    return [{ id: this.pendingCustomerId, fullName: `${pendingName} (nuevo)` }, ...options];
   });
 
   ngOnInit() {
@@ -81,21 +117,67 @@ export class SalesComponent implements OnInit {
     if (this.saleForm.invalid) return;
 
     const v = this.saleForm.value;
-    const dto: SaleRequest = {
-      customerId: v.customerId!,
-      supplierId: v.supplierId!,
-      destination: v.destination!,
-      amount: Number(v.amount),
-      status: v.status!,
-    };
 
-    this.salesSvc.create(dto).subscribe({
+    const customerId$ =
+      v.customerId === this.pendingCustomerId
+        ? this.clientsSvc
+            .create({
+              fullName: this.pendingNewCustomerName().trim(),
+              email: "",
+              phone: "",
+            })
+            .pipe(switchMap((client) => of(client.id)))
+        : of(v.customerId!);
+
+    customerId$
+      .pipe(
+        switchMap((customerId) => {
+          const dto: SaleRequest = {
+            customerId,
+            destination: v.destination!,
+            amount: Number(v.amount),
+            currency: v.currency! as "USD" | "EUR",
+            status: v.status!,
+          };
+
+          return this.salesSvc.create(dto);
+        }),
+      )
+      .subscribe({
       next: () => {
         this.showNewSale.set(false);
         this.saleForm.reset();
+        this.customerSearch.set("");
+        this.pendingNewCustomerName.set("");
+        this.showQuickNewClient.set(false);
+        this.quickClientForm.reset();
       },
       error: (err) => console.error("Error creating sale:", err),
     });
+  }
+
+  createQuickClient() {
+    if (this.quickClientForm.invalid) {
+      this.quickClientForm.markAllAsTouched();
+      return;
+    }
+
+    const name = this.quickClientForm.value.fullName?.trim();
+    if (!name) return;
+
+    this.pendingNewCustomerName.set(name);
+    this.saleForm.patchValue({ customerId: this.pendingCustomerId });
+    this.customerSearch.set(name);
+    this.showQuickNewClient.set(false);
+    this.quickClientForm.reset();
+  }
+
+  onCustomerSearchInput(event: Event) {
+    this.customerSearch.set(this.getVal(event));
+    this.pendingNewCustomerName.set("");
+
+    const firstMatch = this.filteredCustomers()[0];
+    this.saleForm.patchValue({ customerId: firstMatch?.id ?? "" });
   }
 
   addService() {

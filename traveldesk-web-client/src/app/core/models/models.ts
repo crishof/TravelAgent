@@ -168,9 +168,10 @@ export type CreateSupplierDto = SupplierRequest;
 // ─── Sale ─────────────────────────────────────────────────────────────────────
 export interface SaleRequest {
   customerId: string;
-  supplierId: string;
+  supplierId?: string;
   destination: string;
   amount: number;
+  currency: Currency;
   status: string;
 }
 
@@ -178,10 +179,11 @@ export interface SaleResponse {
   id: string;
   customerId: string;
   customerName: string;
-  supplierId: string;
-  supplierName: string;
+  supplierId?: string;
+  supplierName?: string;
   destination: string;
   amount: number;
+  currency?: Currency;
   status: string;
 }
 
