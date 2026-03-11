@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -156,7 +157,8 @@ public class SalesServiceImpl implements SalesService {
                 sale.getDestination(),
                 sale.getAmount(),
                 sale.getStatus().name(),
-                sale.getPaidAmount());
+                sale.getPaidAmount(),
+                sale.getDepartureDate());
     }
 
     @Override

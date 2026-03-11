@@ -1,6 +1,7 @@
 package com.crishof.traveldeskapi.dto;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 public record SaleResponse(
@@ -10,6 +11,7 @@ public record SaleResponse(
         String destination,
         BigDecimal amount,
         String status,
-        BigDecimal paidAmount
+        BigDecimal paidAmount,
+        Instant departureDate
 ) {
 }

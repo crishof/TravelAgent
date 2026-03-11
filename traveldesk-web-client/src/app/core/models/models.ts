@@ -183,6 +183,7 @@ export interface SaleResponse {
   supplierId?: string;
   supplierName?: string;
   destination: string;
+  departureDate?: string;
   amount: number;
   currency?: Currency;
   status: string;

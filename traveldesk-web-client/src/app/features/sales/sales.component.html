@@ -95,8 +95,15 @@
               </span>
             </div>
             <div class="text-xs mt-0.5 text-slate-500 dark:text-slate-400">
-              Destino: {{ sale.destination }} ·
-              {{ sale.supplierName || "Sin proveedor" }}
+              Destino: {{ sale.destination || "—" }}
+            </div>
+            <div class="text-xs mt-0.5 text-slate-500 dark:text-slate-400">
+              Fecha de viaje:
+              @if (sale.departureDate) {
+                {{ sale.departureDate | date: "dd/MM/yyyy" }}
+              } @else {
+                —
+              }
             </div>
           </div>
           <!-- Total -->
