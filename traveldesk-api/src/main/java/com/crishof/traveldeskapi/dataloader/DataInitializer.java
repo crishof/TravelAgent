@@ -38,9 +38,9 @@ import java.util.Random;
 @Component
 @Profile("dev")
 @RequiredArgsConstructor
-public class DataLoader implements CommandLineRunner {
+public class DataInitializer implements CommandLineRunner {
 
-    private static final Logger logger = LoggerFactory.getLogger(DataLoader.class);
+    private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
     private final UserRepository userRepository;
     private final AgencyRepository agencyRepository;
