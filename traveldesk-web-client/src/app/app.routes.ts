@@ -50,6 +50,12 @@ export const routes: Routes = [
         title: 'Ventas — TravelDesk'
       },
       {
+        path: 'sales/:id',
+        loadComponent: () =>
+          import('./features/sales/sale-details/sale-details.component').then(m => m.SaleDetailsComponent),
+        title: 'Detalle Venta — TravelDesk'
+      },
+      {
         path: 'bookings',
         loadComponent: () =>
           import('./features/bookings/bookings.component').then(m => m.BookingsComponent),

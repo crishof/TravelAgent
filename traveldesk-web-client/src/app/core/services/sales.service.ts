@@ -46,6 +46,7 @@ export class SalesService {
   }
 
   create(dto: SaleRequest) {
+    console.log("Create sale payload:", dto);
     return this.http
       .post<SaleResponse>(this.api, dto)
       .pipe(tap((s) => this.sales.update((list) => [...list, s])));

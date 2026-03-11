@@ -1,0 +1,404 @@
+@if (loading()) {
+  <div class="p-6 text-sm text-slate-500 dark:text-slate-400">
+    Cargando detalle de venta...
+  </div>
+} @else if (error()) {
+  <div class="p-6">
+    <p class="text-sm text-red-500 mb-3">{{ error() }}</p>
+    <button
+      (click)="goBack()"
+      class="px-3 py-2 rounded-lg text-sm font-semibold text-white bg-slate-700 hover:bg-slate-600"
+    >
+      Volver a ventas
+    </button>
+  </div>
+} @else if (sale()) {
+  <div class="flex flex-col gap-6 animate-fade-in">
+    <div class="flex items-center justify-between">
+      <div>
+        <button
+          (click)="goBack()"
+          class="text-xs text-cyan-600 dark:text-cyan-400 font-semibold mb-2"
+        >
+          ← Volver a ventas
+        </button>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+          Detalle de venta
+        </h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <div
+          class="text-xs px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 font-semibold"
+        >
+          {{ sale()!.status }}
+        </div>
+        <button
+          type="button"
+          (click)="cancelSale()"
+          [disabled]="sale()!.status === 'CANCELLED'"
+          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Cancelar venta
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div
+        class="rounded-2xl border p-4 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+      >
+        <p
+          class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
+        >
+          Cliente
+        </p>
+        <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+          {{ sale()!.customerName }}
+        </p>
+      </div>
+
+      <div
+        class="rounded-2xl border p-4 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+      >
+        <p
+          class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
+        >
+          Moneda
+        </p>
+        <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+          {{ currency() }}
+        </p>
+      </div>
+
+      <div
+        class="rounded-2xl border p-4 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+      >
+        <p
+          class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
+        >
+          Destino
+        </p>
+        <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+          {{ sale()!.destination }}
+        </p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+      <div
+        class="xl:col-span-2 rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-base font-semibold text-slate-900 dark:text-white">
+            Bookings contratados
+          </h2>
+          <button
+            (click)="openAddBooking()"
+            class="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-cyan-500 to-teal-600 hover:opacity-90"
+          >
+            + Nuevo booking
+          </button>
+        </div>
+
+        <div class="space-y-2">
+          @for (b of saleBookings(); track b.id) {
+            <div
+              class="rounded-xl border p-3 bg-slate-50 border-slate-200 dark:bg-slate-900/40 dark:border-slate-700"
+            >
+              <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <div
+                    class="text-sm font-semibold text-slate-900 dark:text-white truncate"
+                  >
+                    {{ b.passengerName }} · {{ b.reference }}
+                  </div>
+                  <div
+                    class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"
+                  >
+                    {{ b.destination }} · {{ getSupplierName(b.supplierId) }}
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    (click)="editBooking(b)"
+                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    (click)="deleteBooking(b.id)"
+                    class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-500 hover:bg-red-500/20"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+
+          @if (saleBookings().length === 0) {
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              No hay bookings asociados todavía.
+            </p>
+          }
+        </div>
+      </div>
+
+      <div
+        class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
+      >
+        <h2 class="text-base font-semibold text-slate-900 dark:text-white mb-4">
+          Resumen financiero
+        </h2>
+
+        <form
+          [formGroup]="amountForm"
+          (ngSubmit)="updateAmount()"
+          class="space-y-2 mb-4"
+        >
+          <p
+            class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
+          >
+            Importe de la venta (editable)
+          </p>
+          <div class="flex gap-2">
+            <input
+              type="number"
+              step="0.01"
+              formControlName="amount"
+              class="form-input form-input-light dark:form-input-dark"
+            />
+            <button
+              type="submit"
+              class="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500"
+            >
+              Guardar
+            </button>
+          </div>
+        </form>
+
+        <form
+          [formGroup]="paymentForm"
+          (ngSubmit)="addPayment()"
+          class="space-y-2 mb-3"
+        >
+          <p
+            class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
+          >
+            Pagos recibidos
+          </p>
+          <div class="flex gap-2">
+            <input
+              type="number"
+              step="0.01"
+              formControlName="amount"
+              placeholder="0.00"
+              class="form-input form-input-light dark:form-input-dark"
+            />
+            <button
+              type="submit"
+              class="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500"
+            >
+              + Pago
+            </button>
+          </div>
+        </form>
+
+        @if (payments().length > 0) {
+          <div class="space-y-1.5 mb-4">
+            @for (p of payments(); track p.id) {
+              <div
+                class="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900/40"
+              >
+                <span>{{
+                  p.amount | currency: currency() : "symbol" : "1.2-2"
+                }}</span>
+                <button
+                  type="button"
+                  (click)="removePayment(p.id)"
+                  class="text-red-500 font-semibold"
+                >
+                  Eliminar
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="space-y-2 text-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 dark:text-slate-400"
+              >Total recibido</span
+            >
+            <strong>{{
+              paymentsReceived() | currency: currency() : "symbol" : "1.2-2"
+            }}</strong>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 dark:text-slate-400"
+              >Saldo pendiente</span
+            >
+            <strong>{{
+              pendingBalance() | currency: currency() : "symbol" : "1.2-2"
+            }}</strong>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 dark:text-slate-400">Ganancia %</span>
+            <strong>{{ gainPercent() | number: "1.2-2" }}%</strong>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-500 dark:text-slate-400"
+              >Ganancia importe</span
+            >
+            <strong>{{
+              gainAmount() | currency: currency() : "symbol" : "1.2-2"
+            }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (showAddBooking()) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      (click)="showAddBooking.set(false)"
+      (keydown)="showAddBooking.set(false)"
+    >
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl border p-6 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+        (click)="$event.stopPropagation()"
+        (keydown)="$event.stopPropagation()"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-semibold">
+            {{ editingBookingId() ? "Editar booking" : "Nuevo booking" }}
+          </h2>
+          <button
+            (click)="showAddBooking.set(false)"
+            class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+          >
+            ✕
+          </button>
+        </div>
+
+        <form
+          [formGroup]="bookingForm"
+          (ngSubmit)="saveBooking()"
+          class="flex flex-col gap-4"
+        >
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Proveedor
+              <select
+                formControlName="supplierId"
+                class="form-input form-input-light dark:form-input-dark"
+              >
+                <option value="">— Elegir proveedor —</option>
+                @for (p of suppliersSvc.suppliers(); track p.id) {
+                  <option [value]="p.id">
+                    {{ p.name }} ({{ p.currency }})
+                  </option>
+                }
+              </select>
+            </label>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Referencia
+              <input
+                type="text"
+                formControlName="reference"
+                class="form-input form-input-light dark:form-input-dark"
+              />
+            </label>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Nombre del pasajero
+              <input
+                type="text"
+                formControlName="passengerName"
+                class="form-input form-input-light dark:form-input-dark"
+              />
+            </label>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Destino
+              <input
+                type="text"
+                formControlName="destination"
+                class="form-input form-input-light dark:form-input-dark"
+              />
+            </label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1">
+              <label
+                class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
+                Fecha salida
+                <input
+                  type="date"
+                  formControlName="departureDate"
+                  class="form-input form-input-light dark:form-input-dark"
+                />
+              </label>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label
+                class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >
+                Fecha regreso
+                <input
+                  type="date"
+                  formControlName="returnDate"
+                  class="form-input form-input-light dark:form-input-dark"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Estado
+              <select
+                formControlName="status"
+                class="form-input form-input-light dark:form-input-dark"
+              >
+                <option value="PENDING">Pendiente</option>
+                <option value="CONFIRMED">Confirmado</option>
+                <option value="CANCELLED">Cancelado</option>
+              </select>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold text-sm hover:opacity-90 transition-all mt-1"
+          >
+            {{ editingBookingId() ? "Guardar cambios" : "Crear booking" }}
+          </button>
+        </form>
+      </div>
+    </div>
+  }
+}

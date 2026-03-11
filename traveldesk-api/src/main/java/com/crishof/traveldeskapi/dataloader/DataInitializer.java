@@ -145,7 +145,6 @@ public class DataLoader implements CommandLineRunner {
             Sale sale = new Sale();
             sale.setAgency(agency);
             sale.setCustomer(customer);
-            sale.setSupplier(supplier);
             sale.setCreatedBy(createdBy);
             sale.setDestination(destination);
             sale.setAmount(finalAmount);

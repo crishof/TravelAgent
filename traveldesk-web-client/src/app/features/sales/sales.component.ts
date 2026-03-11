@@ -6,6 +6,7 @@ import {
   Validators,
   FormsModule,
 } from "@angular/forms";
+import { Router } from "@angular/router";
 import { SalesService } from "../../core/services/sales.service";
 import { ClientsService } from "../../core/services/clients.service";
 import { SuppliersService } from "../../core/services/suppliers.service";
@@ -14,7 +15,6 @@ import { TeamService } from "../../core/services/team.service";
 import { ExchangeRateService } from "../../core/services/exchange-rate.service";
 import { AuthService } from "../../core/services/auth.service";
 import { SaleRequest, BookingRequest } from "../../core/models";
-import { of, switchMap } from "rxjs";
 
 interface CustomerOption {
   id: string;
@@ -38,6 +38,7 @@ export class SalesComponent implements OnInit {
   xr = inject(ExchangeRateService);
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
 
   isAdmin = this.auth.isLoggedIn;
 
@@ -48,20 +49,13 @@ export class SalesComponent implements OnInit {
   customerSearch = signal("");
   pendingNewCustomerName = signal("");
 
-  saleStatuses: string[] = [
-    "Cotización",
-    "Confirmada",
-    "En proceso",
-    "Completada",
-    "Cancelada",
-  ];
+  saleStatuses: string[] = ["CREATED", "CONFIRMED", "CANCELLED"];
 
   saleForm = this.fb.group({
     customerId: ["", Validators.required],
     destination: ["", Validators.required],
     amount: [0, [Validators.required, Validators.min(0.01)]],
     currency: ["USD", Validators.required],
-    status: ["Cotización", Validators.required],
   });
 
   bookingForm = this.fb.group({
@@ -102,10 +96,17 @@ export class SalesComponent implements OnInit {
 
   ngOnInit() {
     this.salesSvc.loadAll().subscribe();
-    this.clientsSvc.loadAll().subscribe();
+    this.clientsSvc.loadAll().subscribe({
+      next: () => this.ensureCustomerSelected(),
+    });
     this.suppliersSvc.loadAll().subscribe();
     this.teamSvc.loadAll().subscribe();
     this.xr.loadRate().subscribe();
+  }
+
+  openNewSaleModal() {
+    this.showNewSale.set(true);
+    this.ensureCustomerSelected();
   }
 
   openAddService(saleId: string) {
@@ -113,47 +114,37 @@ export class SalesComponent implements OnInit {
     this.bookingForm.reset({ status: "PENDING" });
   }
 
+  openSaleDetails(saleId: string) {
+    this.router.navigate(["/app/sales", saleId]);
+  }
+
   createSale() {
     if (this.saleForm.invalid) return;
 
     const v = this.saleForm.value;
 
-    const customerId$ =
-      v.customerId === this.pendingCustomerId
-        ? this.clientsSvc
-            .create({
-              fullName: this.pendingNewCustomerName().trim(),
-              email: "",
-              phone: "",
-            })
-            .pipe(switchMap((client) => of(client.id)))
-        : of(v.customerId!);
+    const dto: SaleRequest = {
+      ...(v.customerId === this.pendingCustomerId
+        ? { customerName: this.pendingNewCustomerName().trim() }
+        : { customerId: v.customerId! }),
+      destination: v.destination!,
+      amount: Number(v.amount),
+      currency: v.currency! as "USD" | "EUR",
+      status: "CREATED",
+    };
 
-    customerId$
-      .pipe(
-        switchMap((customerId) => {
-          const dto: SaleRequest = {
-            customerId,
-            destination: v.destination!,
-            amount: Number(v.amount),
-            currency: v.currency! as "USD" | "EUR",
-            status: v.status!,
-          };
-
-          return this.salesSvc.create(dto);
-        }),
-      )
-      .subscribe({
-      next: () => {
-        this.showNewSale.set(false);
-        this.saleForm.reset();
-        this.customerSearch.set("");
-        this.pendingNewCustomerName.set("");
-        this.showQuickNewClient.set(false);
-        this.quickClientForm.reset();
-      },
-      error: (err) => console.error("Error creating sale:", err),
-    });
+    this.salesSvc.create(dto).subscribe({
+        next: (sale) => {
+          this.showNewSale.set(false);
+          this.saleForm.reset({ currency: "USD" });
+          this.customerSearch.set("");
+          this.pendingNewCustomerName.set("");
+          this.showQuickNewClient.set(false);
+          this.quickClientForm.reset();
+          this.router.navigate(["/app/sales", sale.id]);
+        },
+        error: (err) => console.error("Error creating sale:", err),
+      });
   }
 
   createQuickClient() {
@@ -178,6 +169,16 @@ export class SalesComponent implements OnInit {
 
     const firstMatch = this.filteredCustomers()[0];
     this.saleForm.patchValue({ customerId: firstMatch?.id ?? "" });
+  }
+
+  private ensureCustomerSelected() {
+    const currentCustomerId = this.saleForm.value.customerId;
+    if (currentCustomerId) return;
+
+    const firstOption = this.customerOptions()[0];
+    if (firstOption) {
+      this.saleForm.patchValue({ customerId: firstOption.id });
+    }
   }
 
   addService() {
@@ -228,22 +229,18 @@ export class SalesComponent implements OnInit {
 
   statusClass(status: string): string {
     const map: Record<string, string> = {
-      Cotización: "bg-amber-500/10 text-amber-500",
-      Confirmada: "bg-emerald-500/10 text-emerald-500",
-      "En proceso": "bg-blue-500/10 text-blue-500",
-      Completada: "bg-slate-500/10 text-slate-400",
-      Cancelada: "bg-red-500/10 text-red-500",
+      CREATED: "bg-amber-500/10 text-amber-500",
+      CONFIRMED: "bg-emerald-500/10 text-emerald-500",
+      CANCELLED: "bg-red-500/10 text-red-500",
     };
     return map[status] ?? "";
   }
 
   statusDot(status: string): string {
     const map: Record<string, string> = {
-      Cotización: "bg-amber-500",
-      Confirmada: "bg-emerald-500",
-      "En proceso": "bg-blue-500",
-      Completada: "bg-slate-400",
-      Cancelada: "bg-red-500",
+      CREATED: "bg-amber-500",
+      CONFIRMED: "bg-emerald-500",
+      CANCELLED: "bg-red-500",
     };
     return map[status] ?? "";
   }

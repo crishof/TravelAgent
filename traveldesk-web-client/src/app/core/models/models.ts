@@ -167,7 +167,8 @@ export type CreateSupplierDto = SupplierRequest;
 
 // ─── Sale ─────────────────────────────────────────────────────────────────────
 export interface SaleRequest {
-  customerId: string;
+  customerId?: string;
+  customerName?: string;
   supplierId?: string;
   destination: string;
   amount: number;
@@ -219,7 +220,7 @@ export interface BookingResponse {
 
 // Alias para compatibilidad con ServiceBooking
 export type ServiceBooking = BookingResponse;
-export type CreateServiceDto = Omit<BookingRequest, 'returnDate'> & {
+export type CreateServiceDto = Omit<BookingRequest, "returnDate"> & {
   name: string;
   currency: Currency;
   netCost: number;
