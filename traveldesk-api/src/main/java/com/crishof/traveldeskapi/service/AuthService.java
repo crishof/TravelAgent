@@ -11,4 +11,6 @@ public interface AuthService {
     AuthResponse login(LoginRequest request);
 
     AuthResponse buildAuthResponse(User user);
+
+    AuthResponse refreshToken(String refreshToken);
 }

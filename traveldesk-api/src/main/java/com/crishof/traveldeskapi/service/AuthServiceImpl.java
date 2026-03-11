@@ -15,6 +15,7 @@ import com.crishof.traveldeskapi.model.UserStatus;
 import com.crishof.traveldeskapi.repository.AgencyRepository;
 import com.crishof.traveldeskapi.repository.UserRepository;
 import com.crishof.traveldeskapi.security.JwtService;
+import io.jsonwebtoken.JwtException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,8 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 import java.util.Locale;
 import java.util.Map;
@@ -92,12 +95,42 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse buildAuthResponse(User user) {
-        Map<String, Object> claims = Map.of("role", user.getRole().name(), "status", user.getStatus().name());
+        Map<String, Object> claims = Map.of(
+                "role", user.getRole().name(),
+                "status", user.getStatus().name()
+        );
 
         String accessToken = jwtService.generateToken(claims, user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
         return AuthResponse.from(user, accessToken, refreshToken);
+    }
+
+    @Override
+    public AuthResponse refreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is required");
+        }
+
+        final String email;
+        try {
+            email = jwtService.getUserName(refreshToken);
+        } catch (JwtException | IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+        }
+
+        if (email == null || email.isBlank() || !jwtService.isTokenValid(refreshToken)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+        }
+
+        User user = userRepository.findByEmail(normalizeEmail(email))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
+
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Account inactive");
+        }
+
+        return buildAuthResponse(user);
     }
 
     private String normalizeEmail(String email) {

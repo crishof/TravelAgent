@@ -5,6 +5,7 @@ import com.crishof.traveldeskapi.dto.AuthResponse;
 import com.crishof.traveldeskapi.dto.LoginRequest;
 import com.crishof.traveldeskapi.dto.LogoutRequest;
 import com.crishof.traveldeskapi.dto.MessageResponse;
+import com.crishof.traveldeskapi.dto.RefreshTokenRequest;
 import com.crishof.traveldeskapi.dto.SignupRequest;
 import com.crishof.traveldeskapi.dto.AcceptInviteRequest;
 import com.crishof.traveldeskapi.security.SecurityUser;
@@ -101,4 +102,18 @@ public class AuthController {
                 user.getStatus().name()
         ));
     }
+
+    // ============================
+    // REFRESH TOKEN
+    // ============================
+
+    @Operation(summary = "Refresh JWT token", description = "Generates new access token using refresh token")
+    @ApiResponse(responseCode = "200", description = "Token refreshed successfully")
+    @ApiResponse(responseCode = "401", description = "Invalid refresh token")
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        log.info("Refresh token request received");
+        return ResponseEntity.ok(authService.refreshToken(request.refreshToken()));
+    }
+
 }
