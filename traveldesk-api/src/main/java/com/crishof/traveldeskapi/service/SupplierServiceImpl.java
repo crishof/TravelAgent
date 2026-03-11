@@ -96,7 +96,7 @@ public class SupplierServiceImpl implements SupplierService {
 
         Supplier supplier = getSupplierOrThrow(agencyId, id);
 
-        if (bookingRepository.existsBySupplierId(supplier.getId()) || saleRepository.existsBySupplierId(supplier.getId())) {
+        if (bookingRepository.existsBySupplierId(supplier.getId()) ) {
             throw new ConflictException("Supplier cannot be deleted because it has related bookings or sales");
         }
 

@@ -17,7 +17,5 @@ public interface SaleRepository extends JpaRepository<Sale, UUID> {
 
     boolean existsByCustomerId(UUID customerId);
 
-    boolean existsBySupplierId(UUID supplierId);
-
     long countByAgencyId(UUID agencyId);
 }

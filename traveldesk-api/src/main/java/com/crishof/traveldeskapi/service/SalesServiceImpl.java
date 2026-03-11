@@ -30,9 +30,7 @@ public class SalesServiceImpl implements SalesService {
     public List<SaleResponse> getAll(UUID agencyId) {
         validateAgencyId(agencyId);
 
-        return saleRepository.findAllByAgencyIdOrderBySaleDateDesc(agencyId).stream()
-                .map(this::toResponse)
-                .toList();
+        return saleRepository.findAllByAgencyIdOrderBySaleDateDesc(agencyId).stream().map(this::toResponse).toList();
     }
 
     @Override
@@ -41,17 +39,28 @@ public class SalesServiceImpl implements SalesService {
         validateUserId(userId);
 
         Agency agency = getAgencyOrThrow(agencyId);
-        Customer customer = getCustomerOrThrow(agencyId, request.customerId());
-        Supplier supplier = getSupplierOrNull(agencyId, request.supplierId());
+
+        Customer customer = new Customer();
+        if (request.customerId() != null) {
+
+            customer = getCustomerOrThrow(agencyId, request.customerId());
+        } else {
+            customer.setAgency(agency);
+            customer.setFullName(request.customerName());
+            customerRepository.save(customer);
+
+        }
+
         User createdBy = getUserOrThrow(userId, agencyId);
 
         Sale sale = new Sale();
         sale.setAgency(agency);
         sale.setCustomer(customer);
-        sale.setSupplier(supplier);
+
         sale.setCreatedBy(createdBy);
         sale.setDestination(normalizeText(request.destination()));
         sale.setAmount(request.amount());
+        sale.setCurrency(agency.getCurrency());
         sale.setStatus(parseSaleStatus(request.status()));
 
         return toResponse(saleRepository.save(sale));
@@ -63,10 +72,8 @@ public class SalesServiceImpl implements SalesService {
 
         Sale sale = getSaleOrThrow(agencyId, id);
         Customer customer = getCustomerOrThrow(agencyId, request.customerId());
-        Supplier supplier = getSupplierOrNull(agencyId, request.supplierId());
 
         sale.setCustomer(customer);
-        sale.setSupplier(supplier);
         sale.setDestination(normalizeText(request.destination()));
         sale.setAmount(request.amount());
         sale.setStatus(parseSaleStatus(request.status()));
@@ -88,18 +95,15 @@ public class SalesServiceImpl implements SalesService {
     }
 
     private Sale getSaleOrThrow(UUID agencyId, UUID id) {
-        return saleRepository.findByIdAndAgencyId(id, agencyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
+        return saleRepository.findByIdAndAgencyId(id, agencyId).orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + id));
     }
 
     private Agency getAgencyOrThrow(UUID agencyId) {
-        return agencyRepository.findById(agencyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Agency not found with id: " + agencyId));
+        return agencyRepository.findById(agencyId).orElseThrow(() -> new ResourceNotFoundException("Agency not found with id: " + agencyId));
     }
 
     private Customer getCustomerOrThrow(UUID agencyId, UUID customerId) {
-        return customerRepository.findByIdAndAgencyId(customerId, agencyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + customerId));
+        return customerRepository.findByIdAndAgencyId(customerId, agencyId).orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + customerId));
     }
 
     private Supplier getSupplierOrNull(UUID agencyId, UUID supplierId) {
@@ -107,14 +111,11 @@ public class SalesServiceImpl implements SalesService {
             return null;
         }
 
-        return supplierRepository.findByIdAndAgencyId(supplierId, agencyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Supplier not found with id: " + supplierId));
+        return supplierRepository.findByIdAndAgencyId(supplierId, agencyId).orElseThrow(() -> new ResourceNotFoundException("Supplier not found with id: " + supplierId));
     }
 
     private User getUserOrThrow(UUID userId, UUID agencyId) {
-        return userRepository.findById(userId)
-                .filter(user -> user.getAgency().getId().equals(agencyId))
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        return userRepository.findById(userId).filter(user -> user.getAgency().getId().equals(agencyId)).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
     }
 
     private SaleStatus parseSaleStatus(String status) {
@@ -130,10 +131,7 @@ public class SalesServiceImpl implements SalesService {
     }
 
     private String normalizeEnumValue(String value) {
-        return value.trim()
-                .replace('-', '_')
-                .replace(' ', '_')
-                .toUpperCase(Locale.ROOT);
+        return value.trim().replace('-', '_').replace(' ', '_').toUpperCase(Locale.ROOT);
     }
 
     private void validateAgencyId(UUID agencyId) {
@@ -149,15 +147,11 @@ public class SalesServiceImpl implements SalesService {
     }
 
     private SaleResponse toResponse(Sale sale) {
-        return new SaleResponse(
-                sale.getId(),
+        return new SaleResponse(sale.getId(),
                 sale.getCustomer().getId(),
                 sale.getCustomer().getFullName(),
-                sale.getSupplier() != null ? sale.getSupplier().getId() : null,
-                sale.getSupplier() != null ? sale.getSupplier().getName() : null,
                 sale.getDestination(),
                 sale.getAmount(),
-                sale.getStatus().name()
-        );
+                sale.getStatus().name());
     }
 }

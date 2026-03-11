@@ -7,8 +7,6 @@ public record SaleResponse(
         UUID id,
         UUID customerId,
         String customerName,
-        UUID supplierId,
-        String supplierName,
         String destination,
         BigDecimal amount,
         String status

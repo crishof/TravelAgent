@@ -53,7 +53,7 @@ public class SalesController {
             @AuthenticationPrincipal SecurityUser securityUser,
             @Valid @RequestBody SaleRequest request
     ) {
-        log.info("Create sale request received for userId={}, customerId={}", securityUser.getId(), request.customerId());
+        log.info("Create sale request received: {}", request);
         return ResponseEntity.status(HttpStatusCode.valueOf(201))
                 .body(salesService.create(securityUser.getAgencyId(), securityUser.getId(), request));
     }

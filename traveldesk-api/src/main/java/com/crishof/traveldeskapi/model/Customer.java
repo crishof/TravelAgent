@@ -48,10 +48,10 @@ public class Customer implements Serializable {
     @Column(nullable = false, length = 120)
     private String fullName;
 
-    @Column(nullable = false, length = 150)
+    @Column(length = 150)
     private String email;
 
-    @Column(nullable = false, length = 30)
+    @Column(length = 30)
     private String phone;
 
     @Column(length = 10)
