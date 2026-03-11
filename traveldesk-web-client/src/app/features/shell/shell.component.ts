@@ -4,7 +4,7 @@ import { CommonModule } from "@angular/common";
 import { AuthService } from "../../core/services/auth.service";
 import { ThemeService } from "../../core/services/theme.service";
 import { SafeHtmlPipe } from "../../shared/pipes/safe-html.pipe";
-import { ExchangeRateBannerComponent } from "../../shared/components/exchange-rate-banner/exchange-rate-banner.component";
+import { ExchangeRateBannerComponent } from "../../shared/components/exchange-rate-banner.component";
 
 interface NavItem {
   path: string;
@@ -31,6 +31,15 @@ export class ShellComponent {
   theme = inject(ThemeService);
 
   user = this.auth.currentUser;
+
+  readonly userInitials = computed(() => {
+    const email = this.user()?.email?.trim();
+    if (!email) return "";
+
+    const first = email.charAt(0);
+    const second = email.split(".").at(1)?.charAt(0) ?? "";
+    return `${first}${second}`.toUpperCase();
+  });
 
   sidebarOpen = signal(true);
 

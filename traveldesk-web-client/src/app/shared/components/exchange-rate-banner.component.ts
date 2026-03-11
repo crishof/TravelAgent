@@ -1,7 +1,7 @@
 import { Component, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { ExchangeRateService } from "../../../core/services/exchange-rate.service";
+import { ExchangeRateService } from "../../core/services/exchange-rate.service";
 
 @Component({
   selector: "app-exchange-rate-banner",

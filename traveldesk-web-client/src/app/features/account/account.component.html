@@ -24,7 +24,7 @@
     >
       {{
         (user()!.email.charAt(0) || "") +
-          (user()!.email.split(".")[1]?.charAt(0) || "")
+          (user()!.email.split(".").at(1)?.charAt(0) || "")
       }}
     </div>
     <div class="flex-1">

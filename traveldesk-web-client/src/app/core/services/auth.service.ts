@@ -96,6 +96,15 @@ export class AuthService {
 
   private loadUser(): AuthMeResponse | null {
     const userStr = localStorage.getItem(USER_KEY);
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr) return null;
+
+    try {
+      return JSON.parse(userStr) as AuthMeResponse;
+    } catch {
+      // Prevent app bootstrap crashes when stale/corrupted session data exists.
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      return null;
+    }
   }
 }

@@ -73,10 +73,7 @@
                 : 'bg-gradient-to-br from-cyan-500 to-teal-600'
             "
           >
-            {{
-              (user()!.email.charAt(0) || "") +
-                (user()!.email.split(".")[1]?.charAt(0) || "")
-            }}
+            {{ userInitials() }}
           </div>
           <div class="flex-1 min-w-0">
             <div
