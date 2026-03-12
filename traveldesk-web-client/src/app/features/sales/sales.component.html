@@ -109,7 +109,7 @@
           <!-- Total -->
           <div class="text-right flex-shrink-0">
             <div class="font-bold text-lg text-slate-900 dark:text-white">
-              {{ sale.currency || "USD" }} {{ sale.amount.toFixed(2) }}
+              {{ formatSaleAmount(sale.amount, sale.currency) }}
             </div>
           </div>
         </div>
@@ -156,34 +156,36 @@
         class="flex flex-col gap-4"
       >
         <div class="flex flex-col gap-1">
-          <label
-            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Cliente
-            <input
-              type="text"
-              [value]="customerSearch()"
-              (input)="onCustomerSearchInput($event)"
-              placeholder="Escribí para filtrar por nombre..."
-              class="form-input form-input-light dark:form-input-dark mb-2"
-            />
-            <select
-              formControlName="customerId"
-              class="form-input form-input-light dark:form-input-dark"
-            >
-              @for (c of customerOptions(); track c.id) {
-                <option [value]="c.id">{{ c.fullName }}</option>
-              }
-            </select>
-          </label>
+          @if (!showQuickNewClient()) {
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >Cliente
+              <input
+                type="text"
+                [value]="customerSearch()"
+                (input)="onCustomerSearchInput($event)"
+                placeholder="Escribí para filtrar por nombre..."
+                class="form-input form-input-light dark:form-input-dark mb-2"
+              />
+              <select
+                formControlName="customerId"
+                class="form-input form-input-light dark:form-input-dark"
+              >
+                @for (c of customerOptions(); track c.id) {
+                  <option [value]="c.id">{{ c.fullName }}</option>
+                }
+              </select>
+            </label>
+          }
           <div class="mt-2 flex items-center gap-2">
             <button
               type="button"
               (click)="showQuickNewClient.set(!showQuickNewClient())"
               class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 dark:text-violet-400"
             >
-              Cliente nuevo
+              {{ showQuickNewClient() ? "Usar cliente existente" : "Cliente nuevo" }}
             </button>
-            @if (filteredCustomers().length === 0 && customerSearch().trim()) {
+            @if (!showQuickNewClient() && filteredCustomers().length === 0 && customerSearch().trim()) {
               <span class="text-xs text-amber-500">
                 Sin resultados para la búsqueda actual
               </span>
@@ -230,6 +232,32 @@
           </label>
         </div>
 
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >Fecha de salida
+              <input
+                type="date"
+                formControlName="departureDate"
+                class="form-input form-input-light dark:form-input-dark"
+              />
+            </label>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+              >Descripción
+              <input
+                type="text"
+                formControlName="description"
+                placeholder="Ej: paquete vuelo + hotel"
+                class="form-input form-input-light dark:form-input-dark"
+              />
+            </label>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div class="sm:col-span-2 flex flex-col gap-1">
             <label
@@ -262,8 +290,8 @@
         <div
           class="text-xs p-3 rounded-xl bg-blue-50 text-blue-600 dark:bg-slate-800 dark:text-slate-400"
         >
-          <strong>Nota:</strong> Una vez creada la venta, puedes agregar
-          bookings individuales desde el módulo de Bookings.
+          <strong>Nota:</strong> Una vez creada la venta, podrás agregar
+          los servicios individuales desde el módulo de Bookings.
         </div>
 
         <button

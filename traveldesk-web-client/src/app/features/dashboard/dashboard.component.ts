@@ -1,5 +1,5 @@
 import { Component, inject, computed, OnInit } from "@angular/core";
-import { CommonModule, CurrencyPipe } from "@angular/common";
+import { CommonModule } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { SalesService } from "../../core/services/sales.service";
 import { ClientsService } from "../../core/services/clients.service";
@@ -10,7 +10,7 @@ import { ExchangeRateService } from "../../core/services/exchange-rate.service";
 @Component({
   selector: "app-dashboard",
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: "./dashboard.component.html",
 })
 export class DashboardComponent implements OnInit {
@@ -39,12 +39,35 @@ export class DashboardComponent implements OnInit {
       .reduce((a, s) => a + s.amount, 0),
   );
 
+  pendingByCurrency = computed(() => {
+    const totals: Record<string, number> = {};
+    this.mySales()
+      .filter((s) => s.status === "PENDING")
+      .forEach((s) => {
+        const currency = this.normalizeCurrencyCode(s.currency);
+        totals[currency] = (totals[currency] ?? 0) + Number(s.amount ?? 0);
+      });
+    return totals;
+  });
+
+  revenueByCurrency = computed(() => {
+    const totals: Record<string, number> = {};
+    this.mySales().forEach((s) => {
+      const currency = this.normalizeCurrencyCode(s.currency);
+      totals[currency] = (totals[currency] ?? 0) + Number(s.amount ?? 0);
+    });
+    return totals;
+  });
+
   stats = computed(() => {
     const sales = this.mySales();
-    const revenue = sales.reduce((a, s) => a + s.amount, 0);
     const active = sales.filter(
       (s) => !["CANCELLED", "COMPLETED"].includes(s.status),
     ).length;
+
+    const pendingSummary = this.formatCurrencyBreakdown(this.pendingByCurrency());
+    const revenueSummary = this.formatCurrencyBreakdown(this.revenueByCurrency());
+
     return [
       {
         label: "Ventas activas",
@@ -62,15 +85,15 @@ export class DashboardComponent implements OnInit {
       },
       {
         label: "Monto pendiente",
-        value: this.pendingAmount(),
-        sub: "USD",
+        value: pendingSummary,
+        sub: "multimoneda",
         icon: "⚠️",
         gradient: "bg-gradient-to-br from-amber-500 to-orange-600",
       },
       {
         label: "Facturación total",
-        value: `$${(revenue / 1000).toFixed(1)}k`,
-        sub: "USD",
+        value: revenueSummary,
+        sub: "multimoneda",
         icon: "📈",
         gradient: "bg-gradient-to-br from-emerald-500 to-green-600",
       },
@@ -98,6 +121,26 @@ export class DashboardComponent implements OnInit {
   }
   getAgentFirst(id: string): string {
     return this.teamSvc.getById(id)?.fullName?.split(" ")[0] ?? "";
+  }
+
+  private normalizeCurrencyCode(currency?: string): string {
+    const code = (currency ?? "").toUpperCase();
+    return code === "USD" || code === "EUR" ? code : "N/A";
+  }
+
+  formatSaleAmount(amount: number, currency?: string): string {
+    return `${this.normalizeCurrencyCode(currency)} ${Number(amount ?? 0).toFixed(2)}`;
+  }
+
+  formatCurrencyBreakdown(totals: Record<string, number>): string {
+    const entries = Object.entries(totals).filter(([, amount]) => amount > 0);
+    if (!entries.length) return "0.00";
+
+    const sortedEntries = [...entries].sort(([a], [b]) => a.localeCompare(b));
+
+    return sortedEntries
+      .map(([currency, amount]) => `${currency} ${amount.toFixed(2)}`)
+      .join(" · ");
   }
 
   statusClass(status: string): string {

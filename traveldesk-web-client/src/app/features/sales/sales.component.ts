@@ -54,6 +54,8 @@ export class SalesComponent implements OnInit {
   saleForm = this.fb.group({
     customerId: ["", Validators.required],
     destination: ["", Validators.required],
+    departureDate: ["", Validators.required],
+    description: [""],
     amount: [0, [Validators.required, Validators.min(0.01)]],
     currency: ["USD", Validators.required],
   });
@@ -91,7 +93,10 @@ export class SalesComponent implements OnInit {
     const pendingName = this.pendingNewCustomerName().trim();
     if (!pendingName) return options;
 
-    return [{ id: this.pendingCustomerId, fullName: `${pendingName} (nuevo)` }, ...options];
+    return [
+      { id: this.pendingCustomerId, fullName: `${pendingName} (nuevo)` },
+      ...options,
+    ];
   });
 
   ngOnInit() {
@@ -105,6 +110,7 @@ export class SalesComponent implements OnInit {
 
   openNewSaleModal() {
     this.showNewSale.set(true);
+    this.showQuickNewClient.set(false);
     this.ensureCustomerSelected();
   }
 
@@ -118,7 +124,10 @@ export class SalesComponent implements OnInit {
   }
 
   createSale() {
-    if (this.saleForm.invalid) return;
+    if (this.saleForm.invalid) {
+      this.saleForm.markAllAsTouched();
+      return;
+    }
 
     const v = this.saleForm.value;
 
@@ -127,23 +136,32 @@ export class SalesComponent implements OnInit {
         ? { customerName: this.pendingNewCustomerName().trim() }
         : { customerId: v.customerId! }),
       destination: v.destination!,
+      departureDate: v.departureDate!,
+      description: (v.description ?? "").trim(),
       amount: Number(v.amount),
       currency: v.currency! as "USD" | "EUR",
       status: "CREATED",
     };
 
     this.salesSvc.create(dto).subscribe({
-        next: (sale) => {
-          this.showNewSale.set(false);
-          this.saleForm.reset({ currency: "USD" });
-          this.customerSearch.set("");
-          this.pendingNewCustomerName.set("");
-          this.showQuickNewClient.set(false);
-          this.quickClientForm.reset();
-          this.router.navigate(["/app/sales", sale.id]);
-        },
-        error: (err) => console.error("Error creating sale:", err),
-      });
+      next: (sale) => {
+        this.showNewSale.set(false);
+        this.saleForm.reset({
+          customerId: "",
+          destination: "",
+          departureDate: "",
+          description: "",
+          amount: 0,
+          currency: "USD",
+        });
+        this.customerSearch.set("");
+        this.pendingNewCustomerName.set("");
+        this.showQuickNewClient.set(false);
+        this.quickClientForm.reset();
+        this.router.navigate(["/app/sales", sale.id]);
+      },
+      error: (err) => console.error("Error creating sale:", err),
+    });
   }
 
   createQuickClient() {
@@ -224,6 +242,15 @@ export class SalesComponent implements OnInit {
 
   getSupplierName(id: string): string {
     return this.suppliersSvc.suppliers().find((p) => p.id === id)?.name ?? "—";
+  }
+
+  private normalizeCurrencyCode(currency?: string): string {
+    const code = (currency ?? "").toUpperCase();
+    return code === "USD" || code === "EUR" ? code : "N/A";
+  }
+
+  formatSaleAmount(amount: number, currency?: string): string {
+    return `${this.normalizeCurrencyCode(currency)} ${Number(amount ?? 0).toFixed(2)}`;
   }
 
   statusClass(status: string): string {

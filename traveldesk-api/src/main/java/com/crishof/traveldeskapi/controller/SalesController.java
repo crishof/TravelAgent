@@ -4,6 +4,7 @@ import com.crishof.traveldeskapi.dto.PaymentRequest;
 import com.crishof.traveldeskapi.dto.PaymentResponse;
 import com.crishof.traveldeskapi.dto.SaleRequest;
 import com.crishof.traveldeskapi.dto.SaleResponse;
+import com.crishof.traveldeskapi.dto.SaleUpdateRequest;
 import com.crishof.traveldeskapi.security.SecurityUser;
 import com.crishof.traveldeskapi.service.SalesService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -68,12 +69,12 @@ public class SalesController {
     @ApiResponse(responseCode = "404", description = "Sale not found")
     @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
-    public ResponseEntity<SaleResponse> updateSale(@AuthenticationPrincipal SecurityUser securityUser, @PathVariable UUID id, @Valid @RequestBody SaleRequest request) {
+    public ResponseEntity<SaleResponse> updateSale(@AuthenticationPrincipal SecurityUser securityUser, @PathVariable UUID id, @Valid @RequestBody SaleUpdateRequest request) {
         log.info("Update sale request received for userId={}, saleId={}", securityUser.getId(), id);
         return ResponseEntity.ok(salesService.update(securityUser.getAgencyId(), id, request));
     }
 
-    //  ===============
+    
     //  GET SALE BY ID
     //  ===============
 
@@ -116,6 +117,7 @@ public class SalesController {
     @PostMapping("/{saleId}/payments")
     public ResponseEntity<SaleResponse> registerPayment(@AuthenticationPrincipal SecurityUser securityUser, @PathVariable UUID saleId, @Valid @RequestBody PaymentRequest request) {
         log.info("Register payment request received for saleId={}, userId={}", saleId, securityUser.getId());
+        log.info("Payment request: {}", request);
         return ResponseEntity.ok(salesService.registerPayment(securityUser.getAgencyId(), saleId, request));
     }
 

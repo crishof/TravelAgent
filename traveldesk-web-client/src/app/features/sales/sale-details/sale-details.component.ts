@@ -50,9 +50,9 @@ export class SaleDetailsComponent implements OnInit {
   });
 
   readonly paymentForm = this.fb.group({
-    amount: [0, [Validators.required, Validators.min(0.01)]],
+    amount: [null, [Validators.required, Validators.min(0.01)]],
     currency: ["USD", Validators.required],
-    description: ["", Validators.required],
+    description: ["", [Validators.required, Validators.pattern(/.*\S.*/)]],
     exchangeRate: [0],
   });
 
@@ -173,7 +173,12 @@ export class SaleDetailsComponent implements OnInit {
 
   addPayment() {
     const currentSale = this.sale();
-    if (!currentSale || this.paymentForm.invalid) return;
+    if (!currentSale) return;
+
+    if (this.paymentForm.invalid) {
+      this.paymentForm.markAllAsTouched();
+      return;
+    }
 
     const originalAmount = Number(this.paymentForm.value.amount);
     const sourceCurrency = this.paymentForm.value.currency as Currency;
@@ -195,10 +200,14 @@ export class SaleDetailsComponent implements OnInit {
 
     this.salesSvc.addPayment(currentSale.id, payment).subscribe({
       next: (createdPayment) => {
-        const normalized = this.normalizePayment(createdPayment, payment, currentSale.customerId);
+        const normalized = this.normalizePayment(
+          createdPayment,
+          payment,
+          currentSale.customerId,
+        );
         this.payments.update((list) => [normalized, ...list]);
         this.paymentForm.reset({
-          amount: 0,
+          amount: null,
           currency: this.currency(),
           description: "",
           exchangeRate: 0,
@@ -206,10 +215,12 @@ export class SaleDetailsComponent implements OnInit {
         this.showAddPayment.set(false);
 
         if (currentSale.status !== "CONFIRMED") {
-          this.salesSvc.update(currentSale.id, { status: "CONFIRMED" }).subscribe({
-            next: (updated) => this.sale.set(updated),
-            error: (err) => console.error("Error updating sale status:", err),
-          });
+          this.salesSvc
+            .update(currentSale.id, { status: "CONFIRMED" })
+            .subscribe({
+              next: (updated) => this.sale.set(updated),
+              error: (err) => console.error("Error updating sale status:", err),
+            });
         }
       },
       error: (err) => console.error("Error adding payment:", err),
@@ -221,7 +232,8 @@ export class SaleDetailsComponent implements OnInit {
     if (!currentSale) return;
 
     this.salesSvc.deletePayment(currentSale.id, id).subscribe({
-      next: () => this.payments.update((list) => list.filter((p) => p.id !== id)),
+      next: () =>
+        this.payments.update((list) => list.filter((p) => p.id !== id)),
       error: (err) => console.error("Error deleting payment:", err),
     });
   }
@@ -230,7 +242,7 @@ export class SaleDetailsComponent implements OnInit {
     const saleCurrency = this.currency();
     this.showAddPayment.set(true);
     this.paymentForm.reset({
-      amount: 0,
+      amount: null,
       currency: saleCurrency,
       description: "",
       exchangeRate: 0,
@@ -345,7 +357,9 @@ export class SaleDetailsComponent implements OnInit {
     this.salesSvc.getPayments(saleId).subscribe({
       next: (payments) => {
         const customerId = this.sale()?.customerId ?? "";
-        const normalized = payments.map((p) => this.normalizePayment(p, undefined, customerId));
+        const normalized = payments.map((p) =>
+          this.normalizePayment(p, undefined, customerId),
+        );
         this.payments.set(normalized);
       },
       error: (err) => {
@@ -363,9 +377,7 @@ export class SaleDetailsComponent implements OnInit {
     fallbackCustomerId?: string,
   ): PaymentItem {
     const sourceCurrency =
-      payment.sourceCurrency ??
-      fallback?.sourceCurrency ??
-      this.currency();
+      payment.sourceCurrency ?? fallback?.sourceCurrency ?? this.currency();
 
     const originalAmount = Number(
       payment.originalAmount ?? fallback?.originalAmount ?? 0,
@@ -376,15 +388,21 @@ export class SaleDetailsComponent implements OnInit {
         fallback?.convertedAmount ??
         (sourceCurrency === this.currency()
           ? originalAmount
-          : originalAmount * Number(payment.exchangeRate ?? fallback?.exchangeRate ?? 1)),
+          : originalAmount *
+            Number(payment.exchangeRate ?? fallback?.exchangeRate ?? 1)),
     );
 
     return {
       id: payment.id ?? crypto.randomUUID(),
-      customerId: payment.customerId ?? fallback?.customerId ?? fallbackCustomerId ?? "",
+      customerId:
+        payment.customerId ?? fallback?.customerId ?? fallbackCustomerId ?? "",
       originalAmount,
       sourceCurrency,
-      description: (payment.description ?? fallback?.description ?? "Pago").trim(),
+      description: (
+        payment.description ??
+        fallback?.description ??
+        "Pago"
+      ).trim(),
       exchangeRate: Number(payment.exchangeRate ?? fallback?.exchangeRate ?? 1),
       convertedAmount,
       createdAt: payment.createdAt ?? new Date().toISOString(),

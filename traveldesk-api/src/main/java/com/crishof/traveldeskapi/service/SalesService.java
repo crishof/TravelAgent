@@ -3,6 +3,7 @@ package com.crishof.traveldeskapi.service;
 import com.crishof.traveldeskapi.dto.PaymentRequest;
 import com.crishof.traveldeskapi.dto.PaymentResponse;
 import com.crishof.traveldeskapi.dto.SaleRequest;
+import com.crishof.traveldeskapi.dto.SaleUpdateRequest;
 import com.crishof.traveldeskapi.dto.SaleResponse;
 import jakarta.validation.Valid;
 
@@ -15,7 +16,7 @@ public interface SalesService {
 
     SaleResponse create(UUID agencyId, UUID userId, @Valid SaleRequest request);
 
-    SaleResponse update(UUID agencyId, UUID id, @Valid SaleRequest request);
+    SaleResponse update(UUID agencyId, UUID id, @Valid SaleUpdateRequest request);
 
     void delete(UUID agencyId, UUID id);
 

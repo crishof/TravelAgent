@@ -8,6 +8,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -52,7 +53,7 @@ public class Sale {
     @Column(nullable = false)
     private Instant saleDate;
 
-    private Instant departureDate;
+    private LocalDate departureDate;
 
     private String description;
 

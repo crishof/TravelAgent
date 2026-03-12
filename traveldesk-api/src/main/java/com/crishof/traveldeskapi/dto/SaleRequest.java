@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 public record SaleRequest(
@@ -31,7 +32,7 @@ public record SaleRequest(
         @Size(max = 30, message = "Status must not exceed 30 characters")
         String status,
 
-        Instant departureDate,
+        LocalDate departureDate,
 
         String description
 ) {

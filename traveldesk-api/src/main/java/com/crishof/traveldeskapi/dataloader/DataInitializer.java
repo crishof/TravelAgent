@@ -136,7 +136,8 @@ public class DataInitializer implements CommandLineRunner {
             String destination = destinations.get(random.nextInt(destinations.size()));
 
             Instant saleDate = randomPastInstant(180);
-            Instant departureDate = saleDate.plusSeconds((15L + random.nextInt(60)) * 24 * 60 * 60);
+            LocalDate departureDate = toLocalDate(saleDate).plusDays(15L + random.nextInt(60));
+            LocalDate returnDate = departureDate.plusDays(3L + random.nextInt(10));
 
             BigDecimal netAmount = BigDecimal.valueOf(400L + random.nextInt(1600));
             BigDecimal marginMultiplier = BigDecimal.valueOf(1.10 + (random.nextDouble() * 0.15));
@@ -164,8 +165,8 @@ public class DataInitializer implements CommandLineRunner {
             booking.setReference(generateReference(i));
             booking.setPassengerName(customer.getFullName());
             booking.setDestination(destination);
-            booking.setDepartureDate(toLocalDate(departureDate));
-            booking.setReturnDate(toLocalDate(departureDate.plusSeconds((3L + random.nextInt(10)) * 24 * 60 * 60)));
+            booking.setDepartureDate(departureDate);
+            booking.setReturnDate(returnDate);
             booking.setStatus(randomBookingStatus(sale.getStatus()));
 
             bookingRepository.save(booking);

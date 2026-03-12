@@ -171,6 +171,8 @@ export interface SaleRequest {
   customerName?: string;
   supplierId?: string;
   destination: string;
+  departureDate?: string;
+  description?: string;
   amount: number;
   currency: Currency;
   status: string;
@@ -184,6 +186,7 @@ export interface SaleResponse {
   supplierName?: string;
   destination: string;
   departureDate?: string;
+  description?: string;
   amount: number;
   currency?: Currency;
   status: string;

@@ -4,6 +4,7 @@ import com.crishof.traveldeskapi.dto.PaymentRequest;
 import com.crishof.traveldeskapi.dto.PaymentResponse;
 import com.crishof.traveldeskapi.dto.SaleRequest;
 import com.crishof.traveldeskapi.dto.SaleResponse;
+import com.crishof.traveldeskapi.dto.SaleUpdateRequest;
 import com.crishof.traveldeskapi.exception.InvalidRequestException;
 import com.crishof.traveldeskapi.exception.ResourceNotFoundException;
 import com.crishof.traveldeskapi.model.*;
@@ -65,21 +66,49 @@ public class SalesServiceImpl implements SalesService {
         sale.setAmount(request.amount());
         sale.setCurrency(agency.getCurrency());
         sale.setStatus(parseSaleStatus(request.status()));
+        sale.setDepartureDate(request.departureDate());
+
+        if (request.description() != null && !request.description().isBlank()) {
+            sale.setDescription(normalizeText(request.description()));
+        }
 
         return toResponse(saleRepository.save(sale));
     }
 
     @Override
-    public SaleResponse update(UUID agencyId, UUID id, SaleRequest request) {
+    public SaleResponse update(UUID agencyId, UUID id, SaleUpdateRequest request) {
         validateAgencyId(agencyId);
 
         Sale sale = getSaleOrThrow(agencyId, id);
-        Customer customer = getCustomerOrThrow(agencyId, request.customerId());
 
-        sale.setCustomer(customer);
-        sale.setDestination(normalizeText(request.destination()));
-        sale.setAmount(request.amount());
-        sale.setStatus(parseSaleStatus(request.status()));
+        if (request.customerId() != null) {
+            Customer customer = getCustomerOrThrow(agencyId, request.customerId());
+            sale.setCustomer(customer);
+        }
+
+        if (request.destination() != null) {
+            sale.setDestination(normalizeText(request.destination()));
+        }
+
+        if (request.amount() != null) {
+            sale.setAmount(request.amount());
+        }
+
+        if (request.currency() != null) {
+            sale.setCurrency(normalizeText(request.currency()).toUpperCase(Locale.ROOT));
+        }
+
+        if (request.status() != null) {
+            sale.setStatus(parseSaleStatus(request.status()));
+        }
+
+        if (request.departureDate() != null) {
+            sale.setDepartureDate(request.departureDate());
+        }
+
+        if (request.description() != null) {
+            sale.setDescription(normalizeText(request.description()));
+        }
 
         return toResponse(saleRepository.save(sale));
     }
@@ -150,7 +179,17 @@ public class SalesServiceImpl implements SalesService {
     }
 
     private SaleResponse toResponse(Sale sale) {
-        return new SaleResponse(sale.getId(), sale.getCustomer().getId(), sale.getCustomer().getFullName(), sale.getDestination(), sale.getAmount(), sale.getStatus().name(), sale.getPaidAmount(), sale.getDepartureDate());
+        return new SaleResponse(
+                sale.getId(),
+                sale.getCustomer().getId(),
+                sale.getCustomer().getFullName(),
+                sale.getDestination(),
+                sale.getAmount(),
+                sale.getCurrency(),
+                sale.getStatus().name(),
+                sale.getPaidAmount(),
+                sale.getDepartureDate()
+        );
     }
 
     @Override
@@ -190,7 +229,7 @@ public class SalesServiceImpl implements SalesService {
 
         Sale sale = saleRepository.findByIdAndAgencyIdWithPayments(saleId, agencyId).orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + saleId));
 
-        return sale.getPayments().stream().sorted((p1, p2) -> p2.getPaymentDate().compareTo(p1.getPaymentDate())) // Latest first
+        return sale.getPayments().stream().sorted((p1, p2) -> p2.getPaymentDate().compareTo(p1.getPaymentDate()))
                 .map(this::toPaymentResponse).toList();
     }
 
