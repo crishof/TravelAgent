@@ -101,7 +101,6 @@ export class SalesComponent implements OnInit {
     });
     this.suppliersSvc.loadAll().subscribe();
     this.teamSvc.loadAll().subscribe();
-    this.xr.loadRate().subscribe();
   }
 
   openNewSaleModal() {

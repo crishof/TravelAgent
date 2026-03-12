@@ -88,7 +88,6 @@ export class DashboardComponent implements OnInit {
     this.salesSvc.loadAll().subscribe();
     this.clientsSvc.loadAll().subscribe();
     this.teamSvc.loadAll().subscribe();
-    this.xr.fetchRate().subscribe();
   }
 
   getClientName(id: string): string {

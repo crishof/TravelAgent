@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from "@angular/core";
+import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ExchangeRateService } from "../../core/services/exchange-rate.service";
 
@@ -63,7 +63,7 @@ import { ExchangeRateService } from "../../core/services/exchange-rate.service";
       <!-- Tasa base + badge manual -->
       <div class="flex items-center gap-1.5">
         <span class="text-xs text-slate-400 dark:text-slate-500 tabular-nums">
-          1 EUR = {{ xr.displayRate() }} USD
+          1 {{ fromCurrency() }} = {{ pairRateDisplay() }} {{ toCurrency() }}
         </span>
         @if (xr.isManual()) {
           <span
@@ -99,7 +99,7 @@ import { ExchangeRateService } from "../../core/services/exchange-rate.service";
                  bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700"
         >
           <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">
-            1 EUR = ? USD
+            1 {{ fromCurrency() }} = ? {{ toCurrency() }}
           </p>
           <div class="flex items-center gap-2">
             <input
@@ -111,7 +111,7 @@ import { ExchangeRateService } from "../../core/services/exchange-rate.service";
               placeholder="Ej: 1.0850"
               class="w-24 px-2 py-1.5 rounded-lg text-sm bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
             />
-            <span class="text-xs text-slate-400">USD</span>
+            <span class="text-xs text-slate-400">{{ toCurrency() }}</span>
             <button
               type="button"
               (click)="applyManualRate()"
@@ -125,32 +125,38 @@ import { ExchangeRateService } from "../../core/services/exchange-rate.service";
     </div>
   `,
 })
-export class ExchangeRateBannerComponent {
+export class ExchangeRateBannerComponent implements OnInit {
   readonly xr = inject(ExchangeRateService);
 
   readonly inverted = signal(false);
   readonly convertAmountStr = signal("1");
   readonly showManualInput = signal(false);
   readonly manualRateInput = signal("");
+  readonly pairRate = signal(1.085);
 
   readonly fromCurrency = computed(() => (this.inverted() ? "USD" : "EUR"));
   readonly toCurrency = computed(() => (this.inverted() ? "EUR" : "USD"));
+  readonly pairRateDisplay = computed(() => this.pairRate().toFixed(4));
 
   readonly convertedResult = computed(() => {
     const amount = Number.parseFloat(this.convertAmountStr()) || 0;
-    const rate = this.xr.rate();
-    return this.inverted() ? amount / rate : amount * rate;
+    return amount * this.pairRate();
   });
+
+  ngOnInit() {
+    this.refreshRate();
+  }
 
   toggleDirection() {
     this.inverted.update((v) => !v);
+    this.refreshRate();
   }
 
   toggleManualInput() {
     const next = !this.showManualInput();
     this.showManualInput.set(next);
     if (next) {
-      this.manualRateInput.set(this.xr.displayRate());
+      this.manualRateInput.set(this.pairRateDisplay());
     } else {
       this.manualRateInput.set("");
     }
@@ -160,6 +166,7 @@ export class ExchangeRateBannerComponent {
     const rate = Number.parseFloat(this.manualRateInput());
     if (!Number.isNaN(rate) && rate > 0) {
       this.xr.setManualRate(rate);
+      this.pairRate.set(rate);
       this.showManualInput.set(false);
       this.manualRateInput.set("");
     }
@@ -168,5 +175,20 @@ export class ExchangeRateBannerComponent {
   clearManualRate() {
     this.xr.clearManual();
     this.manualRateInput.set("");
+    this.refreshRate();
+  }
+
+  private refreshRate() {
+    if (this.xr.isManual()) {
+      this.pairRate.set(this.xr.rate());
+      return;
+    }
+
+    this.xr.getPairRate(this.fromCurrency(), this.toCurrency()).subscribe({
+      next: (rate) => this.pairRate.set(rate),
+      error: () => {
+        // Keep last known/default value when API is unavailable.
+      },
+    });
   }
 }

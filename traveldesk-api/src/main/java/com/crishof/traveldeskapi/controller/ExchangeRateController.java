@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 
@@ -25,8 +24,9 @@ public class ExchangeRateController {
     //  ===============
 
     @GetMapping
-    public Mono<BigDecimal> convert(@RequestParam String from, @RequestParam String to) {
-        return exchangeRateService.getExchangeRate(from, to);
+    public ResponseEntity<BigDecimal> convert(@RequestParam String from, @RequestParam String to) {
+        log.info("Converting {} to {}", from, to);
+        return ResponseEntity.ok(exchangeRateService.getExchangeRateSync(from, to));
     }
 
     @GetMapping("/sync")

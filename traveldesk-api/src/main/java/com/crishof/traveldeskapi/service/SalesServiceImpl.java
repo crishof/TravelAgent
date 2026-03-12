@@ -13,7 +13,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -151,14 +150,7 @@ public class SalesServiceImpl implements SalesService {
     }
 
     private SaleResponse toResponse(Sale sale) {
-        return new SaleResponse(sale.getId(),
-                sale.getCustomer().getId(),
-                sale.getCustomer().getFullName(),
-                sale.getDestination(),
-                sale.getAmount(),
-                sale.getStatus().name(),
-                sale.getPaidAmount(),
-                sale.getDepartureDate());
+        return new SaleResponse(sale.getId(), sale.getCustomer().getId(), sale.getCustomer().getFullName(), sale.getDestination(), sale.getAmount(), sale.getStatus().name(), sale.getPaidAmount(), sale.getDepartureDate());
     }
 
     @Override
@@ -196,38 +188,23 @@ public class SalesServiceImpl implements SalesService {
     public List<PaymentResponse> getPaymentsForSale(UUID agencyId, UUID saleId) {
         validateAgencyId(agencyId);
 
-        Sale sale = saleRepository.findByIdAndAgencyIdWithPayments(saleId, agencyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + saleId));
+        Sale sale = saleRepository.findByIdAndAgencyIdWithPayments(saleId, agencyId).orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + saleId));
 
-        return sale.getPayments().stream()
-                .sorted((p1, p2) -> p2.getPaymentDate().compareTo(p1.getPaymentDate())) // Latest first
-                .map(this::toPaymentResponse)
-                .toList();
+        return sale.getPayments().stream().sorted((p1, p2) -> p2.getPaymentDate().compareTo(p1.getPaymentDate())) // Latest first
+                .map(this::toPaymentResponse).toList();
     }
 
     private PaymentResponse toPaymentResponse(Payment payment) {
-        return new PaymentResponse(
-                payment.getId(),
-                payment.getOriginalAmount(),
-                payment.getSourceCurrency(),
-                payment.getDescription(),
-                payment.getExchangeRate(),
-                payment.getConvertedAmount(),
-                payment.getPaymentDate()
-        );
+        return new PaymentResponse(payment.getId(), payment.getOriginalAmount(), payment.getSourceCurrency(), payment.getDescription(), payment.getExchangeRate(), payment.getConvertedAmount(), payment.getPaymentDate());
     }
 
     @Override
     public SaleResponse deletePayment(UUID agencyId, UUID saleId, UUID paymentId) {
         validateAgencyId(agencyId);
 
-        Sale sale = saleRepository.findByIdAndAgencyIdWithPayments(saleId, agencyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + saleId));
+        Sale sale = saleRepository.findByIdAndAgencyIdWithPayments(saleId, agencyId).orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + saleId));
 
-        Payment paymentToDelete = sale.getPayments().stream()
-                .filter(p -> p.getId().equals(paymentId))
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Payment not found with id: " + paymentId + " for sale: " + saleId));
+        Payment paymentToDelete = sale.getPayments().stream().filter(p -> p.getId().equals(paymentId)).findFirst().orElseThrow(() -> new ResourceNotFoundException("Payment not found with id: " + paymentId + " for sale: " + saleId));
 
         sale.getPayments().remove(paymentToDelete);
         sale.setPaidAmount(sale.getPaidAmount().subtract(paymentToDelete.getConvertedAmount()));

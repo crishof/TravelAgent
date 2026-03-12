@@ -1,8 +1,7 @@
 import { Injectable, signal, computed, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { catchError, of, tap } from "rxjs";
+import { catchError, map, of, tap } from "rxjs";
 import { environment } from "../../../environments/environment";
-import { ExchangeRateResponse } from "../models";
 
 const MANUAL_RATE_KEY = "td_exchange_rate_override";
 
@@ -22,28 +21,27 @@ export class ExchangeRateService {
   readonly displayRate = computed(() => this.rate().toFixed(4));
 
   loadRate() {
-    return this.http.get<ExchangeRateResponse>(this.api).pipe(
-      tap((response) => {
-        this.apiRate.set(response.rate);
-      }),
+    return this.getPairRate("USD", "EUR").pipe(
+      tap((rate) => this.apiRate.set(rate)),
       catchError(() => {
         // Fallback to default rate if API fails
         console.warn("Failed to load exchange rate from API, using default");
-        return of({ baseCurrency: "USD", targetCurrency: "EUR", rate: 1.085 });
+        this.apiRate.set(1.085);
+        return of(1.085);
       }),
     );
   }
 
   fetchRate() {
+    return this.loadRate();
+  }
+
+  getPairRate(from: string, to: string) {
     return this.http
-      .get<{ rates: { EUR: number } }>(environment.apiUrl + "/exchange-rate")
-      .pipe(
-        tap((res) => this.apiRate.set(res.rates["EUR"])),
-        catchError(() => {
-          console.warn("Exchange rate API unavailable, using fallback");
-          return of(null);
-        }),
-      );
+      .get<number>(this.api, {
+        params: { from, to },
+      })
+      .pipe(map((value) => this.parseRate(value)));
   }
 
   setManualRate(rate: number | null) {
@@ -66,5 +64,9 @@ export class ExchangeRateService {
     } catch {
       return null;
     }
+  }
+
+  private parseRate(raw: number): number {
+    return Number.isFinite(raw) && raw > 0 ? raw : 1.085;
   }
 }
