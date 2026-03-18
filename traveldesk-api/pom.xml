@@ -18,7 +18,7 @@
     <description>travel-desk-api</description>
 
     <properties>
-        <java.version>25</java.version>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mapstruct.version>1.6.3</mapstruct.version>
         <jjwt.version>0.12.7</jjwt.version>
