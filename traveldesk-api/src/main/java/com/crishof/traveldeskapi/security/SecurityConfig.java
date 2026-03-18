@@ -28,32 +28,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtFilter jwtFilter;
-    private final com.crishof.traveldeskapi.security.RestAuthenticationEntryPoint restAuthenticationEntryPoint;
-    private static final List<String> PUBLIC_ENDPOINTS = List.of(
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/v3/api-docs/**",
-            "/api/v1/auth/**",
-            "/actuator/health"
-    );
-
-    private static final List<String> DEV_ALLOWED_ORIGIN_PATTERNS = List.of(
-            "http://localhost:*",
-            "http://127.0.0.1:*"
-    );
-
-    private static final List<String> PROD_ALLOWED_ORIGINS = List.of(
-            "https://travel-desk.vercel.app"
-    );
-
-    private static final List<String> ALLOWED_METHODS = List.of(
-            "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
-    );
-
+    private static final List<String> PUBLIC_ENDPOINTS = List.of("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api/v1/auth/**", "/actuator/health", "/api/v1/exchange-rate/**");
+    private static final List<String> DEV_ALLOWED_ORIGINS = List.of("http://localhost:3000", "http://localhost:4200", "http://127.0.0.1:3000");
+    private static final List<String> PROD_ALLOWED_ORIGINS = List.of("https://travel-desk.vercel.app");
+    private static final List<String> ALLOWED_METHODS = List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS");
     private static final List<String> EXPOSED_HEADERS = List.of("Authorization");
     private static final List<String> ALL_HEADERS = List.of("*");
-
+    private final JwtFilter jwtFilter;
+    private final com.crishof.traveldeskapi.security.RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
 
     @Value("${spring.profiles.active:dev}")
@@ -76,20 +58,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         try {
-            http
-                    .csrf(AbstractHttpConfigurer::disable)
+            http.csrf(AbstractHttpConfigurer::disable)
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .exceptionHandling(exceptions -> exceptions
-                            .authenticationEntryPoint(restAuthenticationEntryPoint)
-                            .accessDeniedHandler(restAccessDeniedHandler)
-                    )
-                    .authorizeHttpRequests(auth -> auth
-                            .requestMatchers(PUBLIC_ENDPOINTS.toArray(String[]::new)).permitAll()
+                    .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(restAuthenticationEntryPoint)
+                            .accessDeniedHandler(restAccessDeniedHandler))
+                    .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_ENDPOINTS.toArray(String[]::new))
+                            .permitAll()
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                             .requestMatchers("/actuator/**").hasRole("ADMIN")
-                            .anyRequest().authenticated()
-                    )
+                            .anyRequest().authenticated())
                     .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
             return http.build();
@@ -103,7 +81,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         if (isDevProfile()) {
-            configuration.setAllowedOriginPatterns(DEV_ALLOWED_ORIGIN_PATTERNS);
+            configuration.setAllowedOrigins(DEV_ALLOWED_ORIGINS);
         } else {
             configuration.setAllowedOrigins(PROD_ALLOWED_ORIGINS);
         }

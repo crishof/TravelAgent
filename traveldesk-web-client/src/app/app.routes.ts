@@ -50,6 +50,12 @@ export const routes: Routes = [
         title: 'Ventas — TravelDesk'
       },
       {
+        path: 'sales/:id',
+        loadComponent: () =>
+          import('./features/sales/sale-details/sale-details.component').then(m => m.SaleDetailsComponent),
+        title: 'Detalle Venta — TravelDesk'
+      },
+      {
         path: 'bookings',
         loadComponent: () =>
           import('./features/bookings/bookings.component').then(m => m.BookingsComponent),
@@ -62,10 +68,16 @@ export const routes: Routes = [
         title: 'Clientes — TravelDesk'
       },
       {
-        path: 'providers',
+        path: 'suppliers',
         loadComponent: () =>
-          import('./features/providers/providers.component').then(m => m.ProvidersComponent),
+          import('./features/suppliers/suppliers.component').then(m => m.SuppliersComponent),
         title: 'Proveedores — TravelDesk'
+      },
+      {
+        path: 'suppliers/:id',
+        loadComponent: () =>
+          import('./features/suppliers/supplier-detail/supplier-detail.component').then(m => m.SupplierDetailComponent),
+        title: 'Detalle Proveedor — TravelDesk'
       },
       {
         path: 'team',
@@ -79,6 +91,19 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/account/account.component').then(m => m.AccountComponent),
         title: 'Mi Cuenta — TravelDesk'
+      },
+      {
+        path: 'agency-settings',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/account/agency-settings/agency-settings.component').then(m => m.AgencySettingsComponent),
+        title: 'Configuración de Agencia — TravelDesk'
+      },
+      {
+        path: 'commission-account',
+        loadComponent: () =>
+          import('./features/account/commission-account/commission-account.component').then(m => m.CommissionAccountComponent),
+        title: 'Cuenta de Comisiones — TravelDesk'
       },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

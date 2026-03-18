@@ -22,7 +22,7 @@ export class RegisterComponent {
   agencyNameCtrl = this.fb.control("", Validators.required);
 
   adminForm = this.fb.group({
-    name: ["", Validators.required],
+    fullName: ["", Validators.required],
     email: ["", [Validators.required, Validators.email]],
     password: ["", [Validators.required, Validators.minLength(8)]],
     confirmPassword: ["", Validators.required],
@@ -30,7 +30,7 @@ export class RegisterComponent {
 
   adminFields = [
     {
-      name: "name",
+      name: "fullName",
       label: "Nombre completo",
       type: "text",
       placeholder: "Ana Rodríguez",
@@ -68,23 +68,23 @@ export class RegisterComponent {
       this.adminForm.markAllAsTouched();
       return;
     }
-    const { password, confirmPassword, name, email } = this.adminForm.value;
+    const { password, confirmPassword, fullName, email } = this.adminForm.value;
     if (password !== confirmPassword) {
       this.error.set("Las contraseñas no coinciden");
       return;
     }
     this.loading.set(true);
     this.auth
-      .registerAgency({
-        name: this.agencyNameCtrl.value!,
-        adminName: name!,
-        adminEmail: email!,
-        adminPassword: password!,
+      .register({
+        agencyName: this.agencyNameCtrl.value!,
+        fullName: fullName!,
+        email: email!,
+        password: password!,
       })
       .subscribe({
         next: () => void this.router.navigate(["/app/dashboard"]),
         error: (e) => {
-          this.error.set(e?.error?.message || "Error al crear la agencia");
+          this.error.set(e?.error?.message || "Error al registrarse");
           this.loading.set(false);
         },
       });

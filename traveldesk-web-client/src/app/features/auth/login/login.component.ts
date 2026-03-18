@@ -41,6 +41,5 @@ export class LoginComponent {
         this.loading.set(false);
       },
     });
-    
   }
 }

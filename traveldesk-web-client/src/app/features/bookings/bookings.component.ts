@@ -1,117 +1,86 @@
-import { Component, inject, computed, signal, OnInit } from "@angular/core";
-import { CommonModule, CurrencyPipe } from "@angular/common";
-import { SalesService } from "../../core/services/sales.service";
+import { Component, computed, inject, signal, OnInit } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { BookingsService } from "../../core/services/bookings.service";
 import { ClientsService } from "../../core/services/clients.service";
-import { ProvidersService } from "../../core/services/providers.service";
-import { TeamService } from "../../core/services/team.service";
-import { ExchangeRateService } from "../../core/services/exchange-rate.service";
-import { AuthService } from "../../core/services/auth.service";
-import { BookingFilters } from "../../core/models";
+import { SuppliersService } from "../../core/services/suppliers.service";
+import { BookingFilters } from "../../core/models/models";
+import {
+  getBookingDateIn,
+  getBookingDateOut,
+  getBookingDescription,
+  getBookingProvider,
+  getBookingReservationCode,
+} from "../../core/models/domain-helpers";
 
 @Component({
   selector: "app-bookings",
   standalone: true,
-  imports: [CommonModule, CurrencyPipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: "./bookings.component.html",
 })
 export class BookingsComponent implements OnInit {
-  salesSvc = inject(SalesService);
-  clientsSvc = inject(ClientsService);
-  providersSvc = inject(ProvidersService);
-  teamSvc = inject(TeamService);
-  xr = inject(ExchangeRateService);
-  private readonly auth = inject(AuthService);
+  readonly bookingsSvc = inject(BookingsService);
+  readonly clientsSvc = inject(ClientsService);
+  readonly suppliersSvc = inject(SuppliersService);
 
-  isAdmin = this.auth.isAdmin;
-  filters = signal<BookingFilters>({
-    payStatus: "",
-    providerId: "",
-    clientId: "",
-    agentId: "",
-    dateFrom: "",
+  readonly filters = signal<BookingFilters>({
+    search: "",
+    status: "",
+    supplierId: "",
+    customerId: "",
   });
 
-  private readonly visibleSales = computed(() => {
-    const user = this.auth.currentUser();
-    if (!user) return [];
-    return this.isAdmin()
-      ? this.salesSvc.sales()
-      : this.salesSvc.sales().filter((s) => s.agentId === user.id);
+  readonly filteredBookings = computed(() => {
+    const filters = this.filters();
+    const bookings = this.bookingsSvc.bookings();
+
+    return bookings.filter((booking) => {
+      if (filters.search) {
+        const search = filters.search.toLowerCase();
+        if (
+          !getBookingReservationCode(booking).toLowerCase().includes(search) &&
+          !getBookingDescription(booking).toLowerCase().includes(search)
+        ) {
+          return false;
+        }
+      }
+
+      if (filters.status && booking.status !== filters.status) {
+        return false;
+      }
+
+      if (filters.supplierId && booking.supplierId !== filters.supplierId) {
+        return false;
+      }
+
+      if (filters.customerId && booking.customerId !== filters.customerId) {
+        return false;
+      }
+
+      return true;
+    });
   });
 
-  filteredBookings = computed(() => {
-    const f = this.filters();
-    return this.visibleSales()
-      .flatMap((sale) =>
-        sale.services.map((svc) => ({
-          ...svc,
-          saleId: sale.id,
-          saleCurrency: sale.saleCurrency,
-          providerName: this.providersSvc.getById(svc.providerId)?.name ?? "—",
-          clientName: this.clientsSvc.getById(sale.clientId)?.name ?? "—",
-          agentFirst:
-            this.teamSvc.getById(sale.agentId)?.name?.split(" ")[0] ?? "—",
-          showConversion: svc.currency !== sale.saleCurrency,
-          convertedCost: this.salesSvc.convert(
-            svc.netCost,
-            svc.currency,
-            sale.saleCurrency,
-            this.xr.rate(),
-          ),
-        })),
-      )
-      .filter(
-        (s) =>
-          (!f.payStatus || s.payStatus === f.payStatus) &&
-          (!f.providerId || String(s.providerId) === f.providerId) &&
-          (!f.clientId ||
-            s.clientName ===
-              this.clientsSvc.getById(Number(f.clientId))?.name) &&
-          (!f.agentId ||
-            this.teamSvc.getById(f.agentId)?.name?.split(" ")[0] ===
-              s.agentFirst) &&
-          (!f.dateFrom || s.travelDate >= f.dateFrom),
-      );
-  });
-
-  pendingCount = computed(
-    () =>
-      this.filteredBookings().filter((s) => s.payStatus === "Pendiente").length,
-  );
-  pendingAmount = computed(() =>
-    this.filteredBookings()
-      .filter((s) => s.payStatus === "Pendiente")
-      .reduce((a, s) => a + s.netCost, 0),
-  );
+  constructor() {}
 
   ngOnInit() {
-    this.salesSvc.loadAll().subscribe();
+    this.bookingsSvc.loadAll().subscribe();
     this.clientsSvc.loadAll().subscribe();
-    this.providersSvc.loadAll().subscribe();
-    this.teamSvc.loadUsers().subscribe();
+    this.suppliersSvc.loadAll().subscribe();
   }
 
   setFilter<K extends keyof BookingFilters>(key: K, value: BookingFilters[K]) {
     this.filters.update((f) => ({ ...f, [key]: value }));
   }
 
-  togglePayStatus(saleId: number, svcId: number, current: string) {
-    const next = current === "Pendiente" ? "Pagado" : "Pendiente";
-    this.salesSvc
-      .updateServicePayStatus(saleId, svcId, next as any)
-      .subscribe();
-  }
-
   getVal(event: Event): string {
     return (event.target as HTMLSelectElement | HTMLInputElement).value;
   }
 
-  payStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      Pendiente: "bg-amber-500/10 text-amber-500",
-      Pagado: "bg-emerald-500/10 text-emerald-500",
-      Vencido: "bg-red-500/10 text-red-500",
-    };
-    return map[status] ?? "";
-  }
+  getBookingDescription = getBookingDescription;
+  getBookingProvider = getBookingProvider;
+  getBookingReservationCode = getBookingReservationCode;
+  getBookingDateIn = getBookingDateIn;
+  getBookingDateOut = getBookingDateOut;
 }

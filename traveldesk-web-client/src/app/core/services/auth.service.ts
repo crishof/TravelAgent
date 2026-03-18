@@ -1,21 +1,19 @@
 import { Injectable, inject, signal, computed } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
-import { tap, map } from "rxjs";
+import { tap, throwError } from "rxjs";
 import { environment } from "../../../environments/environment";
 import {
   AuthResponse,
-  LoginDto,
-  CreateAgencyDto,
-  AcceptInviteDto,
-  User,
-  Agency,
+  LoginRequest,
+  SignupRequest,
+  AcceptInviteRequest,
+  AuthMeResponse,
 } from "../models";
 
 const TOKEN_KEY = "td_token";
+const REFRESH_KEY = "td_refresh";
 const USER_KEY = "td_user";
-const AGENCY_KEY = "td_agency";
-
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
@@ -24,86 +22,110 @@ export class AuthService {
   private readonly api = environment.apiUrl;
 
   // ── Signals ──────────────────────────────────────────────────────────────
-  readonly currentUser = signal<User | null>(this.loadUser());
-  readonly currentAgency = signal<Agency | null>(this.loadAgency());
+  readonly currentUser = signal<AuthMeResponse | null>(this.loadUser());
   readonly token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
+  readonly refreshToken = signal<string | null>(localStorage.getItem(REFRESH_KEY));
 
   readonly isLoggedIn = computed(() => !!this.token() && !!this.currentUser());
   readonly isAdmin = computed(() => this.currentUser()?.role === "ADMIN");
-  readonly isAgent = computed(() => this.currentUser()?.role === "AGENT");
 
   // ── Auth actions ─────────────────────────────────────────────────────────
-  login(dto: LoginDto) {
-    return this.http.post<any>(`${this.api}/auth/login`, dto).pipe(
-      map(res => ({
-        token: res.accessToken,
-        user: {
-          id: res.id,
-          agencyId: '', // TODO: Obtener del backend o de otra llamada
-          name: res.fullName,
-          email: res.email,
-          role: res.role,
-          commissionPct: 0, // Default, ajustar según backend
-          avatar: res.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
-          status: res.status,
-        } as User,
-        agency: null, // TODO: Obtener agency del backend
-      })),
-      tap((res) => this.storeSession(res))
-    );
-  }
-
-  registerAgency(dto: CreateAgencyDto) {
+  login(dto: LoginRequest) {
     return this.http
-      .post<AuthResponse>(`${this.api}/auth/register`, dto)
+      .post<AuthResponse>(`${this.api}/auth/login`, dto)
       .pipe(tap((res) => this.storeSession(res)));
   }
 
-  acceptInvite(dto: AcceptInviteDto) {
+  register(dto: SignupRequest) {
     return this.http
-      .post<AuthResponse>(`${this.api}/auth/accept-invite`, dto)
+      .post<AuthResponse>(`${this.api}/auth/signup`, dto)
+      .pipe(tap((res) => this.storeSession(res)));
+  }
+
+  acceptInvite(dto: AcceptInviteRequest) {
+    return this.http.post<any>(`${this.api}/auth/accept-invite`, dto).pipe(
+      tap((res) => {
+        if (res.accessToken) {
+          this.storeSession(res);
+        }
+      }),
+    );
+  }
+
+  getInviteInfo(token: string) {
+    return this.http.get<{ email: string; agencyName: string }>(
+      `${this.api}/auth/invite-info/${token}`,
+    );
+  }
+
+  refresh() {
+    const rt = this.refreshToken();
+    if (!rt) {
+      this.clearSession();
+      return throwError(() => new Error('No refresh token'));
+    }
+    return this.http
+      .get<AuthResponse>(`${this.api}/auth/refresh`, {
+        headers: { Authorization: `Bearer ${rt}` },
+      })
       .pipe(tap((res) => this.storeSession(res)));
   }
 
   logout() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(AGENCY_KEY);
-    this.token.set(null);
-    this.currentUser.set(null);
-    this.currentAgency.set(null);
-    this.router.navigate(["/auth/login"]);
+    this.clearSession();
   }
 
-  // ── Invite ────────────────────────────────────────────────────────────────
-  getInviteInfo(token: string) {
-    return this.http.get<{ email: string; agency: Agency }>(
-      `${this.api}/auth/invite/${token}`,
+  getCurrentUser() {
+    return this.http.get<AuthMeResponse>(`${this.api}/auth/me`).pipe(
+      tap((user) => {
+        this.currentUser.set(user);
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+      }),
     );
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   private storeSession(res: AuthResponse) {
-    localStorage.setItem(TOKEN_KEY, res.token);
-    localStorage.setItem(USER_KEY, JSON.stringify(res.user));
-    localStorage.setItem(AGENCY_KEY, JSON.stringify(res.agency));
-    this.token.set(res.token);
-    this.currentUser.set(res.user);
-    this.currentAgency.set(res.agency);
-  }
+    localStorage.setItem(TOKEN_KEY, res.accessToken);
+    this.token.set(res.accessToken);
 
-  private loadUser(): User | null {
-    try {
-      return JSON.parse(localStorage.getItem(USER_KEY) || "null");
-    } catch {
-      return null;
+    if (res.refreshToken) {
+      localStorage.setItem(REFRESH_KEY, res.refreshToken);
+      this.refreshToken.set(res.refreshToken);
     }
+
+    // Store basic user info from response
+    const userInfo: AuthMeResponse = {
+      id: res.userId,
+      email: res.email,
+      fullName: res.fullName,
+      role: res.role,
+      status: res.status,
+    };
+    this.currentUser.set(userInfo);
+    localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
   }
 
-  private loadAgency(): Agency | null {
+  private clearSession() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+    localStorage.removeItem(USER_KEY);
+    this.token.set(null);
+    this.refreshToken.set(null);
+    this.currentUser.set(null);
+    this.router.navigate(["/auth/login"]);
+  }
+
+  private loadUser(): AuthMeResponse | null {
+    const userStr = localStorage.getItem(USER_KEY);
+    if (!userStr) return null;
+
     try {
-      return JSON.parse(localStorage.getItem(AGENCY_KEY) || "null");
+      return JSON.parse(userStr) as AuthMeResponse;
     } catch {
+      // Prevent app bootstrap crashes when stale/corrupted session data exists.
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(TOKEN_KEY);
       return null;
     }
   }

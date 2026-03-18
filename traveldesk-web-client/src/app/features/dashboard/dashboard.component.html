@@ -1,164 +1,168 @@
 <div class="flex flex-col gap-6 animate-fade-in">
-  <!-- Header -->
-  <div>
-    <h1
-      class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white"
-    >
-      Hola, {{ firstName() }} 👋
-    </h1>
-    <p class="text-sm mt-1 text-slate-500 dark:text-slate-400">
-      {{ agency()?.name }} ·
-      {{ isAdmin() ? "Vista de administrador" : "Vista de agente" }}
-    </p>
-  </div>
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+        Hola, {{ firstName() }}
+      </h1>
+      <p class="text-sm mt-1 text-slate-500 dark:text-slate-400">
+        Dashboard {{ visibility.mode() === "ALL_USERS" ? "de todo el equipo" : "personal" }}
+      </p>
+    </div>
 
-  <!-- Stat cards -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-    @for (stat of stats(); track stat.label) {
-      <div
-        class="rounded-2xl p-5 border hover:scale-[1.01] transition-all bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
-      >
-        <div
-          class="w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-white text-lg"
-          [class]="stat.gradient"
+    @if (isAdmin()) {
+      <div class="inline-flex items-center gap-3 rounded-2xl border px-4 py-3 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60">
+        <div>
+          <div class="text-sm font-semibold text-slate-900 dark:text-white">Visibilidad</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400">
+            {{ visibility.mode() === "ALL_USERS" ? "Todos los usuarios" : "Solo mis datos" }}
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="setVisibilityMode(visibility.mode() !== 'ALL_USERS')"
+          class="relative h-6 w-11 rounded-full transition-colors"
+          [class]="visibility.mode() === 'ALL_USERS' ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-700'"
         >
-          {{ stat.icon }}
-        </div>
-        <div class="text-2xl font-bold text-slate-900 dark:text-white">
-          {{ stat.value }}
-        </div>
-        <div class="text-sm text-slate-500 dark:text-slate-400">
-          {{ stat.label }}
-        </div>
-        <div class="text-xs text-emerald-500 mt-1 font-medium">
-          {{ stat.sub }}
-        </div>
+          <span
+            class="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all"
+            [class]="visibility.mode() === 'ALL_USERS' ? 'left-[calc(100%-1.375rem)]' : 'left-0.5'"
+          ></span>
+        </button>
       </div>
     }
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <!-- Recent sales -->
-    <div
-      class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
-    >
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="font-semibold text-slate-900 dark:text-white">
-          Ventas recientes
-        </h3>
-        <a routerLink="/app/sales" class="text-xs text-cyan-500 hover:underline"
-          >Ver todas →</a
-        >
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60">
+      <div class="text-sm text-slate-500 dark:text-slate-400">Ventas activas</div>
+      <div class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{{ activeSales().length }}</div>
+      <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">Con fecha de viaje futura</div>
+    </div>
+
+    <div class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60">
+      <div class="text-sm text-slate-500 dark:text-slate-400">Clientes registrados</div>
+      <div class="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{{ registeredClients() }}</div>
+      <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">Clientes únicos asociados a ventas</div>
+    </div>
+
+    <div class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60">
+      <div class="text-sm text-slate-500 dark:text-slate-400">Monto pendiente</div>
+      <div class="mt-3 flex flex-col gap-2 text-sm font-semibold">
+        <span class="text-slate-900 dark:text-white">EUR {{ getPendingTotal('EUR').toFixed(2) }}</span>
+        <span class="text-slate-900 dark:text-white">USD {{ getPendingTotal('USD').toFixed(2) }}</span>
       </div>
-      <div class="flex flex-col gap-2">
-        @for (sale of recentSales(); track sale.id) {
-          <div
-            class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/40"
+    </div>
+
+    <div class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60">
+      <div class="text-sm text-slate-500 dark:text-slate-400">Facturación últimos 30 días</div>
+      <div class="mt-3 flex flex-col gap-2 text-sm font-semibold">
+        <span class="text-slate-900 dark:text-white">EUR {{ getRevenueTotal('EUR').toFixed(2) }}</span>
+        <span class="text-slate-900 dark:text-white">USD {{ getRevenueTotal('USD').toFixed(2) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+    <div class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60 xl:col-span-2">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-slate-900 dark:text-white">Ventas activas</h2>
+        <a routerLink="/app/sales" class="text-xs font-semibold text-cyan-600 dark:text-cyan-400">Ver todas</a>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        @for (sale of activeSales(); track sale.id) {
+          <a
+            [routerLink]="['/app/sales', sale.id]"
+            class="flex items-center justify-between gap-4 rounded-2xl border p-4 bg-slate-50 border-slate-200 hover:border-cyan-400/60 dark:bg-slate-900/40 dark:border-slate-700"
           >
-            <div
-              class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
-            >
-              {{ getClientInitial(sale.clientId) }}
-            </div>
-            <div class="flex-1 min-w-0">
-              <div
-                class="text-sm font-medium truncate text-slate-800 dark:text-slate-200"
-              >
-                {{ getClientName(sale.clientId) }}
+            <div class="min-w-0">
+              <div class="text-sm font-semibold text-slate-900 dark:text-white">
+                {{ getSaleClientName(sale) }}
               </div>
-              <div class="text-xs text-slate-500 dark:text-slate-400">
-                #{{ sale.id }} · {{ getAgentFirst(sale.agentId) }}
+              <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {{ sale.destination }} · {{ getSaleTravelDate(sale) | date: "dd/MM/yyyy" }}
               </div>
             </div>
-            <span
-              class="text-xs font-semibold px-2 py-0.5 rounded-full"
-              [class]="statusClass(sale.status)"
-              >{{ sale.status }}</span
-            >
-            <span class="text-sm font-bold text-slate-900 dark:text-white">
-              {{
-                sale.saleTotal
-                  | currency: sale.saleCurrency : "symbol" : "1.0-0"
-              }}
-            </span>
-          </div>
+            <div class="flex items-center gap-3 shrink-0">
+              <span class="rounded-full px-2.5 py-1 text-xs font-semibold" [class]="saleStatusClass(sale.status)">
+                {{ sale.status }}
+              </span>
+              <span class="text-sm font-bold text-slate-900 dark:text-white">
+                {{ formatSaleCardAmount(sale)}}
+              </span>
+            </div>
+          </a>
         }
-        @if (recentSales().length === 0) {
-          <p class="text-sm text-center py-4 text-slate-400">Sin ventas aún</p>
+
+        @if (activeSales().length === 0) {
+          <p class="rounded-2xl border border-dashed border-slate-200 p-6 text-sm text-slate-400 dark:border-slate-700">
+            No hay ventas activas para la vista actual.
+          </p>
         }
       </div>
     </div>
 
-    <!-- Pending payments alert OR agent performance -->
-    @if (isAdmin()) {
-      <div
-        class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
-      >
-        <h3 class="font-semibold mb-4 text-slate-900 dark:text-white">
-          Rendimiento de agentes
-        </h3>
-        <div class="flex flex-col gap-3">
-          @for (agent of agentStats(); track agent.id) {
-            <div>
-              <div class="flex justify-between mb-1">
-                <span class="text-sm text-slate-700 dark:text-slate-300">{{
-                  agent.name
-                }}</span>
-                <span
-                  class="text-sm font-semibold text-slate-800 dark:text-slate-200"
-                >
-                  ${{ agent.revenue.toLocaleString() }}
-                </span>
-              </div>
-              <div class="h-2 rounded-full bg-slate-100 dark:bg-slate-700">
-                <div
-                  class="h-2 rounded-full bg-gradient-to-r from-cyan-500 to-teal-500 transition-all"
-                  [style.width]="agent.pct + '%'"
-                ></div>
-              </div>
-            </div>
-          }
-          @if (agentStats().length === 0) {
-            <p class="text-sm text-slate-400 py-4 text-center">
-              Sin agentes activos
-            </p>
-          }
-        </div>
+    <div class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-slate-900 dark:text-white">Ventas recientes</h2>
+        <a routerLink="/app/sales" class="text-xs font-semibold text-cyan-600 dark:text-cyan-400">Ver todas</a>
       </div>
-    } @else {
-      <div
-        class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
-      >
-        <h3 class="font-semibold mb-4 text-slate-900 dark:text-white">
-          Pagos pendientes a proveedores
-        </h3>
-        <div class="flex flex-col gap-2">
-          @for (svc of pendingServices(); track svc.id) {
-            <div
-              class="flex items-center justify-between p-3 rounded-xl border-l-2 border-amber-500 bg-amber-50 dark:bg-amber-500/5"
-            >
-              <div>
-                <div
-                  class="text-sm font-medium text-slate-800 dark:text-slate-200"
-                >
-                  {{ svc.name }}
+
+      <div class="flex flex-col gap-2">
+        @for (sale of recentSales(); track sale.id) {
+          <a [routerLink]="['/app/sales', sale.id]" class="rounded-xl bg-slate-50 px-4 py-3 dark:bg-slate-900/40">
+            <div class="flex items-center justify-between gap-3">
+              <div class="min-w-0">
+                <div class="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                  {{ getSaleClientName(sale) }}
                 </div>
                 <div class="text-xs text-slate-500 dark:text-slate-400">
-                  {{ svc.travelDate }}
+                  {{ getSaleCreatedAt(sale) | date: "dd/MM/yyyy" }} · {{ sale.destination }}
                 </div>
               </div>
-              <span class="text-sm font-semibold text-amber-500">
-                {{ svc.netCost | currency: svc.currency : "symbol" : "1.2-2" }}
-              </span>
+              <span class="text-xs font-semibold rounded-full px-2 py-1" [class]="saleStatusClass(sale.status)">{{ sale.status }}</span>
             </div>
-          }
-          @if (pendingServices().length === 0) {
-            <p class="text-sm text-slate-400 py-4 text-center">
-              Sin pagos pendientes 🎉
-            </p>
-          }
-        </div>
+          </a>
+        }
+
+        @if (recentSales().length === 0) {
+          <p class="py-4 text-sm text-slate-400">Sin ventas recientes.</p>
+        }
       </div>
-    }
+    </div>
+  </div>
+
+  <div class="rounded-2xl border p-5 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-base font-semibold text-slate-900 dark:text-white">Bookings pendientes</h2>
+      <a routerLink="/app/bookings" class="text-xs font-semibold text-cyan-600 dark:text-cyan-400">Abrir reservas</a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      @for (booking of pendingBookings(); track booking.id) {
+        <div class="rounded-2xl border p-4 bg-slate-50 border-slate-200 dark:bg-slate-900/40 dark:border-slate-700">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                {{ getBookingDescription(booking) }}
+              </div>
+              <div class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {{ getBookingProvider(booking) }}
+                @if (getBookingReservationCode(booking)) {
+                  · {{ getBookingReservationCode(booking) }}
+                }
+              </div>
+            </div>
+            <span class="rounded-full px-2.5 py-1 text-xs font-semibold shrink-0" [class]="bookingStatusClass(booking.status)">
+              {{ booking.status }}
+            </span>
+          </div>
+        </div>
+      }
+
+      @if (pendingBookings().length === 0) {
+        <p class="text-sm text-slate-400">No hay bookings pendientes para la vista actual.</p>
+      }
+    </div>
   </div>
 </div>

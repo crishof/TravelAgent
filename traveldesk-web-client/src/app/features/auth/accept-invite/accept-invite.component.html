@@ -20,7 +20,7 @@
       <p class="text-sm mt-2 mb-6 text-slate-500 dark:text-slate-400">
         Te invitaron a unirte a
         <strong class="text-slate-900 dark:text-white">{{
-          inviteInfo()?.agency?.name
+          inviteInfo()?.agencyName
         }}</strong>
         como <strong>Agente</strong>.
       </p>
@@ -37,13 +37,14 @@
         </div>
         <div class="flex flex-col gap-1">
           <label
-            for="name"
+            for="fullName"
             class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Tu nombre</label
+            >Tu nombre completo</label
           >
           <input
             type="text"
-            formControlName="name"
+            id="fullName"
+            formControlName="fullName"
             placeholder="Juan Pérez"
             class="form-input form-input-light dark:form-input-dark"
           />

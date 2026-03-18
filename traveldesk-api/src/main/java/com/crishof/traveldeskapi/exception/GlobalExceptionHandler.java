@@ -23,18 +23,22 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    private static final String BAD_REQUEST = "Bad Request";
+    private static final String ERROR_BAD_REQUEST = "Bad Request";
+    private static final String ERROR_UNAUTHORIZED = "Unauthorized";
+    private static final String ERROR_CONFLICT = "Conflict";
+    private static final String ERROR_NOT_FOUND = "Not Found";
+
 
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<ApiError> handleBadRequest(InvalidRequestException ex, HttpServletRequest request) {
         log.warn("Bad request: {}", ex.getMessage());
-        return respond(HttpStatus.BAD_REQUEST, BAD_REQUEST, ex, request);
+        return respond(HttpStatus.BAD_REQUEST, ERROR_BAD_REQUEST, ex, request);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
         log.warn("Resource not found: {}", ex.getMessage());
-        return respond(HttpStatus.NOT_FOUND, "Not Found", ex, request);
+        return respond(HttpStatus.NOT_FOUND, ERROR_NOT_FOUND, ex, request);
     }
 
     @ExceptionHandler(BusinessException.class)
@@ -63,19 +67,25 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadableMessage(HttpMessageNotReadableException ex, HttpServletRequest request) {
         log.warn("Malformed request body: {}", ex.getMessage());
-        return respond(HttpStatus.BAD_REQUEST, BAD_REQUEST, "Malformed or unreadable request body", request);
+        return respond(HttpStatus.BAD_REQUEST, ERROR_BAD_REQUEST, "Malformed or unreadable request body", request);
     }
 
     @ExceptionHandler(UnauthorizedActionException.class)
     public ResponseEntity<ApiError> handleUnauthorizedAction(UnauthorizedActionException ex, HttpServletRequest request) {
         log.warn("Unauthorized action: {}", ex.getMessage());
-        return respond(HttpStatus.UNAUTHORIZED, "Unauthorized", ex, request);
+        return respond(HttpStatus.UNAUTHORIZED, ERROR_UNAUTHORIZED, ex, request);
     }
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiError> handleConflict(ConflictException ex, HttpServletRequest request) {
         log.warn("Conflict: {}", ex.getMessage());
-        return respond(HttpStatus.CONFLICT, "Conflict", ex, request);
+        return respond(HttpStatus.CONFLICT, ERROR_CONFLICT, ex, request);
+    }
+
+    @ExceptionHandler(AgencyAlreadyExistException.class)
+    public ResponseEntity<ApiError> handleAgencyAlreadyExist(AgencyAlreadyExistException ex, HttpServletRequest request) {
+        log.warn("Agency already exists: {}", ex.getMessage());
+        return respond(HttpStatus.CONFLICT, ERROR_CONFLICT, ex, request);
     }
 
     @ExceptionHandler(ExternalServiceException.class)
@@ -87,7 +97,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmailAlreadyExistException.class)
     public ResponseEntity<ApiError> handleEmailAlreadyExist(EmailAlreadyExistException ex, HttpServletRequest request) {
         log.warn("Email already exists: {}", ex.getMessage());
-        return respond(HttpStatus.CONFLICT, "Conflict", ex, request);
+        return respond(HttpStatus.CONFLICT, ERROR_CONFLICT, ex, request);
     }
 
     @ExceptionHandler(InvalidCredentialException.class)
@@ -105,13 +115,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ApiError> handleEntityNotFound(EntityNotFoundException ex, HttpServletRequest request) {
         log.warn("Entity not found: {}", ex.getMessage());
-        return respond(HttpStatus.NOT_FOUND, "Not Found", ex, request);
+        return respond(HttpStatus.NOT_FOUND, ERROR_NOT_FOUND, ex, request);
     }
 
     @ExceptionHandler(MissingServletRequestPartException.class)
     public ResponseEntity<ApiError> handleMissingPart(MissingServletRequestPartException ex, HttpServletRequest request) {
         log.warn("Missing request part: {}", ex.getMessage());
-        return respond(HttpStatus.BAD_REQUEST, BAD_REQUEST, ex, request);
+        return respond(HttpStatus.BAD_REQUEST, ERROR_BAD_REQUEST, ex, request);
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)

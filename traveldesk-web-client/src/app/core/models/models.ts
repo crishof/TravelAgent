@@ -1,177 +1,331 @@
-// ─── Agency ───────────────────────────────────────────────────────────────────
-export interface Agency {
-  id: string;
-  name: string;
-  slug: string;
-  plan: 'Free' | 'Pro' | 'Enterprise';
-  logo?: string;
-  createdAt: string;
-}
-
-export interface CreateAgencyDto {
-  name: string;
-  adminName: string;
-  adminEmail: string;
-  adminPassword: string;
-}
-
-// ─── User / Auth ──────────────────────────────────────────────────────────────
-export type UserRole = 'ADMIN' | 'AGENT';
-export type UserStatus = 'active' | 'pending' | 'inactive';
-
-export interface User {
-  id: string;
-  agencyId: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  commissionPct: number;      // % sobre ganancia neta de la venta
-  avatar: string;             // initials, e.g. "AR"
-  status: UserStatus;
-  inviteToken?: string;
-  createdAt?: string;
-}
-
-export interface LoginDto {
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface SignupRequest {
+  agencyName: string;
+  fullName: string;
+  email: string;
+  password: string;
+}
+
+export interface AcceptInviteRequest {
+  token: string;
+  fullName: string;
+  email: string;
+  password: string;
+}
+
+export interface LogoutRequest {
+  refreshToken: string;
 }
 
 export interface AuthResponse {
-  token: string;
-  user: User;
-  agency: Agency | null;
-}
-
-export interface InviteAgentDto {
+  userId: string;
+  fullName: string;
   email: string;
-  commissionPct: number;
+  role: string;
+  status: string;
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
 }
 
-export interface AcceptInviteDto {
-  token: string;
-  name: string;
-  password: string;
-}
-
-// ─── Client ───────────────────────────────────────────────────────────────────
-export interface Client {
-  id: number;
-  agencyId: string;
-  name: string;
+export interface AuthMeResponse {
+  id: string;
   email: string;
+  fullName: string;
+  role: string;
+  status: string;
+}
+
+export type UserRole = "ADMIN" | "AGENT";
+export type VisibilityMode = "MY_DATA" | "ALL_USERS";
+
+export interface MessageResponse {
+  message: string;
+}
+
+// ─── Account ──────────────────────────────────────────────────────────────────
+export interface AccountRequest {
+  fullName: string;
+  email: string;
+}
+
+export interface AccountResponse {
+  fullName: string;
+  email: string;
+  status: string;
+}
+
+// ─── Agency Settings ──────────────────────────────────────────────────────────
+export interface AgencySettingsRequest {
+  agencyName: string;
+  currency: string;
+  timeZone: string;
+}
+
+export interface AgencySettingsResponse {
+  agencyName: string;
+  currency: string;
+  timeZone: string;
+}
+
+// ─── Commission Settings ──────────────────────────────────────────────────────
+export interface CommissionSettingsRequest {
+  commissionType: string;
+  commissionValue: number;
+}
+
+export interface CommissionSettingsResponse {
+  commissionType: string;
+  commissionValue: number;
+}
+
+// ─── Theme ────────────────────────────────────────────────────────────────────
+export interface ThemeRequest {
+  mode: string;
+  primaryColor: string;
+  secondaryColor: string;
+}
+
+export interface ThemeResponse {
+  mode: string;
+  primaryColor: string;
+  secondaryColor: string;
+}
+
+// ─── Team ─────────────────────────────────────────────────────────────────────
+export interface TeamMemberRequest {
+  role: string;
+  status: string;
+}
+
+export interface TeamMemberResponse {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  status: string;
+  commissionPercentage?: number;
+}
+
+export interface TeamInviteRequest {
+  email: string;
+  role: string;
+}
+
+// ─── Customer (antes Client) ───────────────────────────────────────────────────
+export interface CustomerRequest {
+  fullName: string;
+  email: string;
+  phone: string;
+}
+
+export interface CustomerResponse {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+}
+
+// Alias para compatibilidad
+export type Client = CustomerResponse;
+export type CreateClientDto = CustomerRequest;
+
+// ─── Supplier ─────────────────────────────────────────────────────────────────
+export type ServiceType =
+  | "AIRLINE"
+  | "HOTEL"
+  | "TRANSPORT"
+  | "TOUR_OPERATOR"
+  | "INSURANCE"
+  | "OTHER";
+
+export type Currency = "USD" | "EUR";
+export type BookingStatus = "CREATED" | "CONFIRMED" | "PAID";
+
+export interface SupplierRequest {
+  name: string;
+  email?: string;
   phone?: string;
-  passport?: string;
-  nationality?: string;
-  notes?: string;
+  serviceType: ServiceType;
+  currency: Currency;
+  country?: string;
+}
+
+export interface SupplierResponse {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  serviceType: ServiceType;
+  currency: Currency;
+  country?: string;
+}
+
+// Alias para compatibilidad
+export type Supplier = SupplierResponse;
+export type CreateSupplierDto = SupplierRequest;
+
+// ─── Sale ─────────────────────────────────────────────────────────────────────
+export interface SaleRequest {
+  clientId?: string;
+  clientName?: string;
+  agentId?: string;
+  supplierId?: string;
+  destination: string;
+  travelDate?: string;
   createdAt?: string;
-}
-
-export interface CreateClientDto {
-  name: string;
-  email: string;
-  phone?: string;
-  passport?: string;
-  nationality?: string;
-  notes?: string;
-}
-
-// ─── Provider ─────────────────────────────────────────────────────────────────
-export type ProviderCategory = 'Hotel' | 'Aéreo' | 'Paquete' | 'Transporte' | 'Crucero' | 'Seguro' | 'Otro';
-export type Currency = 'USD' | 'EUR';
-
-export interface Provider {
-  id: number;
-  agencyId: string;
-  name: string;
-  category: ProviderCategory;
-  country: string;
-  contact: string;
+  description?: string;
+  amount: number;
   currency: Currency;
-  notes?: string;
+  status: string;
+  customerId?: string;
+  customerName?: string;
+  departureDate?: string;
 }
 
-export interface CreateProviderDto {
-  name: string;
-  category: ProviderCategory;
-  country: string;
-  contact: string;
+export interface SaleResponse {
+  id: string;
+  clientId: string;
+  clientName: string;
+  agentId?: string;
+  agent?: AuthMeResponse;
+  supplierId?: string;
+  supplierName?: string;
+  destination: string;
+  travelDate?: string;
+  createdAt?: string;
+  description?: string;
+  totalAmount: number;
+  paidAmount?: number;
   currency: Currency;
-  notes?: string;
+  status: string;
+  bookings?: BookingResponse[];
+  paymentsReceived?: PaymentReceivedResponse[];
+  customerId?: string;
+  customerName?: string;
+  departureDate?: string;
+  amount?: number;
 }
 
-// ─── Service (Booking) ────────────────────────────────────────────────────────
-export type PaymentStatus = 'Pendiente' | 'Pagado' | 'Vencido';
+// Alias para compatibilidad
+export type Sale = SaleResponse;
+export type CreateSaleDto = SaleRequest;
 
-export interface ServiceBooking {
-  id: number;
-  name: string;
-  providerId: number;
+export interface SalePaymentRequest {
+  saleId?: string;
+  date: string;
+  amount: number;
   currency: Currency;
-  netCost: number;
-  salePrice: number | null;   // null = incluido en el total general de la venta
-  travelDate: string;
-  payStatus: PaymentStatus;
-  notes?: string;
+  description: string;
+  customExchangeRate?: number;
+  customerId?: string;
+  originalAmount?: number;
+  sourceCurrency?: Currency;
+  exchangeRate?: number;
+  convertedAmount?: number;
 }
 
-export interface CreateServiceDto {
+export interface SalePaymentResponse extends SalePaymentRequest {
+  id: string;
+  createdAt: string;
+}
+
+export type PaymentReceivedRequest = SalePaymentRequest;
+export type PaymentReceivedResponse = SalePaymentResponse;
+
+// ─── Booking ──────────────────────────────────────────────────────────────────
+export interface BookingRequest {
+  customerId: string;
+  supplierId?: string;
+  reference: string;
+  passengerName: string;
+  destination: string;
+  amount: number;
+  currency: Currency;
+  originalAmount?: number;
+  sourceCurrency?: Currency;
+  exchangeRate?: number;
+  convertedAmount?: number;
+  departureDate: string;
+  returnDate?: string;
+  paymentDate?: string;
+  status: BookingStatus;
+}
+
+export interface BookingResponse {
+  id: string;
+  customerId?: string;
+  customerName?: string;
+  supplierId?: string;
+  supplierName?: string;
+  reference: string;
+  description: string;
+  amount: number;
+  currency: Currency;
+  originalAmount?: number;
+  sourceCurrency?: Currency;
+  exchangeRate?: number;
+  convertedAmount?: number;
+  departureDate?: string;
+  returnDate?: string;
+  paymentDate?: string;
+  status: BookingStatus;
+}
+
+// Alias para compatibilidad con ServiceBooking
+export type ServiceBooking = BookingResponse;
+export type CreateServiceDto = Omit<BookingRequest, "returnDate"> & {
   name: string;
-  providerId: number;
   currency: Currency;
   netCost: number;
   salePrice: number | null;
   travelDate: string;
   notes?: string;
+};
+
+// ─── Exchange Rate ────────────────────────────────────────────────────────────
+export interface ExchangeRateResponse {
+  baseCurrency: string;
+  targetCurrency: string;
+  rate: number;
 }
 
-// ─── Sale ─────────────────────────────────────────────────────────────────────
-export type SaleStatus = 'Cotización' | 'Confirmada' | 'En proceso' | 'Completada' | 'Cancelada';
-
-export interface Sale {
-  id: number;
-  agencyId: string;
-  agentId: string;
-  clientId: number;
-  status: SaleStatus;
-  saleCurrency: Currency;
-  travelDate: string;
-  createdAt: string;
-  exchangeRate: number;
-  saleTotal: number;          // Precio total al cliente
-  notes?: string;
-  services: ServiceBooking[];
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+export interface DashboardStatsResponse {
+  totalSales: number;
+  totalBookings: number;
+  totalCustomers: number;
+  totalSuppliers: number;
 }
 
-export interface CreateSaleDto {
-  clientId: number;
-  agentId: string;
-  status: SaleStatus;
-  saleCurrency: Currency;
-  travelDate: string;
-  exchangeRate: number;
-  saleTotal: number;
-  notes?: string;
-}
-
-export interface UpdateSaleTotalDto {
-  saleTotal: number;
-}
-
-// ─── Commission ───────────────────────────────────────────────────────────────
-export type CommissionStatus = 'Pendiente' | 'Pagado';
-
-export interface Commission {
+export interface AccountStatementMovement {
   id: string;
-  agentId: string;
-  saleId: number;
-  amount: number;
-  status: CommissionStatus;
-  paidAt: string | null;
   description: string;
+  date: string;
+  concept: string;
+  amount: number;
+  currency: Currency;
+  type?: string;
 }
 
-// ─── UI helpers ───────────────────────────────────────────────────────────────
+export interface AccountStatementResponse {
+  movements: AccountStatementMovement[];
+  balance: number;
+  currency: Currency;
+}
+
+export interface AccountPaymentRequest {
+  date: string;
+  amount: number;
+  currency: Currency;
+}
+
+// ─── UI Helpers ───────────────────────────────────────────────────────────────
 export interface SelectOption {
   value: string | number;
   label: string;
@@ -187,9 +341,8 @@ export interface SaleFilters {
 }
 
 export interface BookingFilters {
-  payStatus: string;
-  providerId: string;
-  clientId: string;
-  agentId: string;
-  dateFrom: string;
+  search: string;
+  status: string;
+  customerId: string;
+  supplierId: string;
 }

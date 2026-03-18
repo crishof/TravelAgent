@@ -1,0 +1,156 @@
+<div class="space-y-4">
+  <div
+    class="flex flex-col gap-4 px-5 py-4 rounded-2xl border border-slate-100 bg-slate-50 shadow-sm dark:border-slate-700/60 dark:bg-slate-800"
+  >
+    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div>
+        <h3 class="font-semibold text-slate-900 dark:text-white">
+          Estado de cuenta de comisiones
+        </h3>
+        <p class="text-sm text-slate-500 dark:text-slate-400">
+          Se muestran por separado las ventas y cobros de comisiones en USD y EUR, sin conversión entre monedas.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        (click)="showAddPayment.set(true)"
+        class="px-3 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-cyan-500 to-teal-600 hover:opacity-90"
+      >
+        Registrar cobro
+      </button>
+    </div>
+  </div>
+
+  <div class="grid gap-4 xl:grid-cols-2">
+    @for (currency of currencies; track currency) {
+      <div class="rounded-2xl border overflow-hidden border-slate-100 shadow-sm dark:border-slate-700/60">
+        <div class="border-b bg-white px-5 py-4 border-slate-100 dark:bg-slate-900/40 dark:border-slate-700/60">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-semibold text-slate-900 dark:text-white">
+                {{ currency }}
+              </div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">
+                Balance disponible de comisiones.
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">Balance</div>
+              <div class="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                {{ formatAmount(statementFor(currency)?.balance ?? 0, currency) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-5 py-4 space-y-2 bg-slate-50/70 dark:bg-slate-800/30 min-h-40">
+          @if (loading()) {
+            <p class="text-sm text-slate-400">Cargando movimientos...</p>
+          } @else if (error()) {
+            <p class="text-sm text-red-500">{{ error() }}</p>
+          } @else {
+            @for (movement of statementFor(currency)?.movements ?? []; track trackMovement($index, movement)) {
+              <div
+                class="flex items-center justify-between gap-3 rounded-2xl border p-4 bg-white border-slate-100 dark:bg-slate-900/40 dark:border-slate-700"
+              >
+                <div>
+                  <div class="text-sm font-semibold text-slate-900 dark:text-white">
+                    {{ movement.concept }}
+                  </div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400">
+                    {{ movement.date | date: "dd/MM/yyyy" }}
+                  </div>
+                </div>
+                <div
+                  class="text-sm font-bold"
+                  [class]="movement.amount >= 0 ? 'text-emerald-600' : 'text-red-500'"
+                >
+                  {{ formatAmount(movement.amount, movement.currency) }}
+                </div>
+              </div>
+            }
+
+            @if ((statementFor(currency)?.movements?.length ?? 0) === 0) {
+              <p class="text-sm text-slate-400">
+                No hay movimientos registrados en {{ currency }}.
+              </p>
+            }
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+@if (showAddPayment()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <button
+      type="button"
+      aria-label="Cerrar modal"
+      class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      (click)="showAddPayment.set(false)"
+    ></button>
+    <dialog
+      open
+      class="relative w-full max-w-md rounded-2xl shadow-2xl border p-6 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+    >
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-semibold">Añadir pago</h2>
+        <button
+          (click)="showAddPayment.set(false)"
+          class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+        >
+          ✕
+        </button>
+      </div>
+
+      <form
+        [formGroup]="paymentForm"
+        (ngSubmit)="addPayment()"
+        class="flex flex-col gap-4"
+      >
+        <label
+          class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+        >
+          Fecha
+          <input
+            type="date"
+            formControlName="date"
+            class="form-input form-input-light dark:form-input-dark mt-1"
+          />
+        </label>
+        <label
+          class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+        >
+          Monto
+          <input
+            type="number"
+            step="0.01"
+            formControlName="amount"
+            class="form-input form-input-light dark:form-input-dark mt-1"
+          />
+        </label>
+        <label
+          class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+        >
+          Moneda
+          <select
+            formControlName="currency"
+            class="form-input form-input-light dark:form-input-dark mt-1"
+          >
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+          </select>
+        </label>
+
+        <button
+          type="submit"
+          class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold text-sm hover:opacity-90 transition-all"
+        >
+          Guardar pago manual
+        </button>
+      </form>
+    </dialog>
+  </div>
+}

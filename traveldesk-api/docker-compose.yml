@@ -13,16 +13,16 @@ services:
     networks:
       - travel-net
 
-  spring:
-    build: ./
-    depends_on:
-      - database
-    env_file:
-      - .env
-    ports:
-      - "8090:8090"
-    networks:
-      - travel-net
+#  spring:
+#    build: ./
+#    depends_on:
+#      - database
+#    env_file:
+#      - .env
+#    ports:
+#      - "8090:8090"
+#    networks:
+#      - travel-net
 
 volumes:
   pg_dev_data:
