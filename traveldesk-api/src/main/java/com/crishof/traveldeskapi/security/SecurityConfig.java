@@ -29,8 +29,6 @@ import java.util.List;
 public class SecurityConfig {
 
     private static final List<String> PUBLIC_ENDPOINTS = List.of("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api/v1/auth/**", "/actuator/health", "/api/v1/exchange-rate/**");
-    private static final List<String> DEV_ALLOWED_ORIGINS = List.of("http://localhost:3000", "http://localhost:4200", "http://127.0.0.1:3000");
-    private static final List<String> PROD_ALLOWED_ORIGINS = List.of("https://travel-desk.vercel.app");
     private static final List<String> ALLOWED_METHODS = List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS");
     private static final List<String> EXPOSED_HEADERS = List.of("Authorization");
     private static final List<String> ALL_HEADERS = List.of("*");
@@ -38,8 +36,8 @@ public class SecurityConfig {
     private final com.crishof.traveldeskapi.security.RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
 
-    @Value("${spring.profiles.active:dev}")
-    private String activeProfile;
+    @Value("${app.cors.allowed-origin-patterns}")
+    private List<String> allowedOriginPatterns;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -80,11 +78,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        if (isDevProfile()) {
-            configuration.setAllowedOrigins(DEV_ALLOWED_ORIGINS);
-        } else {
-            configuration.setAllowedOrigins(PROD_ALLOWED_ORIGINS);
-        }
+        configuration.setAllowedOriginPatterns(allowedOriginPatterns.stream().map(String::trim).toList());
 
         configuration.setAllowedMethods(ALLOWED_METHODS);
         configuration.setAllowedHeaders(ALL_HEADERS);
@@ -94,9 +88,5 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    private boolean isDevProfile() {
-        return "dev".equalsIgnoreCase(activeProfile);
     }
 }
