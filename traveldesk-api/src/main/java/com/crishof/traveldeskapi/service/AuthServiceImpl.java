@@ -81,9 +81,9 @@ public class AuthServiceImpl implements AuthService {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(normalizedEmail, request.password())
             );
-        } catch (DisabledException _) {
+        } catch (DisabledException e) {
             throw new UnauthorizedActionException("User is disabled or blocked");
-        } catch (BadCredentialsException _) {
+        } catch (BadCredentialsException e) {
             throw new InvalidCredentialException("Invalid email or password");
         }
 
