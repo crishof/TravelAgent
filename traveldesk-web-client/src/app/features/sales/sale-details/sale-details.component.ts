@@ -89,12 +89,16 @@ export class SaleDetailsComponent implements OnInit {
     paymentDate: [""],
   });
 
-  readonly currency = computed<Currency>(() => getSaleCurrency(this.sale() ?? {}));
+  readonly currency = computed<Currency>(() =>
+    getSaleCurrency(this.sale() ?? {}),
+  );
 
   readonly selectedSupplier = computed(() => {
     const supplierId = this.bookingForm.value.supplierId;
     if (!supplierId) return null;
-    return this.suppliersSvc.suppliers().find((s) => s.id === supplierId) ?? null;
+    return (
+      this.suppliersSvc.suppliers().find((s) => s.id === supplierId) ?? null
+    );
   });
 
   readonly isSupplierLocked = computed(() => this.selectedSupplier() !== null);
@@ -122,7 +126,8 @@ export class SaleDetailsComponent implements OnInit {
       .filter((booking) => booking.status === "PAID")
       .reduce(
         (accumulator, booking) =>
-          accumulator + getBookingAmountInSaleCurrency(booking, this.currency()),
+          accumulator +
+          getBookingAmountInSaleCurrency(booking, this.currency()),
         0,
       ),
   );
@@ -174,7 +179,8 @@ export class SaleDetailsComponent implements OnInit {
 
     const dto: Partial<SaleRequest> = {
       destination: this.saleForm.value.destination ?? currentSale.destination,
-      departureDate: this.saleForm.value.travelDate ?? getSaleTravelDate(currentSale),
+      departureDate:
+        this.saleForm.value.travelDate ?? getSaleTravelDate(currentSale),
     };
 
     this.salesSvc.update(currentSale.id, dto).subscribe({
@@ -222,7 +228,8 @@ export class SaleDetailsComponent implements OnInit {
       exchangeRate,
       convertedAmount: originalAmount * exchangeRate,
       description: (this.paymentForm.value.description ?? "").trim(),
-      ...(isDifferentCurrency && this.paymentForm.value.customExchangeRate != null
+      ...(isDifferentCurrency &&
+      this.paymentForm.value.customExchangeRate != null
         ? { customExchangeRate: exchangeRate }
         : {}),
     };
@@ -241,7 +248,10 @@ export class SaleDetailsComponent implements OnInit {
     if (!currentSale) return;
 
     this.salesSvc.deletePayment(currentSale.id, id).subscribe({
-      next: () => this.payments.update((list) => list.filter((payment) => payment.id !== id)),
+      next: () =>
+        this.payments.update((list) =>
+          list.filter((payment) => payment.id !== id),
+        ),
       error: (err) => console.error("Error deleting payment:", err),
     });
   }
@@ -269,10 +279,14 @@ export class SaleDetailsComponent implements OnInit {
 
   editBooking(booking: BookingResponse) {
     this.editingBookingId.set(booking.id);
-    this.useCustomProvider.set(!booking.supplierId && !!getBookingProvider(booking));
+    this.useCustomProvider.set(
+      !booking.supplierId && !!getBookingProvider(booking),
+    );
     this.registerPayment.set(booking.status === "PAID");
     this.showAddBooking.set(true);
-    const supplier = booking.supplierId ? this.suppliersSvc.suppliers().find((s) => s.id === booking.supplierId) : null;
+    const supplier = booking.supplierId
+      ? this.suppliersSvc.suppliers().find((s) => s.id === booking.supplierId)
+      : null;
     this.bookingForm.patchValue({
       supplierId: booking.supplierId ?? "",
       provider: getBookingProvider(booking),
@@ -339,7 +353,7 @@ export class SaleDetailsComponent implements OnInit {
           exchangeRate: bookingRate,
           convertedAmount: bookingConvertedAmount,
           paymentDate: this.registerPayment()
-            ? (value.paymentDate || this.todayIso())
+            ? value.paymentDate || this.todayIso()
             : undefined,
           passengerName: getSaleClientName(currentSale),
           status: this.registerPayment() ? "PAID" : "CREATED",
@@ -386,7 +400,10 @@ export class SaleDetailsComponent implements OnInit {
 
     const paymentCurrency = this.paymentForm.value.currency as Currency;
     this.paymentForm.patchValue({
-      customExchangeRate: this.defaultExchangeRate(paymentCurrency, this.currency()),
+      customExchangeRate: this.defaultExchangeRate(
+        paymentCurrency,
+        this.currency(),
+      ),
     });
   }
 
@@ -403,13 +420,17 @@ export class SaleDetailsComponent implements OnInit {
   paymentRatePlaceholder(): string {
     const paymentCurrency = this.paymentForm.value.currency as Currency;
     if (!paymentCurrency) return "";
-    return this.defaultExchangeRate(paymentCurrency, this.currency()).toFixed(4);
+    return this.defaultExchangeRate(paymentCurrency, this.currency()).toFixed(
+      4,
+    );
   }
 
   bookingRatePlaceholder(): string {
     const bookingCurrency = this.bookingForm.value.currency as Currency;
     if (!bookingCurrency) return "";
-    return this.defaultExchangeRate(bookingCurrency, this.currency()).toFixed(4);
+    return this.defaultExchangeRate(bookingCurrency, this.currency()).toFixed(
+      4,
+    );
   }
 
   onBookingCurrencyChange() {
@@ -420,7 +441,10 @@ export class SaleDetailsComponent implements OnInit {
 
     const bookingCurrency = this.bookingForm.value.currency as Currency;
     this.bookingForm.patchValue({
-      customExchangeRate: this.defaultExchangeRate(bookingCurrency, this.currency()),
+      customExchangeRate: this.defaultExchangeRate(
+        bookingCurrency,
+        this.currency(),
+      ),
     });
   }
 
@@ -435,7 +459,8 @@ export class SaleDetailsComponent implements OnInit {
     this.useCustomProvider.set(useCustomProvider);
     if (useCustomProvider) {
       const providerCurrency =
-        (this.bookingForm.value.providerCurrency as Currency) ?? this.currency();
+        (this.bookingForm.value.providerCurrency as Currency) ??
+        this.currency();
       this.bookingForm.patchValue({
         supplierId: "",
         provider: "",
@@ -464,7 +489,8 @@ export class SaleDetailsComponent implements OnInit {
 
   onProviderCurrencyChange() {
     if (!this.useCustomProvider()) return;
-    const providerCurrency = this.bookingForm.value.providerCurrency as Currency;
+    const providerCurrency = this.bookingForm.value
+      .providerCurrency as Currency;
     this.bookingForm.patchValue({ currency: providerCurrency });
     this.onBookingCurrencyChange();
   }
@@ -474,14 +500,18 @@ export class SaleDetailsComponent implements OnInit {
 
   formatPaymentLine(payment: PaymentItem): string {
     const saleCurrency = this.currency();
-    const sourceCurrency = payment.sourceCurrency ?? payment.currency ?? saleCurrency;
-    const originalAmount = Number(payment.originalAmount ?? payment.amount ?? 0);
+    const sourceCurrency =
+      payment.sourceCurrency ?? payment.currency ?? saleCurrency;
+    const originalAmount = Number(
+      payment.originalAmount ?? payment.amount ?? 0,
+    );
 
     const convertedAmount = Number(
       payment.convertedAmount ??
         (sourceCurrency === saleCurrency
           ? originalAmount
-          : originalAmount * Number(payment.exchangeRate ?? payment.customExchangeRate ?? 1)),
+          : originalAmount *
+            Number(payment.exchangeRate ?? payment.customExchangeRate ?? 1)),
     );
 
     if (sourceCurrency !== saleCurrency) {
@@ -493,8 +523,11 @@ export class SaleDetailsComponent implements OnInit {
 
   formatBookingLine(booking: BookingResponse): string {
     const saleCurrency = this.currency();
-    const sourceCurrency = booking.sourceCurrency ?? booking.currency ?? saleCurrency;
-    const originalAmount = Number(booking.originalAmount ?? booking.amount ?? 0);
+    const sourceCurrency =
+      booking.sourceCurrency ?? booking.currency ?? saleCurrency;
+    const originalAmount = Number(
+      booking.originalAmount ?? booking.amount ?? 0,
+    );
 
     const convertedAmount = Number(
       booking.convertedAmount ??
@@ -521,7 +554,10 @@ export class SaleDetailsComponent implements OnInit {
 
   private loadPayments(saleId: string) {
     this.salesSvc.getPayments(saleId).subscribe({
-      next: (payments) => this.payments.set(payments.map((payment) => this.normalizePayment(payment))),
+      next: (payments) =>
+        this.payments.set(
+          payments.map((payment) => this.normalizePayment(payment)),
+        ),
       error: (err) => {
         if (err?.status !== 405) {
           console.error("Error loading payments:", err);
@@ -540,20 +576,26 @@ export class SaleDetailsComponent implements OnInit {
     const providerName = (this.bookingForm.value.provider ?? "").trim();
     const existing = this.suppliersSvc
       .suppliers()
-      .find((supplier) => supplier.name.toLowerCase() === providerName.toLowerCase());
+      .find(
+        (supplier) =>
+          supplier.name.toLowerCase() === providerName.toLowerCase(),
+      );
 
     if (existing) {
       return of(existing.id);
     }
 
-    const providerCurrency = (this.bookingForm.value.providerCurrency as Currency) ?? this.currency();
+    const providerCurrency =
+      (this.bookingForm.value.providerCurrency as Currency) ?? this.currency();
     const createSupplierDto: SupplierRequest = {
       name: providerName,
       serviceType: "OTHER",
       currency: providerCurrency,
     };
 
-    return this.suppliersSvc.create(createSupplierDto).pipe(map((supplier) => supplier.id));
+    return this.suppliersSvc
+      .create(createSupplierDto)
+      .pipe(map((supplier) => supplier.id));
   }
 
   private normalizePayment(
@@ -563,14 +605,37 @@ export class SaleDetailsComponent implements OnInit {
     return {
       id: payment.id ?? crypto.randomUUID(),
       saleId: payment.saleId ?? fallback?.saleId,
-      date: payment.date ?? fallback?.date ?? payment.createdAt ?? this.todayIso(),
-      amount: Number(payment.amount ?? fallback?.amount ?? payment.convertedAmount ?? payment.originalAmount ?? 0),
-      currency: payment.currency ?? fallback?.currency ?? payment.sourceCurrency ?? this.currency(),
-      description: (payment.description ?? fallback?.description ?? "Pago recibido").trim(),
-      customExchangeRate: Number(
-        payment.customExchangeRate ?? fallback?.customExchangeRate ?? payment.exchangeRate ?? 0,
-      ) || undefined,
-      createdAt: payment.createdAt ?? payment.date ?? fallback?.date ?? new Date().toISOString(),
+      date:
+        payment.date ?? fallback?.date ?? payment.createdAt ?? this.todayIso(),
+      amount: Number(
+        payment.amount ??
+          fallback?.amount ??
+          payment.convertedAmount ??
+          payment.originalAmount ??
+          0,
+      ),
+      currency:
+        payment.currency ??
+        fallback?.currency ??
+        payment.sourceCurrency ??
+        this.currency(),
+      description: (
+        payment.description ??
+        fallback?.description ??
+        "Pago recibido"
+      ).trim(),
+      customExchangeRate:
+        Number(
+          payment.customExchangeRate ??
+            fallback?.customExchangeRate ??
+            payment.exchangeRate ??
+            0,
+        ) || undefined,
+      createdAt:
+        payment.createdAt ??
+        payment.date ??
+        fallback?.date ??
+        new Date().toISOString(),
       originalAmount: payment.originalAmount,
       sourceCurrency: payment.sourceCurrency,
       exchangeRate: payment.exchangeRate,
