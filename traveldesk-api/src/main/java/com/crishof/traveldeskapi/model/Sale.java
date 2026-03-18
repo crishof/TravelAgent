@@ -60,6 +60,9 @@ public class Sale {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal paidAmount = BigDecimal.ZERO;
 
+    @Column(precision = 5, scale = 2)
+    private BigDecimal commissionPercentage = BigDecimal.ZERO;
+
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payment> payments = new ArrayList<>();
 
@@ -79,6 +82,9 @@ public class Sale {
         updatedAt = now;
         if (paidAmount == null) {
             paidAmount = BigDecimal.ZERO;
+        }
+        if (commissionPercentage == null) {
+            commissionPercentage = BigDecimal.ZERO;
         }
     }
 

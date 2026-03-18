@@ -61,6 +61,7 @@ public class SalesServiceImpl implements SalesService {
         sale.setDestination(normalizeText(request.destination()));
         sale.setAmount(request.amount());
         sale.setCurrency(request.currency().toUpperCase(Locale.ROOT));
+        sale.setCommissionPercentage(createdBy.getCommissionPercentage());
         sale.setStatus(parseSaleStatus(request.status()));
         sale.setDepartureDate(request.departureDate());
 
@@ -175,7 +176,7 @@ public class SalesServiceImpl implements SalesService {
     }
 
     private SaleResponse toResponse(Sale sale) {
-        return new SaleResponse(sale.getId(), sale.getCustomer().getId(), sale.getCustomer().getFullName(), sale.getCreatedBy().getId(), sale.getDestination(), sale.getAmount(), sale.getCurrency(), sale.getStatus().name(), sale.getPaidAmount(), sale.getDepartureDate(), sale.getSaleDate());
+        return new SaleResponse(sale.getId(), sale.getCustomer().getId(), sale.getCustomer().getFullName(), sale.getCreatedBy().getId(), sale.getDestination(), sale.getAmount(), sale.getCurrency(), sale.getStatus().name(), sale.getPaidAmount(), sale.getDepartureDate(), sale.getSaleDate(), sale.getCommissionPercentage());
     }
 
     @Override

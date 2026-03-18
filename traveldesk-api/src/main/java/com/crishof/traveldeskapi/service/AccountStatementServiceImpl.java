@@ -36,13 +36,13 @@ public class AccountStatementServiceImpl implements AccountStatementService {
     public AccountStatementDTO getStatement(UUID userId, Currency currency) {
         validateUserId(userId);
 
-        User user = getUserOrThrow(userId);
+        getUserOrThrow(userId);
         List<AccountMovementDTO> movements = new ArrayList<>();
 
         List<Sale> sales = saleRepository.findByCreatedByIdAndCurrencyOrderBySaleDateAsc(userId, currency.name());
 
         for (Sale sale : sales) {
-            BigDecimal commissionAmount = calculateCommissionAmount(user, sale, currency);
+            BigDecimal commissionAmount = calculateCommissionAmount(sale, currency);
 
             if (commissionAmount.compareTo(BigDecimal.ZERO) <= 0) {
                 continue;
@@ -103,8 +103,10 @@ public class AccountStatementServiceImpl implements AccountStatementService {
         return getStatement(userId, request.currency());
     }
 
-    private BigDecimal calculateCommissionAmount(User user, Sale sale, Currency currency) {
-        BigDecimal commissionPercentage = safeAmount(user.getCommissionPercentage());
+    private BigDecimal calculateCommissionAmount(Sale sale, Currency currency) {
+        BigDecimal commissionPercentage = sale.getCommissionPercentage() != null
+            ? safeAmount(sale.getCommissionPercentage())
+            : safeAmount(sale.getCreatedBy().getCommissionPercentage());
         if (commissionPercentage.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }

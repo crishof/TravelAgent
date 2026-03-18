@@ -16,6 +16,7 @@ public record SaleResponse(
         String status,
         BigDecimal paidAmount,
         LocalDate departureDate,
-        Instant createdAt
+        Instant createdAt,
+        BigDecimal commissionPercentage
 ) {
 }
