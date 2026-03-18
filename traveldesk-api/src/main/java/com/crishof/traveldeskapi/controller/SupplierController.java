@@ -1,5 +1,6 @@
 package com.crishof.traveldeskapi.controller;
 
+import com.crishof.traveldeskapi.dto.SupplierCreateRequest;
 import com.crishof.traveldeskapi.dto.SupplierRequest;
 import com.crishof.traveldeskapi.dto.SupplierResponse;
 import com.crishof.traveldeskapi.security.SecurityUser;
@@ -47,7 +48,7 @@ public class SupplierController {
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     @PreAuthorize("isAuthenticated()")
     @PostMapping
-    public ResponseEntity<SupplierResponse> createSupplier(@AuthenticationPrincipal SecurityUser securityUser, @Valid @RequestBody SupplierRequest request) {
+    public ResponseEntity<SupplierResponse> createSupplier(@AuthenticationPrincipal SecurityUser securityUser, @Valid @RequestBody SupplierCreateRequest request) {
         log.info("Create supplier request received for userId={}, name={}", securityUser.getId(), request.name());
         return ResponseEntity.status(HttpStatusCode.valueOf(201)).body(supplierService.create(securityUser.getAgencyId(), request));
     }

@@ -75,6 +75,22 @@
             <div class="font-semibold">Invitación pendiente de aceptación</div>
           </div>
         }
+
+        <div class="mt-4 flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-900/40">
+          <div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Comisión</div>
+            <div class="text-sm font-semibold text-slate-900 dark:text-white">
+              {{ (u.commissionPercentage ?? 0).toFixed(2) }}%
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="openCommissionModal(u.id, u.commissionPercentage)"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/10 text-cyan-600 hover:bg-cyan-500/20 dark:text-cyan-400"
+          >
+            Editar
+          </button>
+        </div>
       </div>
     }
   </div>
@@ -84,19 +100,9 @@
 @if (showInvite()) {
   <div
     class="fixed inset-0 z-50 flex items-center justify-center p-4"
-    (click)="showInvite.set(false)"
-    (click)="showInvite.set(false)"
-    (keydown.enter)="showInvite.set(false)"
-    (keydown.space)="showInvite.set(false)"
   >
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-    <div
-      class="relative w-full max-w-md rounded-2xl shadow-2xl border p-6 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-      (click)="$event.stopPropagation()"
-      (click)="showInvite.set(false)"
-      (keydown.enter)="showInvite.set(false)"
-      (keydown.space)="showInvite.set(false)"
-    >
+    <button type="button" aria-label="Cerrar modal" class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="showInvite.set(false)"></button>
+    <dialog open class="relative w-full max-w-md rounded-2xl shadow-2xl border p-6 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-xl font-semibold">Invitar agente</h2>
         <button
@@ -160,6 +166,29 @@
           {{ inviteLoading() ? "Generando..." : "✉ Generar invitación" }}
         </button>
       </form>
-    </div>
+    </dialog>
+  </div>
+}
+
+@if (showCommissionModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <button type="button" aria-label="Cerrar modal" class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="showCommissionModal.set(false)"></button>
+    <dialog open class="relative w-full max-w-md rounded-2xl shadow-2xl border p-6 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-semibold">Editar comisión</h2>
+        <button (click)="showCommissionModal.set(false)" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">✕</button>
+      </div>
+
+      <form [formGroup]="commissionForm" (ngSubmit)="saveCommission()" class="flex flex-col gap-4">
+        <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          Porcentaje de comisión
+          <input type="number" step="0.01" formControlName="commissionPercentage" class="form-input form-input-light dark:form-input-dark mt-1" />
+        </label>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold text-sm hover:opacity-90 transition-all">
+          Guardar comisión
+        </button>
+      </form>
+    </dialog>
   </div>
 }

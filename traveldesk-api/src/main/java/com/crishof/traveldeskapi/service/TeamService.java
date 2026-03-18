@@ -3,6 +3,7 @@ package com.crishof.traveldeskapi.service;
 import com.crishof.traveldeskapi.dto.AcceptInviteRequest;
 import com.crishof.traveldeskapi.dto.MessageResponse;
 import com.crishof.traveldeskapi.dto.TeamInviteRequest;
+import com.crishof.traveldeskapi.dto.TeamMemberCommissionRequest;
 import com.crishof.traveldeskapi.dto.TeamMemberRequest;
 import com.crishof.traveldeskapi.dto.TeamMemberResponse;
 import jakarta.validation.Valid;
@@ -15,6 +16,8 @@ public interface TeamService {
     List<TeamMemberResponse> getMembers(UUID agencyId);
 
     TeamMemberResponse updateMember(UUID agencyId, UUID memberId, @Valid TeamMemberRequest request);
+
+    TeamMemberResponse updateCommission(UUID agencyId, UUID memberId, @Valid TeamMemberCommissionRequest request);
 
     void removeMember(UUID agencyId, UUID memberId, UUID currentUserId);
 

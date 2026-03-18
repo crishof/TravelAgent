@@ -9,11 +9,13 @@ public record SaleResponse(
         UUID id,
         UUID customerId,
         String customerName,
+        UUID agentId,
         String destination,
         BigDecimal amount,
         String currency,
         String status,
         BigDecimal paidAmount,
-        LocalDate departureDate
+        LocalDate departureDate,
+        Instant createdAt
 ) {
 }

@@ -34,6 +34,9 @@
       <div class="text-sm text-slate-500 dark:text-slate-400">
         {{ user()!.email }}
       </div>
+      <div class="mt-1 text-xs text-slate-400 dark:text-slate-500 font-mono">
+        ID: {{ user()!.id }}
+      </div>
       <span
         class="text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block"
         [class]="
@@ -44,44 +47,18 @@
       >
         {{ user()!.role === "ADMIN" ? "Admin" : "Agente" }}
       </span>
+      <span
+        class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full mt-1 inline-block"
+        [class]="
+          user()!.status === 'ACTIVE'
+            ? 'bg-emerald-500/10 text-emerald-500'
+            : 'bg-amber-500/10 text-amber-500'
+        "
+      >
+        {{ user()!.status }}
+      </span>
     </div>
   </div>
 
-  <!-- Account details -->
-  <div
-    class="rounded-2xl border overflow-hidden border-slate-100 shadow-sm dark:border-slate-700/60"
-  >
-    <div
-      class="px-5 py-4 border-b bg-slate-50 border-slate-100 dark:bg-slate-800 dark:border-slate-700/60"
-    >
-      <h3 class="font-semibold text-slate-900 dark:text-white">
-        Detalles de la cuenta
-      </h3>
-    </div>
-    <div class="px-5 py-4">
-      <div
-        class="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-700/40"
-      >
-        <div class="text-sm text-slate-600 dark:text-slate-400">
-          ID de usuario
-        </div>
-        <div class="font-mono text-sm text-slate-900 dark:text-white">
-          {{ user()!.id }}
-        </div>
-      </div>
-      <div class="flex items-center justify-between py-3">
-        <div class="text-sm text-slate-600 dark:text-slate-400">Estado</div>
-        <span
-          class="text-xs font-semibold px-2 py-0.5 rounded-full"
-          [class]="
-            user()!.status === 'ACTIVE'
-              ? 'bg-emerald-500/10 text-emerald-500'
-              : 'bg-amber-500/10 text-amber-500'
-          "
-        >
-          {{ user()!.status === "ACTIVE" ? "Activo" : user()!.status }}
-        </span>
-      </div>
-    </div>
-  </div>
+  <app-account-statement></app-account-statement>
 </div>

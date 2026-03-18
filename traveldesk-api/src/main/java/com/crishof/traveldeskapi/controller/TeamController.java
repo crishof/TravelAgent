@@ -2,6 +2,7 @@ package com.crishof.traveldeskapi.controller;
 
 import com.crishof.traveldeskapi.dto.MessageResponse;
 import com.crishof.traveldeskapi.dto.TeamInviteRequest;
+import com.crishof.traveldeskapi.dto.TeamMemberCommissionRequest;
 import com.crishof.traveldeskapi.dto.TeamMemberRequest;
 import com.crishof.traveldeskapi.dto.TeamMemberResponse;
 import com.crishof.traveldeskapi.security.SecurityUser;
@@ -85,6 +86,24 @@ public class TeamController {
 
         return ResponseEntity.ok(teamService.updateMember(securityUser.getAgencyId(), id, request));
     }
+
+        @Operation(summary = "Update team member commission")
+        @ApiResponse(responseCode = "200", description = "Team member commission updated successfully")
+        @ApiResponse(responseCode = "400", description = "Invalid request")
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+        @ApiResponse(responseCode = "404", description = "Team member not found")
+        @PreAuthorize("isAuthenticated()")
+        @PatchMapping("/{id}/commission")
+        public ResponseEntity<TeamMemberResponse> updateCommission(
+                        @AuthenticationPrincipal SecurityUser securityUser,
+                        @PathVariable UUID id,
+                        @Valid @RequestBody TeamMemberCommissionRequest request
+        ) {
+                log.info("Update team member commission request received for userId={}, agencyId={}, memberId={}",
+                                securityUser.getId(), securityUser.getAgencyId(), id);
+
+                return ResponseEntity.ok(teamService.updateCommission(securityUser.getAgencyId(), id, request));
+        }
 
     //  ===============
     //  DELETE TEAM MEMBER

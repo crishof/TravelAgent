@@ -5,6 +5,13 @@ import { BookingsService } from "../../core/services/bookings.service";
 import { ClientsService } from "../../core/services/clients.service";
 import { SuppliersService } from "../../core/services/suppliers.service";
 import { BookingFilters } from "../../core/models/models";
+import {
+  getBookingDateIn,
+  getBookingDateOut,
+  getBookingDescription,
+  getBookingProvider,
+  getBookingReservationCode,
+} from "../../core/models/domain-helpers";
 
 @Component({
   selector: "app-bookings",
@@ -32,8 +39,8 @@ export class BookingsComponent implements OnInit {
       if (filters.search) {
         const search = filters.search.toLowerCase();
         if (
-          !booking.reference.toLowerCase().includes(search) &&
-          !booking.passengerName.toLowerCase().includes(search)
+          !getBookingReservationCode(booking).toLowerCase().includes(search) &&
+          !getBookingDescription(booking).toLowerCase().includes(search)
         ) {
           return false;
         }
@@ -70,4 +77,10 @@ export class BookingsComponent implements OnInit {
   getVal(event: Event): string {
     return (event.target as HTMLSelectElement | HTMLInputElement).value;
   }
+
+  getBookingDescription = getBookingDescription;
+  getBookingProvider = getBookingProvider;
+  getBookingReservationCode = getBookingReservationCode;
+  getBookingDateIn = getBookingDateIn;
+  getBookingDateOut = getBookingDateOut;
 }

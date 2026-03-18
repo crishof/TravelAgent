@@ -1,5 +1,6 @@
 package com.crishof.traveldeskapi.service;
 
+import com.crishof.traveldeskapi.dto.SupplierCreateRequest;
 import com.crishof.traveldeskapi.dto.SupplierRequest;
 import com.crishof.traveldeskapi.dto.SupplierResponse;
 import jakarta.validation.Valid;
@@ -11,7 +12,7 @@ public interface SupplierService {
 
     List<SupplierResponse> getAll(UUID agencyId);
 
-    SupplierResponse create(UUID agencyId, @Valid SupplierRequest request);
+    SupplierResponse create(UUID agencyId, @Valid SupplierCreateRequest request);
 
     SupplierResponse update(UUID agencyId, UUID id, @Valid SupplierRequest request);
 

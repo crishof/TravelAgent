@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serial;
+import java.math.BigDecimal;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
@@ -58,6 +59,9 @@ public class User implements Serializable {
     @Column(nullable = false, length = 20)
     private UserStatus status;
 
+    @Column(nullable = false, precision = 5, scale = 2)
+    private BigDecimal commissionPercentage;
+
     @Column(nullable = false)
     private Instant createdAt;
 
@@ -69,6 +73,9 @@ public class User implements Serializable {
         Instant now = Instant.now();
         createdAt = now;
         updatedAt = now;
+        if (commissionPercentage == null) {
+            commissionPercentage = BigDecimal.ZERO;
+        }
     }
 
     @PreUpdate

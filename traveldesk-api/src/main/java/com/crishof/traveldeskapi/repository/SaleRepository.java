@@ -22,4 +22,9 @@ public interface SaleRepository extends JpaRepository<Sale, UUID> {
 
     @Query("SELECT s FROM Sale s LEFT JOIN FETCH s.payments WHERE s.id = :id AND s.agency.id = :agencyId")
     Optional<Sale> findByIdAndAgencyIdWithPayments(UUID id, UUID agencyId);
+
+    List<Sale> findByCreatedById(UUID createdById);
+
+    List<Sale> findByCreatedByIdAndCurrencyOrderBySaleDateAsc(UUID createdById, String currency);
+
 }

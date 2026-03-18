@@ -1,5 +1,6 @@
 package com.crishof.traveldeskapi.service;
 
+import com.crishof.traveldeskapi.dto.SupplierCreateRequest;
 import com.crishof.traveldeskapi.dto.SupplierRequest;
 import com.crishof.traveldeskapi.dto.SupplierResponse;
 import com.crishof.traveldeskapi.exception.ConflictException;
@@ -12,7 +13,6 @@ import com.crishof.traveldeskapi.model.SupplierType;
 import com.crishof.traveldeskapi.repository.AgencyRepository;
 import com.crishof.traveldeskapi.repository.BookingRepository;
 import com.crishof.traveldeskapi.repository.SupplierRepository;
-import com.crishof.traveldeskapi.repository.SaleRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +30,6 @@ public class SupplierServiceImpl implements SupplierService {
     private final SupplierRepository supplierRepository;
     private final AgencyRepository agencyRepository;
     private final BookingRepository bookingRepository;
-    private final SaleRepository saleRepository;
     private final SupplierMapper supplierMapper;
 
     @Override
@@ -44,21 +43,27 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public SupplierResponse create(UUID agencyId, SupplierRequest request) {
+    public SupplierResponse create(UUID agencyId, SupplierCreateRequest request) {
         validateAgencyId(agencyId);
 
         Agency agency = getAgencyOrThrow(agencyId);
 
-        String normalizedEmail = normalizeEmail(request.email());
-        String normalizedName = normalizeText(request.name());
-        String normalizedPhone = normalizePhone(request.phone());
-        SupplierType supplierType = parseSupplierType(request.serviceType());
+        String normalizedName = normalizeRequiredText(request.name(), "Name is required");
+        String normalizedCurrency = normalizeRequiredText(request.currency(), "Currency is required").toUpperCase(Locale.ROOT);
+        String normalizedPhone = normalizeOptionalText(request.phone());
+        SupplierType supplierType = parseOptionalSupplierType(request.serviceType());
 
-        validateSupplierEmailUniqueness(agencyId, normalizedEmail);
+        String normalizedEmail = normalizeOptionalEmail(request.email());
+        if (normalizedEmail == null) {
+            normalizedEmail = generatePlaceholderEmail();
+        } else {
+            validateSupplierEmailUniqueness(agencyId, normalizedEmail);
+        }
 
         Supplier supplier = supplierMapper.toEntity(request);
         supplier.setAgency(agency);
         supplier.setName(normalizedName);
+        supplier.setCurrency(normalizedCurrency);
         supplier.setEmail(normalizedEmail);
         supplier.setPhone(normalizedPhone);
         supplier.setType(supplierType);
@@ -140,8 +145,40 @@ public class SupplierServiceImpl implements SupplierService {
         }
     }
 
+    private SupplierType parseOptionalSupplierType(String serviceType) {
+        if (serviceType == null || serviceType.isBlank()) {
+            return SupplierType.OTHER;
+        }
+        return parseSupplierType(serviceType);
+    }
+
+    private String generatePlaceholderEmail() {
+        return "no-email+" + UUID.randomUUID() + "@placeholder.local";
+    }
+
     private String normalizeEmail(String email) {
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeOptionalEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        return normalizeEmail(email);
+    }
+
+    private String normalizeRequiredText(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new InvalidRequestException(message);
+        }
+        return normalizeText(value);
+    }
+
+    private String normalizeOptionalText(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        return normalizeText(value);
     }
 
     private String normalizeText(String value) {

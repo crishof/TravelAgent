@@ -1,5 +1,6 @@
 package com.crishof.traveldeskapi.dto;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public record TeamMemberResponse(
@@ -7,6 +8,7 @@ public record TeamMemberResponse(
         String fullName,
         String email,
         String role,
-        String status
+        String status,
+        BigDecimal commissionPercentage
 ) {
 }

@@ -39,6 +39,20 @@ export class TeamService {
       );
   }
 
+  updateCommission(memberId: string, commissionPercentage: number) {
+    return this.http
+      .patch<TeamMemberResponse>(`${this.api}/team/${memberId}/commission`, {
+        commissionPercentage,
+      })
+      .pipe(
+        tap((updated) =>
+          this.members.update((list) =>
+            list.map((m) => (m.id === updated.id ? updated : m)),
+          ),
+        ),
+      );
+  }
+
   remove(memberId: string) {
     return this.http
       .delete(`${this.api}/team/${memberId}`)
@@ -59,7 +73,9 @@ export class TeamService {
 
   getActiveAgents() {
     return computed(() =>
-      this.members().filter((m) => m.role === "AGENT" && m.status === "active"),
+      this.members().filter(
+        (m) => m.role === "AGENT" && m.status?.toUpperCase() === "ACTIVE",
+      ),
     );
   }
 }

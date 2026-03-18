@@ -9,10 +9,20 @@ import {
   SalePaymentRequest,
   SalePaymentResponse,
 } from "../models";
+import {
+  getSaleAgentId,
+  getSaleClientId,
+  getSaleClientName,
+  getSaleTravelDate,
+} from "../models/domain-helpers";
+import { AuthService } from "./auth.service";
+import { VisibilityModeService } from "./visibility-mode.service";
 
 @Injectable({ providedIn: "root" })
 export class SalesService {
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
+  private readonly visibilityMode = inject(VisibilityModeService);
   private readonly api = `${environment.apiUrl}/sales`;
 
   // ── Local state ───────────────────────────────────────────────────────────
@@ -30,21 +40,41 @@ export class SalesService {
   readonly filtered = computed(() => {
     const f = this.filters();
     const term = f.search.trim().toLowerCase();
+    const currentUserId = this.auth.currentUser()?.id ?? "";
+    const restrictToCurrentUser =
+      !this.auth.isAdmin() || this.visibilityMode.mode() === "MY_DATA";
 
     return this.sales().filter((s) => {
       const id = s.id ?? "";
-      const customerName = (s.customerName ?? "").toLowerCase();
+      const clientName = getSaleClientName(s).toLowerCase();
       const destination = (s.destination ?? "").toLowerCase();
       const matchSearch =
         !f.search ||
         id.includes(f.search) ||
-        customerName.includes(term) ||
+        clientName.includes(term) ||
         destination.includes(term);
       const matchStatus = !f.status || s.status === f.status;
-      const matchClient = !f.clientId || s.customerId === f.clientId;
-      return matchSearch && matchStatus && matchClient;
+      const matchClient = !f.clientId || getSaleClientId(s) === f.clientId;
+      const matchAgent = !f.agentId || getSaleAgentId(s) === f.agentId;
+      const matchVisibility =
+        !restrictToCurrentUser || getSaleAgentId(s) === currentUserId;
+      const travelDate = getSaleTravelDate(s);
+      const matchDateFrom = !f.dateFrom || travelDate >= f.dateFrom;
+      const matchDateTo = !f.dateTo || travelDate <= f.dateTo;
+
+      return (
+        matchSearch &&
+        matchStatus &&
+        matchClient &&
+        matchAgent &&
+        matchVisibility &&
+        matchDateFrom &&
+        matchDateTo
+      );
     });
   });
+
+  readonly visibleSales = computed(() => this.filtered());
 
   // ── API calls ─────────────────────────────────────────────────────────────
   loadAll() {
@@ -93,8 +123,7 @@ export class SalesService {
   }
 
   addPayment(saleId: string, dto: SalePaymentRequest) {
-    console.log("Add payment payload:", dto);
-    return this.http.post<SalePaymentResponse>(`${this.api}/${saleId}/payments`, dto);
+    return this.http.post<SaleResponse>(`${this.api}/${saleId}/payments`, dto);
   }
 
   deletePayment(saleId: string, paymentId: string) {

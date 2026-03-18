@@ -3,6 +3,7 @@ package com.crishof.traveldeskapi.service;
 import com.crishof.traveldeskapi.dto.AcceptInviteRequest;
 import com.crishof.traveldeskapi.dto.MessageResponse;
 import com.crishof.traveldeskapi.dto.TeamInviteRequest;
+import com.crishof.traveldeskapi.dto.TeamMemberCommissionRequest;
 import com.crishof.traveldeskapi.dto.TeamMemberRequest;
 import com.crishof.traveldeskapi.dto.TeamMemberResponse;
 import com.crishof.traveldeskapi.exception.ForbiddenOperationException;
@@ -45,6 +46,17 @@ public class TeamServiceImpl implements TeamService {
 
         member.setRole(parseRole(request.role()));
         member.setStatus(parseStatus(request.status()));
+
+        return toResponse(userRepository.save(member));
+    }
+
+    @Override
+    public TeamMemberResponse updateCommission(UUID agencyId, UUID memberId, TeamMemberCommissionRequest request) {
+        validateAgencyId(agencyId);
+        validateUserId(memberId);
+
+        User member = getUserByAgencyOrThrow(agencyId, memberId);
+        member.setCommissionPercentage(request.commissionPercentage());
 
         return toResponse(userRepository.save(member));
     }
@@ -103,7 +115,8 @@ public class TeamServiceImpl implements TeamService {
                 user.getFullName(),
                 user.getEmail(),
                 user.getRole().name(),
-                user.getStatus().name()
+                user.getStatus().name(),
+                user.getCommissionPercentage()
         );
     }
 

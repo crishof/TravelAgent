@@ -8,7 +8,7 @@
         Ventas
       </h1>
       <p class="text-sm mt-1 text-slate-500 dark:text-slate-400">
-        {{ salesSvc.filtered().length }} ventas
+        {{ visibleSales().length }} ventas
       </p>
     </div>
     <button
@@ -59,7 +59,7 @@
 
   <!-- Sales list -->
   <div class="flex flex-col gap-3">
-    @for (sale of salesSvc.filtered(); track sale.id) {
+    @for (sale of visibleSales(); track sale.id) {
       <button
         type="button"
         class="w-full text-left rounded-2xl border p-4 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60 cursor-pointer hover:border-cyan-400/60 transition-colors"
@@ -70,7 +70,7 @@
           <div
             class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
           >
-            {{ (sale.customerName || "?")[0].toUpperCase() }}
+            {{ (getSaleClientName(sale) || "?")[0].toUpperCase() }}
           </div>
           <!-- Info -->
           <div class="flex-1 min-w-0">
@@ -78,7 +78,7 @@
               <span
                 class="font-semibold text-sm text-slate-900 dark:text-white"
               >
-                {{ sale.customerName || "Sin nombre" }}
+                {{ getSaleClientName(sale) }}
               </span>
               <span class="text-xs text-slate-400 dark:text-slate-500"
                 >#{{ sale.id.substring(0, 8) }}</span
@@ -99,8 +99,8 @@
             </div>
             <div class="text-xs mt-0.5 text-slate-500 dark:text-slate-400">
               Fecha de viaje:
-              @if (sale.departureDate) {
-                {{ sale.departureDate | date: "dd/MM/yyyy" }}
+              @if (getSaleTravelDate(sale)) {
+                {{ getSaleTravelDate(sale) | date: "dd/MM/yyyy" }}
               } @else {
                 —
               }
@@ -109,14 +109,14 @@
           <!-- Total -->
           <div class="text-right flex-shrink-0">
             <div class="font-bold text-lg text-slate-900 dark:text-white">
-              {{ formatSaleAmount(sale.amount, sale.currency) }}
+              {{ formatSaleAmount(sale) }}
             </div>
           </div>
         </div>
       </button>
     }
 
-    @if (salesSvc.filtered().length === 0) {
+    @if (visibleSales().length === 0) {
       <div
         class="rounded-2xl border p-10 text-center bg-white border-slate-100 dark:bg-slate-800/60 dark:border-slate-700/60"
       >
@@ -156,67 +156,25 @@
         class="flex flex-col gap-4"
       >
         <div class="flex flex-col gap-1">
-          @if (!showQuickNewClient()) {
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Cliente
-              <input
-                type="text"
-                [value]="customerSearch()"
-                (input)="onCustomerSearchInput($event)"
-                placeholder="Escribí para filtrar por nombre..."
-                class="form-input form-input-light dark:form-input-dark mb-2"
-              />
-              <select
-                formControlName="customerId"
-                class="form-input form-input-light dark:form-input-dark"
-              >
-                @for (c of customerOptions(); track c.id) {
-                  <option [value]="c.id">{{ c.fullName }}</option>
-                }
-              </select>
-            </label>
-          }
-          <div class="mt-2 flex items-center gap-2">
-            <button
-              type="button"
-              (click)="showQuickNewClient.set(!showQuickNewClient())"
-              class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-500/10 text-violet-600 hover:bg-violet-500/20 dark:text-violet-400"
+          <label
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >Cliente
+            <input
+              type="text"
+              [value]="customerSearch()"
+              (input)="onCustomerSearchInput($event)"
+              placeholder="Escribí para filtrar por nombre..."
+              class="form-input form-input-light dark:form-input-dark mb-2"
+            />
+            <select
+              formControlName="clientId"
+              class="form-input form-input-light dark:form-input-dark"
             >
-              {{ showQuickNewClient() ? "Usar cliente existente" : "Cliente nuevo" }}
-            </button>
-            @if (!showQuickNewClient() && filteredCustomers().length === 0 && customerSearch().trim()) {
-              <span class="text-xs text-amber-500">
-                Sin resultados para la búsqueda actual
-              </span>
-            }
-          </div>
-
-          @if (showQuickNewClient()) {
-            <div
-              [formGroup]="quickClientForm"
-              class="mt-3 p-3 rounded-xl border bg-slate-50 border-slate-200 dark:bg-slate-800/60 dark:border-slate-700"
-            >
-              <label
-                class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >
-                Nombre del cliente
-                <input
-                  type="text"
-                  formControlName="fullName"
-                  placeholder="Ej: Juan Pérez"
-                  class="form-input form-input-light dark:form-input-dark mt-1"
-                />
-              </label>
-              <button
-                type="button"
-                (click)="createQuickClient()"
-                class="mt-2 px-3 py-2 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90"
-              >
-                Guardar cliente
-              </button>
-            </div>
-          }
+              @for (c of customerOptions(); track c.id) {
+                <option [value]="c.id">{{ c.fullName }}</option>
+              }
+            </select>
+          </label>
         </div>
 
         <div class="flex flex-col gap-1">
@@ -239,7 +197,7 @@
               >Fecha de salida
               <input
                 type="date"
-                formControlName="departureDate"
+                formControlName="travelDate"
                 class="form-input form-input-light dark:form-input-dark"
               />
             </label>
@@ -290,8 +248,8 @@
         <div
           class="text-xs p-3 rounded-xl bg-blue-50 text-blue-600 dark:bg-slate-800 dark:text-slate-400"
         >
-          <strong>Nota:</strong> Una vez creada la venta, podrás agregar
-          los servicios individuales desde el módulo de Bookings.
+          <strong>Nota:</strong> Una vez creada la venta, podrás agregar los
+          bookings individuales desde el detalle de venta.
         </div>
 
         <button
@@ -299,148 +257,6 @@
           class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold text-sm hover:opacity-90 transition-all mt-1"
         >
           Crear venta
-        </button>
-      </form>
-    </div>
-  </div>
-}
-
-<!-- ── Add Service Modal ───────────────────────────────────────────────────── -->
-@if (showAddService()) {
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center p-4"
-    (click)="showAddService.set(null)"
-    (keydown)="showAddService.set(null)"
-  >
-    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-    <div
-      class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl border p-6 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
-      (click)="$event.stopPropagation()"
-      (keydown)="$event.stopPropagation()"
-    >
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-semibold">Crear booking</h2>
-        <button
-          (click)="showAddService.set(null)"
-          class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-        >
-          ✕
-        </button>
-      </div>
-      <form
-        [formGroup]="bookingForm"
-        (ngSubmit)="addService()"
-        class="flex flex-col gap-4"
-      >
-        <div class="flex flex-col gap-1">
-          <label
-            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Cliente
-            <select
-              formControlName="customerId"
-              class="form-input form-input-light dark:form-input-dark"
-            >
-              <option value="">— Elegir cliente —</option>
-              @for (c of clientsSvc.clients(); track c.id) {
-                <option [value]="c.id">{{ c.fullName }}</option>
-              }
-            </select>
-          </label>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label
-            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Proveedor
-            <select
-              formControlName="supplierId"
-              class="form-input form-input-light dark:form-input-dark"
-            >
-              <option value="">— Elegir proveedor —</option>
-              @for (p of suppliersSvc.suppliers(); track p.id) {
-                <option [value]="p.id">{{ p.name }} ({{ p.currency }})</option>
-              }
-            </select>
-          </label>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label
-            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Referencia
-            <input
-              type="text"
-              formControlName="reference"
-              placeholder="REF-12345"
-              class="form-input form-input-light dark:form-input-dark"
-            />
-          </label>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label
-            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Nombre del pasajero
-            <input
-              type="text"
-              formControlName="passengerName"
-              placeholder="Juan Pérez"
-              class="form-input form-input-light dark:form-input-dark"
-            />
-          </label>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label
-            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Destino
-            <input
-              type="text"
-              formControlName="destination"
-              placeholder="Madrid, España"
-              class="form-input form-input-light dark:form-input-dark"
-            />
-          </label>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Fecha salida
-              <input
-                type="date"
-                formControlName="departureDate"
-                class="form-input form-input-light dark:form-input-dark"
-              />
-            </label>
-          </div>
-          <div class="flex flex-col gap-1">
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >Fecha regreso
-              <input
-                type="date"
-                formControlName="returnDate"
-                class="form-input form-input-light dark:form-input-dark"
-              />
-            </label>
-          </div>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label
-            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >Estado
-            <select
-              formControlName="status"
-              class="form-input form-input-light dark:form-input-dark"
-            >
-              <option value="PENDING">Pendiente</option>
-              <option value="CONFIRMED">Confirmado</option>
-              <option value="CANCELLED">Cancelado</option>
-            </select>
-          </label>
-        </div>
-        <button
-          type="submit"
-          class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold text-sm hover:opacity-90 transition-all mt-1"
-        >
-          Crear booking
         </button>
       </form>
     </div>

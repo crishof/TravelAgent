@@ -16,13 +16,19 @@ export class TeamComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   showInvite = signal(false);
+  showCommissionModal = signal(false);
   inviteLoading = signal(false);
   inviteError = signal("");
   copiedToken = signal<string | null>(null);
+  selectedMemberId = signal<string | null>(null);
 
   inviteForm = this.fb.group({
     email: ["", [Validators.required, Validators.email]],
     role: ["AGENT", [Validators.required]],
+  });
+
+  commissionForm = this.fb.group({
+    commissionPercentage: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
   });
 
   ngOnInit() {
@@ -59,5 +65,26 @@ export class TeamComponent implements OnInit {
 
   getAgentName(id: string): string {
     return this.teamSvc.getById(id)?.fullName ?? "—";
+  }
+
+  openCommissionModal(memberId: string, currentCommission?: number) {
+    this.selectedMemberId.set(memberId);
+    this.commissionForm.patchValue({ commissionPercentage: currentCommission ?? 0 });
+    this.showCommissionModal.set(true);
+  }
+
+  saveCommission() {
+    const memberId = this.selectedMemberId();
+    if (!memberId || this.commissionForm.invalid) {
+      this.commissionForm.markAllAsTouched();
+      return;
+    }
+
+    this.teamSvc
+      .updateCommission(memberId, Number(this.commissionForm.value.commissionPercentage ?? 0))
+      .subscribe({
+        next: () => this.showCommissionModal.set(false),
+        error: (err) => console.error("Error updating commission:", err),
+      });
   }
 }

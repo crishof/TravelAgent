@@ -41,6 +41,9 @@ public class Supplier implements Serializable {
     @Column(nullable = false, length = 150)
     private String email;
 
+    @Column(nullable = false, length = 10)
+    private String currency;
+
     @Column(nullable = false, length = 30)
     private String phone;
 

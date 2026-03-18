@@ -1,22 +1,7 @@
 package com.crishof.traveldeskapi.dataloader;
 
-import com.crishof.traveldeskapi.model.Agency;
-import com.crishof.traveldeskapi.model.Booking;
-import com.crishof.traveldeskapi.model.BookingStatus;
-import com.crishof.traveldeskapi.model.Customer;
-import com.crishof.traveldeskapi.model.Role;
-import com.crishof.traveldeskapi.model.Sale;
-import com.crishof.traveldeskapi.model.SaleStatus;
-import com.crishof.traveldeskapi.model.Supplier;
-import com.crishof.traveldeskapi.model.SupplierType;
-import com.crishof.traveldeskapi.model.User;
-import com.crishof.traveldeskapi.model.UserStatus;
-import com.crishof.traveldeskapi.repository.AgencyRepository;
-import com.crishof.traveldeskapi.repository.BookingRepository;
-import com.crishof.traveldeskapi.repository.CustomerRepository;
-import com.crishof.traveldeskapi.repository.SaleRepository;
-import com.crishof.traveldeskapi.repository.SupplierRepository;
-import com.crishof.traveldeskapi.repository.UserRepository;
+import com.crishof.traveldeskapi.model.*;
+import com.crishof.traveldeskapi.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,51 +41,47 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         logger.info("🚀 DataLoader iniciado (dev)");
 
-        Agency agency = agencyRepository.findByNormalizedName("beat-travel")
-                .orElseGet(() -> {
-                    Agency a = new Agency();
-                    a.setName("Beat Travel");
-                    a.setNormalizedName("beat-travel");
-                    a.setCurrency("USD");
-                    a.setTimeZone("America/Argentina/Buenos_Aires");
-                    return agencyRepository.save(a);
-                });
+        Agency agency = agencyRepository.findByNormalizedName("beat-travel").orElseGet(() -> {
+            Agency a = new Agency();
+            a.setName("Beat Travel");
+            a.setNormalizedName("beat-travel");
+            a.setCurrency("USD");
+            a.setTimeZone("America/Argentina/Buenos_Aires");
+            return agencyRepository.save(a);
+        });
 
-        User admin = userRepository.findByEmail("admin@beattravel.dev")
-                .orElseGet(() -> {
-                    User u = new User();
-                    u.setFullName("Cristian Hoffmann");
-                    u.setEmail("admin@beattravel.dev");
-                    u.setPasswordHash(passwordEncoder.encode("change-me-dev"));
-                    u.setAgency(agency);
-                    u.setRole(Role.ADMIN);
-                    u.setStatus(UserStatus.ACTIVE);
-                    return userRepository.save(u);
-                });
+        User admin = userRepository.findByEmail("admin@beattravel.dev").orElseGet(() -> {
+            User u = new User();
+            u.setFullName("Cristian Hoffmann");
+            u.setEmail("admin@beattravel.dev");
+            u.setPasswordHash(passwordEncoder.encode("change-me-dev"));
+            u.setAgency(agency);
+            u.setRole(Role.ADMIN);
+            u.setStatus(UserStatus.ACTIVE);
+            return userRepository.save(u);
+        });
 
-        User agentOne = userRepository.findByEmail("agent1@beattravel.dev")
-                .orElseGet(() -> {
-                    User u = new User();
-                    u.setFullName("Lucia Gomez");
-                    u.setEmail("agent1@beattravel.dev");
-                    u.setPasswordHash(passwordEncoder.encode("change-me-dev"));
-                    u.setAgency(agency);
-                    u.setRole(Role.AGENT);
-                    u.setStatus(UserStatus.ACTIVE);
-                    return userRepository.save(u);
-                });
+        User agentOne = userRepository.findByEmail("agent1@beattravel.dev").orElseGet(() -> {
+            User u = new User();
+            u.setFullName("Lucia Gomez");
+            u.setEmail("agent1@beattravel.dev");
+            u.setPasswordHash(passwordEncoder.encode("change-me-dev"));
+            u.setAgency(agency);
+            u.setRole(Role.AGENT);
+            u.setStatus(UserStatus.ACTIVE);
+            return userRepository.save(u);
+        });
 
-        User agentTwo = userRepository.findByEmail("agent2@beattravel.dev")
-                .orElseGet(() -> {
-                    User u = new User();
-                    u.setFullName("Matias Perez");
-                    u.setEmail("agent2@beattravel.dev");
-                    u.setPasswordHash(passwordEncoder.encode("change-me-dev"));
-                    u.setAgency(agency);
-                    u.setRole(Role.AGENT);
-                    u.setStatus(UserStatus.ACTIVE);
-                    return userRepository.save(u);
-                });
+        User agentTwo = userRepository.findByEmail("agent2@beattravel.dev").orElseGet(() -> {
+            User u = new User();
+            u.setFullName("Matias Perez");
+            u.setEmail("agent2@beattravel.dev");
+            u.setPasswordHash(passwordEncoder.encode("change-me-dev"));
+            u.setAgency(agency);
+            u.setRole(Role.AGENT);
+            u.setStatus(UserStatus.ACTIVE);
+            return userRepository.save(u);
+        });
 
         List<User> salesUsers = List.of(admin, agentOne, agentTwo);
 
@@ -124,10 +105,7 @@ public class DataInitializer implements CommandLineRunner {
             return;
         }
 
-        List<String> destinations = List.of(
-                "Madrid", "Barcelona", "Roma", "Paris", "Londres",
-                "Miami", "Nueva York", "Cancun", "Punta Cana", "Rio de Janeiro"
-        );
+        List<String> destinations = List.of("Madrid", "Barcelona", "Roma", "Paris", "Londres", "Miami", "Nueva York", "Cancun", "Punta Cana", "Rio de Janeiro");
 
         for (int i = 1; i <= 20; i++) {
             Customer customer = customers.get(random.nextInt(customers.size()));
@@ -161,10 +139,10 @@ public class DataInitializer implements CommandLineRunner {
             booking.setAgency(agency);
             booking.setCustomer(customer);
             booking.setSupplier(supplier);
+            booking.setAmount(BigDecimal.valueOf(random.nextDouble() * 10000));
+            booking.setCurrency(supplier.getCurrency());
             booking.setCreatedBy(createdBy);
             booking.setReference(generateReference(i));
-            booking.setPassengerName(customer.getFullName());
-            booking.setDestination(destination);
             booking.setDepartureDate(departureDate);
             booking.setReturnDate(returnDate);
             booking.setStatus(randomBookingStatus(sale.getStatus()));
@@ -177,39 +155,32 @@ public class DataInitializer implements CommandLineRunner {
 
     private List<Supplier> buildSuppliers(Agency agency) {
         List<Supplier> suppliers = new ArrayList<>();
-        suppliers.add(buildSupplier(agency, "CDV", "cdv@suppliers.dev", "+54 11 4000-0001", SupplierType.AIRLINE));
-        suppliers.add(buildSupplier(agency, "Aertickets", "aertickets@suppliers.dev", "+54 11 4000-0002", SupplierType.AIRLINE));
-        suppliers.add(buildSupplier(agency, "Starling", "starling@suppliers.dev", "+54 11 4000-0003", SupplierType.AIRLINE));
-        suppliers.add(buildSupplier(agency, "Mitika", "mitika@suppliers.dev", "+54 11 4000-0004", SupplierType.OPERATOR));
-        suppliers.add(buildSupplier(agency, "MyTransfers", "mytransfers@suppliers.dev", "+54 11 4000-0005", SupplierType.TRANSPORT));
-        suppliers.add(buildSupplier(agency, "Civitatis", "civitatis@suppliers.dev", "+54 11 4000-0006", SupplierType.OPERATOR));
-        suppliers.add(buildSupplier(agency, "WelcomeBeds", "welcomebeds@suppliers.dev", "+54 11 4000-0007", SupplierType.HOTEL));
-        suppliers.add(buildSupplier(agency, "WorldToMeet", "worldtomeet@suppliers.dev", "+54 11 4000-0008", SupplierType.OPERATOR));
+        suppliers.add(buildSupplier(agency, "CDV", "cdv@suppliers.dev", "+54 11 4000-0001", SupplierType.AIRLINE, "EUR"));
+        suppliers.add(buildSupplier(agency, "Aertickets", "aertickets@suppliers.dev", "+54 11 4000-0002", SupplierType.AIRLINE, "EUR"));
+        suppliers.add(buildSupplier(agency, "Starling", "starling@suppliers.dev", "+54 11 4000-0003", SupplierType.AIRLINE, "USD"));
+        suppliers.add(buildSupplier(agency, "Mitika", "mitika@suppliers.dev", "+54 11 4000-0004", SupplierType.OPERATOR, "USD"));
+        suppliers.add(buildSupplier(agency, "MyTransfers", "mytransfers@suppliers.dev", "+54 11 4000-0005", SupplierType.TRANSPORT, "EUR"));
+        suppliers.add(buildSupplier(agency, "Civitatis", "civitatis@suppliers.dev", "+54 11 4000-0006", SupplierType.OPERATOR, "EUR"));
+        suppliers.add(buildSupplier(agency, "WelcomeBeds", "welcomebeds@suppliers.dev", "+54 11 4000-0007", SupplierType.HOTEL, "EUR"));
+        suppliers.add(buildSupplier(agency, "WorldToMeet", "worldtomeet@suppliers.dev", "+54 11 4000-0008", SupplierType.OPERATOR, "EUR"));
         return suppliers;
     }
 
-    private Supplier buildSupplier(Agency agency, String name, String email, String phone, SupplierType type) {
+    private Supplier buildSupplier(Agency agency, String name, String email, String phone, SupplierType type, String currency) {
         Supplier supplier = new Supplier();
         supplier.setAgency(agency);
         supplier.setName(name);
         supplier.setEmail(email);
         supplier.setPhone(phone);
         supplier.setType(type);
+        supplier.setCurrency(currency);
         return supplier;
     }
 
     private List<Customer> buildCustomers(Agency agency) {
-        List<String> firstNames = List.of(
-                "Carlos", "Maria", "Javier", "Lucia", "Andres", "Valentina", "Santiago", "Camila",
-                "Diego", "Paula", "Ricardo", "Sofia", "Matias", "Daniela", "Alejandro", "Florencia",
-                "Martin", "Julieta", "Tomas", "Natalia"
-        );
+        List<String> firstNames = List.of("Carlos", "Maria", "Javier", "Lucia", "Andres", "Valentina", "Santiago", "Camila", "Diego", "Paula", "Ricardo", "Sofia", "Matias", "Daniela", "Alejandro", "Florencia", "Martin", "Julieta", "Tomas", "Natalia");
 
-        List<String> lastNames = List.of(
-                "Garcia", "Lopez", "Fernandez", "Martinez", "Torres", "Perez", "Morales", "Herrera",
-                "Castillo", "Gomez", "Diaz", "Romero", "Rojas", "Vargas", "Cruz", "Navarro",
-                "Ibanez", "Cabrera", "Molina", "Suarez"
-        );
+        List<String> lastNames = List.of("Garcia", "Lopez", "Fernandez", "Martinez", "Torres", "Perez", "Morales", "Herrera", "Castillo", "Gomez", "Diaz", "Romero", "Rojas", "Vargas", "Cruz", "Navarro", "Ibanez", "Cabrera", "Molina", "Suarez");
 
         List<Customer> customers = new ArrayList<>();
 

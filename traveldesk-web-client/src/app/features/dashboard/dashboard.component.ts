@@ -1,11 +1,24 @@
-import { Component, inject, computed, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { Component, computed, inject, OnInit } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { SalesService } from "../../core/services/sales.service";
-import { ClientsService } from "../../core/services/clients.service";
-import { TeamService } from "../../core/services/team.service";
+import { BookingsService } from "../../core/services/bookings.service";
 import { AuthService } from "../../core/services/auth.service";
-import { ExchangeRateService } from "../../core/services/exchange-rate.service";
+import {
+  getBookingDescription,
+  getBookingProvider,
+  getBookingReservationCode,
+  getSaleClientName,
+  getSaleCreatedAt,
+  getSaleCurrency,
+  getSalePaymentsTotal,
+  getSaleTotalAmount,
+  getSaleTravelDate,
+} from "../../core/models/domain-helpers";
+import { SaleResponse } from "../../core/models";
+import { SalesService } from "../../core/services/sales.service";
+import { VisibilityModeService } from "../../core/services/visibility-mode.service";
+
+type CurrencyTotals = { EUR: number; USD: number };
 
 @Component({
   selector: "app-dashboard",
@@ -15,142 +28,152 @@ import { ExchangeRateService } from "../../core/services/exchange-rate.service";
 })
 export class DashboardComponent implements OnInit {
   private readonly salesSvc = inject(SalesService);
-  private readonly clientsSvc = inject(ClientsService);
-  private readonly teamSvc = inject(TeamService);
-  private readonly xr = inject(ExchangeRateService);
+  private readonly bookingsSvc = inject(BookingsService);
   private readonly auth = inject(AuthService);
+  readonly visibility = inject(VisibilityModeService);
 
-  firstName = computed(
-    () => this.auth.currentUser()?.email?.split("@")[0] ?? "",
+  readonly firstName = computed(
+    () => this.auth.currentUser()?.fullName?.split(" ")[0] ?? "",
   );
 
-  isAdmin = computed(() => this.auth.currentUser()?.role === "ADMIN");
+  readonly isAdmin = this.auth.isAdmin;
+  readonly visibleSales = this.salesSvc.visibleSales;
 
-  private readonly mySales = computed(() => {
-    // Por ahora mostramos todas las ventas, después se puede filtrar por usuario si es necesario
-    return this.salesSvc.sales();
+  readonly activeSales = computed(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return this.visibleSales()
+      .filter((sale) => getSaleTravelDate(sale) > today)
+      .sort((left, right) =>
+        getSaleTravelDate(left).localeCompare(getSaleTravelDate(right)),
+      );
   });
 
-  recentSales = computed(() => this.mySales().slice(0, 4));
+  readonly registeredClients = computed(() => {
+    const uniqueIds = new Set(
+      this.visibleSales()
+        .map((sale) => sale.clientId ?? sale.customerId)
+        .filter(Boolean),
+    );
+    return uniqueIds.size;
+  });
 
-  pendingAmount = computed(() =>
-    this.mySales()
-      .filter((s) => s.status === "PENDING")
-      .reduce((a, s) => a + s.amount, 0),
-  );
+  readonly pendingByCurrency = computed(() => {
+    const totals: CurrencyTotals = { EUR: 0, USD: 0 };
 
-  pendingByCurrency = computed(() => {
-    const totals: Record<string, number> = {};
-    this.mySales()
-      .filter((s) => s.status === "PENDING")
-      .forEach((s) => {
-        const currency = this.normalizeCurrencyCode(s.currency);
-        totals[currency] = (totals[currency] ?? 0) + Number(s.amount ?? 0);
-      });
+    for (const sale of this.visibleSales()) {
+      const currency = getSaleCurrency(sale);
+      const pending = getSaleTotalAmount(sale) - getSalePaymentsTotal(sale);
+      if (pending > 0) {
+        totals[currency] += pending;
+      }
+    }
+
     return totals;
   });
 
-  revenueByCurrency = computed(() => {
-    const totals: Record<string, number> = {};
-    this.mySales().forEach((s) => {
-      const currency = this.normalizeCurrencyCode(s.currency);
-      totals[currency] = (totals[currency] ?? 0) + Number(s.amount ?? 0);
-    });
+  readonly revenueByCurrency = computed(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    const cutoffIso = cutoff.toISOString();
+    const totals: CurrencyTotals = { EUR: 0, USD: 0 };
+
+    for (const sale of this.visibleSales()) {
+      const createdAt = getSaleCreatedAt(sale);
+      if (!createdAt) continue;
+
+      const saleDate = new Date(createdAt);
+      if (Number.isNaN(saleDate.getTime()) || saleDate.toISOString() < cutoffIso) {
+        continue;
+      }
+
+      const currency = getSaleCurrency(sale);
+      totals[currency] += getSaleTotalAmount(sale);
+    }
+
     return totals;
   });
 
-  stats = computed(() => {
-    const sales = this.mySales();
-    const active = sales.filter(
-      (s) => !["CANCELLED", "COMPLETED"].includes(s.status),
-    ).length;
-
-    const pendingSummary = this.formatCurrencyBreakdown(this.pendingByCurrency());
-    const revenueSummary = this.formatCurrencyBreakdown(this.revenueByCurrency());
-
-    return [
-      {
-        label: "Ventas activas",
-        value: active,
-        sub: "en curso",
-        icon: "🛒",
-        gradient: "bg-gradient-to-br from-cyan-500 to-teal-600",
-      },
-      {
-        label: "Clientes",
-        value: this.clientsSvc.clients().length,
-        sub: "registrados",
-        icon: "👥",
-        gradient: "bg-gradient-to-br from-violet-500 to-purple-600",
-      },
-      {
-        label: "Monto pendiente",
-        value: pendingSummary,
-        sub: "multimoneda",
-        icon: "⚠️",
-        gradient: "bg-gradient-to-br from-amber-500 to-orange-600",
-      },
-      {
-        label: "Facturación total",
-        value: revenueSummary,
-        sub: "multimoneda",
-        icon: "📈",
-        gradient: "bg-gradient-to-br from-emerald-500 to-green-600",
-      },
-    ];
-  });
-
-  agentStats = computed(
-    (): Array<{ id: string; name: string; revenue: number; pct: number }> => {
-      // Por ahora simplificado, ya que no hay agentId en SaleResponse
-      return [];
-    },
+  readonly recentSales = computed(() =>
+    [...this.visibleSales()]
+      .sort((left, right) =>
+        getSaleCreatedAt(right).localeCompare(getSaleCreatedAt(left)),
+      )
+      .slice(0, 5),
   );
+
+  readonly pendingBookings = computed(() => {
+    const visibleCustomerIds = new Set(
+      this.visibleSales().map((sale) => sale.customerId ?? sale.clientId).filter(Boolean),
+    );
+
+    return this.bookingsSvc
+      .bookings()
+      .filter(
+        (booking) =>
+          booking.status !== "PAID" &&
+          (booking.customerId ? visibleCustomerIds.has(booking.customerId) : true),
+      )
+      .sort((left, right) => {
+        const leftDate = left.departureDate ?? "";
+        const rightDate = right.departureDate ?? "";
+        return rightDate.localeCompare(leftDate);
+      })
+      .slice(0, 5);
+  });
 
   ngOnInit() {
     this.salesSvc.loadAll().subscribe();
-    this.clientsSvc.loadAll().subscribe();
-    this.teamSvc.loadAll().subscribe();
+    this.bookingsSvc.loadAll().subscribe();
   }
 
-  getClientName(id: string): string {
-    return this.clientsSvc.getById(id)?.fullName ?? "—";
-  }
-  getClientInitial(id: string): string {
-    return (this.clientsSvc.getById(id)?.fullName ?? "?")[0].toUpperCase();
-  }
-  getAgentFirst(id: string): string {
-    return this.teamSvc.getById(id)?.fullName?.split(" ")[0] ?? "";
+  setVisibilityMode(checked: boolean) {
+    this.visibility.setMode(checked ? "ALL_USERS" : "MY_DATA");
   }
 
-  private normalizeCurrencyCode(currency?: string): string {
-    const code = (currency ?? "").toUpperCase();
-    return code === "USD" || code === "EUR" ? code : "N/A";
+  getSaleClientName = getSaleClientName;
+  getSaleTravelDate = getSaleTravelDate;
+  getSaleCreatedAt = getSaleCreatedAt;
+  getBookingDescription = getBookingDescription;
+  getBookingProvider = getBookingProvider;
+  getBookingReservationCode = getBookingReservationCode;
+
+  formatAmount(amount: number, currency: string): string {
+    return `${currency} ${Number(amount ?? 0).toFixed(2)}`;
   }
 
-  formatSaleAmount(amount: number, currency?: string): string {
-    return `${this.normalizeCurrencyCode(currency)} ${Number(amount ?? 0).toFixed(2)}`;
+  getSaleAmount(sale: SaleResponse): number {
+    return getSaleTotalAmount(sale);
   }
 
-  formatCurrencyBreakdown(totals: Record<string, number>): string {
-    const entries = Object.entries(totals).filter(([, amount]) => amount > 0);
-    if (!entries.length) return "0.00";
-
-    const sortedEntries = [...entries].sort(([a], [b]) => a.localeCompare(b));
-
-    return sortedEntries
-      .map(([currency, amount]) => `${currency} ${amount.toFixed(2)}`)
-      .join(" · ");
+  getPendingTotal(currency: "EUR" | "USD"): number {
+    return this.pendingByCurrency()[currency];
   }
 
-  statusClass(status: string): string {
+  getRevenueTotal(currency: "EUR" | "USD"): number {
+    return this.revenueByCurrency()[currency];
+  }
+
+  formatSaleCardAmount(sale: SaleResponse): string {
+    return `${sale.currency} ${getSaleTotalAmount(sale).toFixed(2)}`;
+  }
+
+  saleStatusClass(status: string): string {
     const map: Record<string, string> = {
-      PENDING: "bg-amber-500/10 text-amber-500",
-      CONFIRMED: "bg-emerald-500/10 text-emerald-500",
-      IN_PROGRESS: "bg-blue-500/10 text-blue-500",
-      COMPLETED: "bg-slate-500/10 text-slate-400",
+      CREATED: "bg-amber-500/10 text-amber-600",
+      CONFIRMED: "bg-emerald-500/10 text-emerald-600",
       CANCELLED: "bg-red-500/10 text-red-500",
     };
-    return map[status] ?? "";
+
+    return map[status] ?? "bg-slate-500/10 text-slate-500";
+  }
+
+  bookingStatusClass(status: string): string {
+    const map: Record<string, string> = {
+      CREATED: "bg-amber-500/10 text-amber-600",
+      CONFIRMED: "bg-blue-500/10 text-blue-600",
+      PAID: "bg-emerald-500/10 text-emerald-600",
+    };
+
+    return map[status] ?? "bg-slate-500/10 text-slate-500";
   }
 }

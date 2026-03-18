@@ -41,6 +41,9 @@ export interface AuthMeResponse {
   status: string;
 }
 
+export type UserRole = "ADMIN" | "AGENT";
+export type VisibilityMode = "MY_DATA" | "ALL_USERS";
+
 export interface MessageResponse {
   message: string;
 }
@@ -106,6 +109,7 @@ export interface TeamMemberResponse {
   email: string;
   role: string;
   status: string;
+  commissionPercentage?: number;
 }
 
 export interface TeamInviteRequest {
@@ -141,6 +145,7 @@ export type ServiceType =
   | "OTHER";
 
 export type Currency = "USD" | "EUR";
+export type BookingStatus = "CREATED" | "CONFIRMED" | "PAID";
 
 export interface SupplierRequest {
   name: string;
@@ -167,29 +172,44 @@ export type CreateSupplierDto = SupplierRequest;
 
 // ─── Sale ─────────────────────────────────────────────────────────────────────
 export interface SaleRequest {
-  customerId?: string;
-  customerName?: string;
+  clientId?: string;
+  clientName?: string;
+  agentId?: string;
   supplierId?: string;
   destination: string;
-  departureDate?: string;
+  travelDate?: string;
+  createdAt?: string;
   description?: string;
   amount: number;
   currency: Currency;
   status: string;
+  customerId?: string;
+  customerName?: string;
+  departureDate?: string;
 }
 
 export interface SaleResponse {
   id: string;
-  customerId: string;
-  customerName: string;
+  clientId: string;
+  clientName: string;
+  agentId?: string;
+  agent?: AuthMeResponse;
   supplierId?: string;
   supplierName?: string;
   destination: string;
-  departureDate?: string;
+  travelDate?: string;
+  createdAt?: string;
   description?: string;
-  amount: number;
-  currency?: Currency;
+  totalAmount: number;
+  paidAmount?: number;
+  currency: Currency;
   status: string;
+  bookings?: BookingResponse[];
+  paymentsReceived?: PaymentReceivedResponse[];
+  customerId?: string;
+  customerName?: string;
+  departureDate?: string;
+  amount?: number;
 }
 
 // Alias para compatibilidad
@@ -197,12 +217,17 @@ export type Sale = SaleResponse;
 export type CreateSaleDto = SaleRequest;
 
 export interface SalePaymentRequest {
-  customerId: string;
-  originalAmount: number;
-  sourceCurrency: Currency;
+  saleId?: string;
+  date: string;
+  amount: number;
+  currency: Currency;
   description: string;
-  exchangeRate: number;
-  convertedAmount: number;
+  customExchangeRate?: number;
+  customerId?: string;
+  originalAmount?: number;
+  sourceCurrency?: Currency;
+  exchangeRate?: number;
+  convertedAmount?: number;
 }
 
 export interface SalePaymentResponse extends SalePaymentRequest {
@@ -210,30 +235,46 @@ export interface SalePaymentResponse extends SalePaymentRequest {
   createdAt: string;
 }
 
+export type PaymentReceivedRequest = SalePaymentRequest;
+export type PaymentReceivedResponse = SalePaymentResponse;
+
 // ─── Booking ──────────────────────────────────────────────────────────────────
 export interface BookingRequest {
   customerId: string;
-  supplierId: string;
+  supplierId?: string;
   reference: string;
   passengerName: string;
   destination: string;
+  amount: number;
+  currency: Currency;
+  originalAmount?: number;
+  sourceCurrency?: Currency;
+  exchangeRate?: number;
+  convertedAmount?: number;
   departureDate: string;
   returnDate?: string;
-  status: string;
+  paymentDate?: string;
+  status: BookingStatus;
 }
 
 export interface BookingResponse {
   id: string;
-  customerId: string;
-  customerName: string;
-  supplierId: string;
-  supplierName: string;
+  customerId?: string;
+  customerName?: string;
+  supplierId?: string;
+  supplierName?: string;
   reference: string;
-  passengerName: string;
-  destination: string;
-  departureDate: string;
+  description: string;
+  amount: number;
+  currency: Currency;
+  originalAmount?: number;
+  sourceCurrency?: Currency;
+  exchangeRate?: number;
+  convertedAmount?: number;
+  departureDate?: string;
   returnDate?: string;
-  status: string;
+  paymentDate?: string;
+  status: BookingStatus;
 }
 
 // Alias para compatibilidad con ServiceBooking
@@ -260,6 +301,28 @@ export interface DashboardStatsResponse {
   totalBookings: number;
   totalCustomers: number;
   totalSuppliers: number;
+}
+
+export interface AccountStatementMovement {
+  id: string;
+  description: string;
+  date: string;
+  concept: string;
+  amount: number;
+  currency: Currency;
+  type?: string;
+}
+
+export interface AccountStatementResponse {
+  movements: AccountStatementMovement[];
+  balance: number;
+  currency: Currency;
+}
+
+export interface AccountPaymentRequest {
+  date: string;
+  amount: number;
+  currency: Currency;
 }
 
 // ─── UI Helpers ───────────────────────────────────────────────────────────────

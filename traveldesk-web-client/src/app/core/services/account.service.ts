@@ -4,10 +4,13 @@ import { environment } from "../../../environments/environment";
 import {
   AccountRequest,
   AccountResponse,
+  AccountStatementResponse,
+  AccountPaymentRequest,
   AgencySettingsRequest,
   AgencySettingsResponse,
   CommissionSettingsRequest,
   CommissionSettingsResponse,
+  Currency,
 } from "../models";
 
 @Injectable({ providedIn: "root" })
@@ -41,6 +44,22 @@ export class AccountService {
   updateCommissionSettings(dto: CommissionSettingsRequest) {
     return this.http.put<CommissionSettingsResponse>(
       `${this.api}/commission`,
+      dto,
+    );
+  }
+
+  getAccountStatement(currency: Currency) {
+    return this.http.get<AccountStatementResponse>(
+      `${environment.apiUrl}/account-statement/me`,
+      {
+        params: { currency },
+      },
+    );
+  }
+
+  addAccountPayment(dto: AccountPaymentRequest) {
+    return this.http.post<AccountStatementResponse>(
+      `${environment.apiUrl}/account-statement/me/payments`,
       dto,
     );
   }

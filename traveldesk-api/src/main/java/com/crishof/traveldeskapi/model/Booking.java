@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -55,18 +56,35 @@ public class Booking {
     @JoinColumn(name = "created_by_user_id", nullable = false)
     private User createdBy;
 
-    @Column(nullable = false, length = 50)
+    @Column(length = 50)
     private String reference;
 
-    @Column(nullable = false, length = 120)
-    private String passengerName;
+    @Column(length = 120)
+    private String description;
 
-    @Column(nullable = false, length = 120)
-    private String destination;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal amount;
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal originalAmount;
+
+    @Column(length = 10)
+    private String sourceCurrency;
+
+    @Column(precision = 12, scale = 6)
+    private BigDecimal exchangeRate;
+
+    @Column(precision = 12, scale = 2)
+    private BigDecimal convertedAmount;
+
+    @Column(nullable = false, length = 10)
+    private String currency;
 
     private LocalDate departureDate;
 
     private LocalDate returnDate;
+
+    private LocalDate paymentDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

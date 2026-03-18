@@ -1,5 +1,6 @@
 package com.crishof.traveldeskapi.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -10,10 +11,16 @@ public record BookingResponse(
         UUID supplierId,
         String supplierName,
         String reference,
-        String passengerName,
-        String destination,
+        String description,
+        BigDecimal amount,
+        String currency,
+        BigDecimal originalAmount,
+        String sourceCurrency,
+        BigDecimal exchangeRate,
+        BigDecimal convertedAmount,
         LocalDate departureDate,
         LocalDate returnDate,
+        LocalDate paymentDate,
         String status
 ) {
 }

@@ -24,4 +24,12 @@ public interface BookingRepository extends JpaRepository<Booking, UUID> {
     boolean existsBySupplierId(UUID supplierId);
 
     long countByAgencyId(UUID agencyId);
+
+    List<Booking> findAllByAgencyIdAndCustomerIdAndCreatedByIdAndDepartureDateAndStatus(
+            UUID agencyId,
+            UUID customerId,
+            UUID createdById,
+            java.time.LocalDate departureDate,
+            com.crishof.traveldeskapi.model.BookingStatus status
+    );
 }

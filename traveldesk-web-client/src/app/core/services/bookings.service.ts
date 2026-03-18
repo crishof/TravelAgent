@@ -3,6 +3,10 @@ import { HttpClient } from "@angular/common/http";
 import { tap } from "rxjs";
 import { environment } from "../../../environments/environment";
 import { BookingResponse, BookingRequest, BookingFilters } from "../models";
+import {
+  getBookingDescription,
+  getBookingReservationCode,
+} from "../models/domain-helpers";
 
 @Injectable({ providedIn: "root" })
 export class BookingsService {
@@ -21,11 +25,12 @@ export class BookingsService {
   readonly filtered = computed(() => {
     const f = this.filters();
     return this.bookings().filter((b) => {
+      const searchTerm = f.search.toLowerCase();
       const matchSearch =
         !f.search ||
-        b.reference.toLowerCase().includes(f.search.toLowerCase()) ||
-        b.passengerName.toLowerCase().includes(f.search.toLowerCase()) ||
-        b.destination.toLowerCase().includes(f.search.toLowerCase());
+        getBookingReservationCode(b).toLowerCase().includes(searchTerm) ||
+        getBookingDescription(b).toLowerCase().includes(searchTerm) ||
+        (b.customerName ?? "").toLowerCase().includes(searchTerm);
       const matchStatus = !f.status || b.status === f.status;
       const matchCustomer = !f.customerId || b.customerId === f.customerId;
       const matchSupplier = !f.supplierId || b.supplierId === f.supplierId;

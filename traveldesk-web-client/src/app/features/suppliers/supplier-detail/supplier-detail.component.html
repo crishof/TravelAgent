@@ -289,13 +289,13 @@
                   class="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50"
                 >
                   <td class="py-3 px-4 text-slate-900 dark:text-white">
-                    {{ booking.passengerName }}
+                    {{ booking.customerName }}
                   </td>
                   <td class="py-3 px-4 text-slate-900 dark:text-white">
                     {{ booking.reference }}
                   </td>
                   <td class="py-3 px-4 text-slate-900 dark:text-white">
-                    {{ booking.destination }}
+                    {{ booking.description }}
                   </td>
                   <td class="py-3 px-4 text-slate-900 dark:text-white">
                     {{ booking.departureDate }}
@@ -305,11 +305,11 @@
                       class="inline-block px-2 py-1 rounded-full text-xs font-semibold"
                       [class]="{
                         'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200':
-                          booking.status === 'PENDING',
-                        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200':
+                          booking.status === 'CREATED',
+                        'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200':
                           booking.status === 'CONFIRMED',
-                        'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200':
-                          booking.status === 'CANCELLED',
+                        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200':
+                          booking.status === 'PAID',
                       }"
                     >
                       {{ booking.status }}

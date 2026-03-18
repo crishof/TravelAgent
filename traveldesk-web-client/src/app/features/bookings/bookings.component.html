@@ -28,9 +28,9 @@
       class="px-3 py-2 rounded-xl text-sm border outline-none bg-slate-50 border-slate-200 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
     >
       <option value="">Todos los estados</option>
-      <option value="PENDING">Pendiente</option>
+      <option value="CREATED">Created</option>
       <option value="CONFIRMED">Confirmada</option>
-      <option value="CANCELLED">Cancelada</option>
+      <option value="PAID">Paid</option>
     </select>
     <select
       [value]="filters().supplierId"
@@ -66,10 +66,10 @@
               <span
                 class="font-semibold text-sm text-slate-900 dark:text-white"
               >
-                {{ booking.passengerName }}
+                {{ getBookingDescription(booking) }}
               </span>
               <span class="text-xs text-slate-400 dark:text-slate-500">
-                #{{ booking.reference }}
+                #{{ getBookingReservationCode(booking) }}
               </span>
               <span
                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-500"
@@ -79,13 +79,13 @@
               </span>
             </div>
             <div class="text-xs mt-0.5 text-slate-500 dark:text-slate-400">
-              {{ booking.destination }} · {{ booking.supplierName }} · Cliente:
+              {{ getBookingProvider(booking) }} · Cliente:
               {{ booking.customerName }}
             </div>
             <div class="text-xs mt-0.5 text-slate-500 dark:text-slate-400">
-              Salida: {{ booking.departureDate }}
-              @if (booking.returnDate) {
-                · Regreso: {{ booking.returnDate }}
+              IN: {{ getBookingDateIn(booking) }}
+              @if (getBookingDateOut(booking)) {
+                · OUT: {{ getBookingDateOut(booking) }}
               }
             </div>
           </div>

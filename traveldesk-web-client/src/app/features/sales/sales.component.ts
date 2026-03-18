@@ -9,12 +9,14 @@ import {
 import { Router } from "@angular/router";
 import { SalesService } from "../../core/services/sales.service";
 import { ClientsService } from "../../core/services/clients.service";
-import { SuppliersService } from "../../core/services/suppliers.service";
-import { BookingsService } from "../../core/services/bookings.service";
 import { TeamService } from "../../core/services/team.service";
-import { ExchangeRateService } from "../../core/services/exchange-rate.service";
 import { AuthService } from "../../core/services/auth.service";
-import { SaleRequest, BookingRequest } from "../../core/models";
+import { SaleRequest } from "../../core/models";
+import {
+  getSaleClientName,
+  getSaleTotalAmount,
+  getSaleTravelDate,
+} from "../../core/models/domain-helpers";
 
 interface CustomerOption {
   id: string;
@@ -32,48 +34,30 @@ export class SalesComponent implements OnInit {
 
   salesSvc = inject(SalesService);
   clientsSvc = inject(ClientsService);
-  suppliersSvc = inject(SuppliersService);
-  bookingsSvc = inject(BookingsService);
   teamSvc = inject(TeamService);
-  xr = inject(ExchangeRateService);
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
 
-  isAdmin = this.auth.isLoggedIn;
+  readonly isAdmin = this.auth.isAdmin;
+  readonly visibleSales = this.salesSvc.visibleSales;
 
   showNewSale = signal(false);
-  showAddService = signal<string | null>(null);
-  showQuickNewClient = signal(false);
-  manualRateInput = signal("");
   customerSearch = signal("");
   pendingNewCustomerName = signal("");
 
   saleStatuses: string[] = ["CREATED", "CONFIRMED", "CANCELLED"];
 
   saleForm = this.fb.group({
-    customerId: ["", Validators.required],
+    clientId: ["", Validators.required],
     destination: ["", Validators.required],
-    departureDate: ["", Validators.required],
+    travelDate: ["", Validators.required],
     description: [""],
     amount: [0, [Validators.required, Validators.min(0.01)]],
     currency: ["USD", Validators.required],
   });
 
-  bookingForm = this.fb.group({
-    customerId: ["", Validators.required],
-    supplierId: ["", Validators.required],
-    reference: ["", Validators.required],
-    passengerName: ["", Validators.required],
-    destination: ["", Validators.required],
-    departureDate: ["", Validators.required],
-    returnDate: [""],
-    status: ["PENDING", Validators.required],
-  });
 
-  quickClientForm = this.fb.group({
-    fullName: ["", Validators.required],
-  });
 
   filteredCustomers = computed(() => {
     const term = this.customerSearch().trim().toLowerCase();
@@ -104,19 +88,12 @@ export class SalesComponent implements OnInit {
     this.clientsSvc.loadAll().subscribe({
       next: () => this.ensureCustomerSelected(),
     });
-    this.suppliersSvc.loadAll().subscribe();
     this.teamSvc.loadAll().subscribe();
   }
 
   openNewSaleModal() {
     this.showNewSale.set(true);
-    this.showQuickNewClient.set(false);
     this.ensureCustomerSelected();
-  }
-
-  openAddService(saleId: string) {
-    this.showAddService.set(saleId);
-    this.bookingForm.reset({ status: "PENDING" });
   }
 
   openSaleDetails(saleId: string) {
@@ -130,13 +107,17 @@ export class SalesComponent implements OnInit {
     }
 
     const v = this.saleForm.value;
+    const pendingName =
+      this.pendingNewCustomerName().trim() || this.customerSearch().trim();
 
     const dto: SaleRequest = {
-      ...(v.customerId === this.pendingCustomerId
-        ? { customerName: this.pendingNewCustomerName().trim() }
-        : { customerId: v.customerId! }),
+      ...(v.clientId === this.pendingCustomerId
+        ? { customerName: pendingName }
+        : { customerId: v.clientId! }),
+      agentId: this.auth.currentUser()?.id,
       destination: v.destination!,
-      departureDate: v.departureDate!,
+      departureDate: v.travelDate!,
+      createdAt: new Date().toISOString(),
       description: (v.description ?? "").trim(),
       amount: Number(v.amount),
       currency: v.currency! as "USD" | "EUR",
@@ -147,110 +128,77 @@ export class SalesComponent implements OnInit {
       next: (sale) => {
         this.showNewSale.set(false);
         this.saleForm.reset({
-          customerId: "",
+          clientId: "",
           destination: "",
-          departureDate: "",
+          travelDate: "",
           description: "",
           amount: 0,
           currency: "USD",
         });
         this.customerSearch.set("");
         this.pendingNewCustomerName.set("");
-        this.showQuickNewClient.set(false);
-        this.quickClientForm.reset();
         this.router.navigate(["/app/sales", sale.id]);
       },
       error: (err) => console.error("Error creating sale:", err),
     });
   }
 
-  createQuickClient() {
-    if (this.quickClientForm.invalid) {
-      this.quickClientForm.markAllAsTouched();
+
+
+  onCustomerSearchInput(event: Event) {
+    const typedValue = this.getVal(event);
+    const typedName = typedValue.trim();
+
+    this.customerSearch.set(typedValue);
+
+    if (!typedName) {
+      this.pendingNewCustomerName.set("");
+      const firstMatch = this.filteredCustomers()[0];
+      this.saleForm.patchValue({ clientId: firstMatch?.id ?? "" });
       return;
     }
 
-    const name = this.quickClientForm.value.fullName?.trim();
-    if (!name) return;
+    const exactMatch = this.clientsSvc
+      .clients()
+      .find((c) => c.fullName.trim().toLowerCase() === typedName.toLowerCase());
 
-    this.pendingNewCustomerName.set(name);
-    this.saleForm.patchValue({ customerId: this.pendingCustomerId });
-    this.customerSearch.set(name);
-    this.showQuickNewClient.set(false);
-    this.quickClientForm.reset();
-  }
-
-  onCustomerSearchInput(event: Event) {
-    this.customerSearch.set(this.getVal(event));
-    this.pendingNewCustomerName.set("");
+    if (exactMatch) {
+      this.pendingNewCustomerName.set("");
+      this.saleForm.patchValue({ clientId: exactMatch.id });
+      return;
+    }
 
     const firstMatch = this.filteredCustomers()[0];
-    this.saleForm.patchValue({ customerId: firstMatch?.id ?? "" });
+    if (firstMatch) {
+      this.pendingNewCustomerName.set("");
+      this.saleForm.patchValue({ clientId: firstMatch.id });
+      return;
+    }
+
+    // Si no hay coincidencias, tratamos el texto ingresado como cliente nuevo.
+    this.pendingNewCustomerName.set(typedName);
+    this.saleForm.patchValue({ clientId: this.pendingCustomerId });
   }
 
   private ensureCustomerSelected() {
-    const currentCustomerId = this.saleForm.value.customerId;
+    const currentCustomerId = this.saleForm.value.clientId;
     if (currentCustomerId) return;
 
     const firstOption = this.customerOptions()[0];
     if (firstOption) {
-      this.saleForm.patchValue({ customerId: firstOption.id });
+      this.saleForm.patchValue({ clientId: firstOption.id });
     }
-  }
-
-  addService() {
-    if (this.bookingForm.invalid) return;
-
-    const v = this.bookingForm.value;
-    const dto: BookingRequest = {
-      customerId: v.customerId!,
-      supplierId: v.supplierId!,
-      reference: v.reference!,
-      passengerName: v.passengerName!,
-      destination: v.destination!,
-      departureDate: v.departureDate!,
-      returnDate: v.returnDate || undefined,
-      status: v.status!,
-    };
-
-    this.bookingsSvc.create(dto).subscribe({
-      next: () => {
-        this.showAddService.set(null);
-        this.bookingForm.reset({ status: "PENDING" });
-      },
-      error: (err) => console.error("Error creating booking:", err),
-    });
-  }
-
-  onManualRateChange(event: Event) {
-    const val = Number.parseFloat((event.target as HTMLInputElement).value);
-    this.manualRateInput.set((event.target as HTMLInputElement).value);
-    this.xr.setManualRate(Number.isNaN(val) ? null : val);
   }
 
   getVal(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
-  getClientName(id: string): string {
-    return this.clientsSvc.getById(id)?.fullName ?? "—";
-  }
+  getSaleClientName = getSaleClientName;
+  getSaleTravelDate = getSaleTravelDate;
 
-  getClientInitial(id: string): string {
-    return (this.clientsSvc.getById(id)?.fullName ?? "?")[0].toUpperCase();
-  }
-
-  getSupplierName(id: string): string {
-    return this.suppliersSvc.suppliers().find((p) => p.id === id)?.name ?? "—";
-  }
-
-  private normalizeCurrencyCode(currency?: string): string {
-    const code = (currency ?? "").toUpperCase();
-    return code === "USD" || code === "EUR" ? code : "N/A";
-  }
-
-  formatSaleAmount(amount: number, currency?: string): string {
-    return `${this.normalizeCurrencyCode(currency)} ${Number(amount ?? 0).toFixed(2)}`;
+  formatSaleAmount(sale: { totalAmount?: number; amount?: number; currency?: "USD" | "EUR" }): string {
+    return `${sale.currency ?? "USD"} ${getSaleTotalAmount(sale).toFixed(2)}`;
   }
 
   statusClass(status: string): string {

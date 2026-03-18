@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -48,8 +49,6 @@ public class BookingServiceImpl implements BookingService {
         User createdBy = getUserOrThrow(userId, agencyId);
 
         String normalizedReference = normalizeReference(request.reference());
-        String normalizedPassengerName = normalizeText(request.passengerName());
-        String normalizedDestination = normalizeText(request.destination());
         BookingStatus status = parseBookingStatus(request.status());
 
         validateReferenceUniqueness(agencyId, normalizedReference);
@@ -60,10 +59,25 @@ public class BookingServiceImpl implements BookingService {
         booking.setSupplier(supplier);
         booking.setCreatedBy(createdBy);
         booking.setReference(normalizedReference);
-        booking.setPassengerName(normalizedPassengerName);
-        booking.setDestination(normalizedDestination);
+        booking.setDescription(normalizeText(request.destination()));
+        booking.setAmount(request.amount());
+        String normalizedCurrency = normalizeText(request.currency()).toUpperCase(Locale.ROOT);
+        booking.setCurrency(normalizedCurrency);
+        BigDecimal originalAmount = request.originalAmount() != null ? request.originalAmount() : request.amount();
+        String sourceCurrency = request.sourceCurrency() != null
+            ? normalizeText(request.sourceCurrency()).toUpperCase(Locale.ROOT)
+            : normalizedCurrency;
+        BigDecimal exchangeRate = request.exchangeRate() != null ? request.exchangeRate() : BigDecimal.ONE;
+        BigDecimal convertedAmount = request.convertedAmount() != null
+            ? request.convertedAmount()
+            : originalAmount.multiply(exchangeRate);
+        booking.setOriginalAmount(originalAmount);
+        booking.setSourceCurrency(sourceCurrency);
+        booking.setExchangeRate(exchangeRate);
+        booking.setConvertedAmount(convertedAmount);
         booking.setDepartureDate(request.departureDate());
         booking.setReturnDate(request.returnDate());
+        booking.setPaymentDate(request.paymentDate());
         booking.setStatus(status);
 
         return toResponse(bookingRepository.save(booking));
@@ -79,7 +93,6 @@ public class BookingServiceImpl implements BookingService {
         Supplier supplier = getSupplierOrNull(agencyId, request.supplierId());
 
         String normalizedReference = normalizeReference(request.reference());
-        String normalizedPassengerName = normalizeText(request.passengerName());
         String normalizedDestination = normalizeText(request.destination());
         BookingStatus status = parseBookingStatus(request.status());
 
@@ -88,10 +101,25 @@ public class BookingServiceImpl implements BookingService {
         booking.setCustomer(customer);
         booking.setSupplier(supplier);
         booking.setReference(normalizedReference);
-        booking.setPassengerName(normalizedPassengerName);
-        booking.setDestination(normalizedDestination);
+        booking.setDescription(normalizedDestination);
+        booking.setAmount(request.amount());
+        String normalizedCurrency = normalizeText(request.currency()).toUpperCase(Locale.ROOT);
+        booking.setCurrency(normalizedCurrency);
+        BigDecimal originalAmount = request.originalAmount() != null ? request.originalAmount() : request.amount();
+        String sourceCurrency = request.sourceCurrency() != null
+            ? normalizeText(request.sourceCurrency()).toUpperCase(Locale.ROOT)
+            : normalizedCurrency;
+        BigDecimal exchangeRate = request.exchangeRate() != null ? request.exchangeRate() : BigDecimal.ONE;
+        BigDecimal convertedAmount = request.convertedAmount() != null
+            ? request.convertedAmount()
+            : originalAmount.multiply(exchangeRate);
+        booking.setOriginalAmount(originalAmount);
+        booking.setSourceCurrency(sourceCurrency);
+        booking.setExchangeRate(exchangeRate);
+        booking.setConvertedAmount(convertedAmount);
         booking.setDepartureDate(request.departureDate());
         booking.setReturnDate(request.returnDate());
+        booking.setPaymentDate(request.paymentDate());
         booking.setStatus(status);
 
         return toResponse(bookingRepository.save(booking));
@@ -201,10 +229,16 @@ public class BookingServiceImpl implements BookingService {
                 booking.getSupplier() != null ? booking.getSupplier().getId() : null,
                 booking.getSupplier() != null ? booking.getSupplier().getName() : null,
                 booking.getReference(),
-                booking.getPassengerName(),
-                booking.getDestination(),
+                booking.getDescription(),
+                booking.getAmount(),
+                booking.getCurrency(),
+                booking.getOriginalAmount(),
+                booking.getSourceCurrency(),
+                booking.getExchangeRate(),
+                booking.getConvertedAmount(),
                 booking.getDepartureDate(),
                 booking.getReturnDate(),
+                booking.getPaymentDate(),
                 booking.getStatus().name()
         );
     }

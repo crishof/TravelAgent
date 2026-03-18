@@ -1,10 +1,6 @@
 package com.crishof.traveldeskapi.service;
 
-import com.crishof.traveldeskapi.dto.PaymentRequest;
-import com.crishof.traveldeskapi.dto.PaymentResponse;
-import com.crishof.traveldeskapi.dto.SaleRequest;
-import com.crishof.traveldeskapi.dto.SaleResponse;
-import com.crishof.traveldeskapi.dto.SaleUpdateRequest;
+import com.crishof.traveldeskapi.dto.*;
 import com.crishof.traveldeskapi.exception.InvalidRequestException;
 import com.crishof.traveldeskapi.exception.ResourceNotFoundException;
 import com.crishof.traveldeskapi.model.*;
@@ -64,7 +60,7 @@ public class SalesServiceImpl implements SalesService {
         sale.setCreatedBy(createdBy);
         sale.setDestination(normalizeText(request.destination()));
         sale.setAmount(request.amount());
-        sale.setCurrency(agency.getCurrency());
+        sale.setCurrency(request.currency().toUpperCase(Locale.ROOT));
         sale.setStatus(parseSaleStatus(request.status()));
         sale.setDepartureDate(request.departureDate());
 
@@ -179,17 +175,7 @@ public class SalesServiceImpl implements SalesService {
     }
 
     private SaleResponse toResponse(Sale sale) {
-        return new SaleResponse(
-                sale.getId(),
-                sale.getCustomer().getId(),
-                sale.getCustomer().getFullName(),
-                sale.getDestination(),
-                sale.getAmount(),
-                sale.getCurrency(),
-                sale.getStatus().name(),
-                sale.getPaidAmount(),
-                sale.getDepartureDate()
-        );
+        return new SaleResponse(sale.getId(), sale.getCustomer().getId(), sale.getCustomer().getFullName(), sale.getCreatedBy().getId(), sale.getDestination(), sale.getAmount(), sale.getCurrency(), sale.getStatus().name(), sale.getPaidAmount(), sale.getDepartureDate(), sale.getSaleDate());
     }
 
     @Override
@@ -229,8 +215,7 @@ public class SalesServiceImpl implements SalesService {
 
         Sale sale = saleRepository.findByIdAndAgencyIdWithPayments(saleId, agencyId).orElseThrow(() -> new ResourceNotFoundException("Sale not found with id: " + saleId));
 
-        return sale.getPayments().stream().sorted((p1, p2) -> p2.getPaymentDate().compareTo(p1.getPaymentDate()))
-                .map(this::toPaymentResponse).toList();
+        return sale.getPayments().stream().sorted((p1, p2) -> p2.getPaymentDate().compareTo(p1.getPaymentDate())).map(this::toPaymentResponse).toList();
     }
 
     private PaymentResponse toPaymentResponse(Payment payment) {
