@@ -1,0 +1,24 @@
+{
+  "buildCommand": "npm run build:prod && npm run inject-env",
+  "outputDirectory": "dist/traveldesk",
+  "env": {
+    "SPRING_PUBLIC_API_URL": "@spring_public_api_url"
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "${SPRING_PUBLIC_API_URL}/api/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "X-API-URL",
+          "value": "${SPRING_PUBLIC_API_URL}"
+        }
+      ]
+    }
+  ]
+}

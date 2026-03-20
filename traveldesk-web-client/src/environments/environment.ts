@@ -1,6 +1,11 @@
 export const environment = {
   production: false,
-  apiUrl: "http://localhost:8090/api/v1",
-  // Variable para variable de entorno en runtime
-  apiUrlFromEnv: typeof window !== 'undefined' ? (window as any)['SPRING_PUBLIC_API_URL'] : null,
+  apiUrl: (() => {
+    // En desarrollo, intenta leer desde variable de entorno si está disponible
+    if (typeof window !== 'undefined' && (window as any).__ENV__?.SPRING_PUBLIC_API_URL) {
+      return (window as any).__ENV__.SPRING_PUBLIC_API_URL;
+    }
+    // Fallback a localhost
+    return 'http://localhost:8090/api/v1';
+  })(),
 };
