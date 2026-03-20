@@ -9,6 +9,8 @@ import { provideAnimationsAsync } from "@angular/platform-browser/animations/asy
 
 import { routes } from "./app.routes";
 import { jwtInterceptor } from "./core/interceptors/jwt.interceptor";
+import { environment } from "../environments/environment";
+import { API_URL } from "./core/config/api.config";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,5 +18,9 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withViewTransitions(), withComponentInputBinding()),
     provideHttpClient(withInterceptors([jwtInterceptor])),
     provideAnimationsAsync(),
+    {
+      provide: API_URL,
+      useValue: environment.apiUrl,
+    },
   ],
 };
