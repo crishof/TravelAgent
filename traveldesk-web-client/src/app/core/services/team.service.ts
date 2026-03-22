@@ -6,6 +6,7 @@ import {
   TeamMemberResponse,
   TeamMemberRequest,
   TeamInviteRequest,
+  InvitationResponse,
 } from "../models";
 
 @Injectable({ providedIn: "root" })
@@ -22,9 +23,7 @@ export class TeamService {
   }
 
   invite(dto: TeamInviteRequest) {
-    return this.http
-      .post<TeamMemberResponse>(`${this.api}/team/invite`, dto)
-      .pipe(tap((member) => this.members.update((list) => [...list, member])));
+    return this.http.post<InvitationResponse>(`${this.api}/admin/invitations`, dto);
   }
 
   update(memberId: string, dto: TeamMemberRequest) {

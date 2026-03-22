@@ -19,7 +19,6 @@ export class TeamComponent implements OnInit {
   showCommissionModal = signal(false);
   inviteLoading = signal(false);
   inviteError = signal("");
-  copiedToken = signal<string | null>(null);
   selectedMemberId = signal<string | null>(null);
 
   inviteForm = this.fb.group({
@@ -45,7 +44,9 @@ export class TeamComponent implements OnInit {
       })
       .subscribe({
         next: () => {
+          this.teamSvc.loadAll().subscribe();
           this.showInvite.set(false);
+          this.inviteError.set("");
           this.inviteLoading.set(false);
         },
         error: (e) => {
@@ -53,14 +54,6 @@ export class TeamComponent implements OnInit {
           this.inviteLoading.set(false);
         },
       });
-  }
-
-  copyToken(token: string) {
-    navigator.clipboard
-      .writeText(`${globalThis.location.origin}/auth/invite/${token}`)
-      .catch(() => {});
-    this.copiedToken.set(token);
-    setTimeout(() => this.copiedToken.set(null), 2000);
   }
 
   getAgentName(id: string): string {

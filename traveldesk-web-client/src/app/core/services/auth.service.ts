@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
-import { tap, throwError } from "rxjs";
+import { finalize, of, tap, throwError } from "rxjs";
 import { environment } from "../../../environments/environment";
 import {
   AuthResponse,
@@ -9,6 +9,12 @@ import {
   SignupRequest,
   AcceptInviteRequest,
   AuthMeResponse,
+  SignupResponse,
+  VerifyEmailRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  MessageResponse,
+  RefreshTokenRequest,
 } from "../models";
 
 const TOKEN_KEY = "td_token";
@@ -37,19 +43,27 @@ export class AuthService {
   }
 
   register(dto: SignupRequest) {
-    return this.http
-      .post<AuthResponse>(`${this.api}/auth/signup`, dto)
-      .pipe(tap((res) => this.storeSession(res)));
+    return this.http.post<SignupResponse>(`${this.api}/auth/signup`, dto);
   }
 
   acceptInvite(dto: AcceptInviteRequest) {
-    return this.http.post<any>(`${this.api}/auth/accept-invite`, dto).pipe(
-      tap((res) => {
-        if (res.accessToken) {
-          this.storeSession(res);
-        }
-      }),
-    );
+    return this.http
+      .post<AuthResponse>(`${this.api}/auth/accept-invite`, dto)
+      .pipe(tap((res) => this.storeSession(res)));
+  }
+
+  verifyEmail(dto: VerifyEmailRequest) {
+    return this.http
+      .post<AuthResponse>(`${this.api}/auth/verify-email`, dto)
+      .pipe(tap((res) => this.storeSession(res)));
+  }
+
+  forgotPassword(dto: ForgotPasswordRequest) {
+    return this.http.post<MessageResponse>(`${this.api}/auth/forgot-password`, dto);
+  }
+
+  resetPassword(dto: ResetPasswordRequest) {
+    return this.http.post<MessageResponse>(`${this.api}/auth/reset-password`, dto);
   }
 
   getInviteInfo(token: string) {
@@ -64,15 +78,29 @@ export class AuthService {
       this.clearSession();
       return throwError(() => new Error('No refresh token'));
     }
+    const payload: RefreshTokenRequest = { refreshToken: rt };
+
     return this.http
-      .get<AuthResponse>(`${this.api}/auth/refresh`, {
-        headers: { Authorization: `Bearer ${rt}` },
-      })
+      .post<AuthResponse>(`${this.api}/auth/refresh`, payload)
       .pipe(tap((res) => this.storeSession(res)));
   }
 
   logout() {
-    this.clearSession();
+    const rt = this.refreshToken();
+    if (!rt) {
+      this.clearSession();
+      return of({ message: "Logout successful" });
+    }
+
+    return this.http
+      .post<MessageResponse>(`${this.api}/auth/logout`, { refreshToken: rt })
+      .pipe(finalize(() => this.clearSession()));
+  }
+
+  logoutAll() {
+    return this.http
+      .post<MessageResponse>(`${this.api}/auth/logout-all`, null)
+      .pipe(finalize(() => this.clearSession()));
   }
 
   getCurrentUser() {
@@ -126,6 +154,7 @@ export class AuthService {
       // Prevent app bootstrap crashes when stale/corrupted session data exists.
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_KEY);
       return null;
     }
   }

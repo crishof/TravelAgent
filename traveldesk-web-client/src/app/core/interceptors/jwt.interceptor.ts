@@ -25,14 +25,22 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
             return next(retried);
           }),
           catchError((refreshErr) => {
-            auth.logout();
+            auth.logout().subscribe({
+              error: () => {
+                // Cleanup also runs on error.
+              },
+            });
             return throwError(() => refreshErr);
           }),
         );
       }
 
       if (err.status === 401 && isRefreshCall) {
-        auth.logout();
+        auth.logout().subscribe({
+          error: () => {
+            // Cleanup also runs on error.
+          },
+        });
       }
 
       return throwError(() => err);

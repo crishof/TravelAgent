@@ -113,7 +113,11 @@ export class ShellComponent {
   }
 
   logout() {
-    this.auth.logout();
+    this.auth.logout().subscribe({
+      error: () => {
+        // Session is cleared in finalize even if backend logout fails.
+      },
+    });
   }
 
   private svgIcon(pathData: string): string {

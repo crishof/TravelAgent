@@ -117,7 +117,8 @@
           </svg>
           <span
             >Serás el <strong>Administrador</strong> de la agencia. Podrás
-            invitar agentes, ver todas las ventas y gestionar comisiones.</span
+            invitar agentes, ver todas las ventas y gestionar comisiones. Al
+            finalizar te enviaremos un código a tu email para activar la cuenta.</span
           >
         </div>
 
@@ -189,7 +190,7 @@
             [disabled]="loading()"
             class="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold text-sm hover:opacity-90 transition-all shadow-lg shadow-cyan-500/25 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {{ loading() ? "Creando..." : "Crear agencia" }}
+            {{ loading() ? "Creando..." : "Crear agencia y verificar" }}
           </button>
         </div>
       </form>
