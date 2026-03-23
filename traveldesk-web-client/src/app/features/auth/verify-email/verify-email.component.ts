@@ -44,7 +44,16 @@ export class VerifyEmailComponent {
     const code = this.form.value.code?.trim() ?? "";
 
     this.auth.verifyEmail({ email, code }).subscribe({
-      next: () => void this.router.navigate(["/app/dashboard"]),
+      next: () => {
+        if (this.auth.isLoggedIn()) {
+          void this.router.navigate(["/app/dashboard"]);
+          return;
+        }
+
+        void this.router.navigate(["/auth/login"], {
+          queryParams: { email },
+        });
+      },
       error: (e) => {
         this.error.set(e?.error?.message || "Código inválido o expirado");
         this.loading.set(false);

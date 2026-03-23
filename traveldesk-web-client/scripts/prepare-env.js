@@ -1,7 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const fallbackApiUrl = "https://travelagent-production-05a4.up.railway.app/api/v1";
+const fallbackApiUrl = "https://traveldesk-api-production.up.railway.app/api/v1";
 
 function normalizeApiUrl(input) {
   if (!input?.trim()) {

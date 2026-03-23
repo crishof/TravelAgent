@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
-import { finalize, of, tap, throwError } from "rxjs";
+import { finalize, Observable, of, shareReplay, tap, throwError } from "rxjs";
 import { environment } from "../../../environments/environment";
 import {
   AuthResponse,
@@ -26,6 +26,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly api = environment.apiUrl;
+  private refreshRequest$: Observable<AuthResponse> | null = null;
 
   // ── Signals ──────────────────────────────────────────────────────────────
   readonly currentUser = signal<AuthMeResponse | null>(this.loadUser());
@@ -54,8 +55,14 @@ export class AuthService {
 
   verifyEmail(dto: VerifyEmailRequest) {
     return this.http
-      .post<AuthResponse>(`${this.api}/auth/verify-email`, dto)
-      .pipe(tap((res) => this.storeSession(res)));
+      .post<AuthResponse | MessageResponse>(`${this.api}/auth/verify-email`, dto)
+      .pipe(
+        tap((res) => {
+          if (this.isAuthResponse(res)) {
+            this.storeSession(res);
+          }
+        }),
+      );
   }
 
   forgotPassword(dto: ForgotPasswordRequest) {
@@ -73,16 +80,29 @@ export class AuthService {
   }
 
   refresh() {
+    if (this.refreshRequest$) {
+      return this.refreshRequest$;
+    }
+
     const rt = this.refreshToken();
     if (!rt) {
-      this.clearSession();
+      this.handleUnauthorized();
       return throwError(() => new Error('No refresh token'));
     }
+
     const payload: RefreshTokenRequest = { refreshToken: rt };
 
-    return this.http
+    this.refreshRequest$ = this.http
       .post<AuthResponse>(`${this.api}/auth/refresh`, payload)
-      .pipe(tap((res) => this.storeSession(res)));
+      .pipe(
+        tap((res) => this.storeSession(res)),
+        finalize(() => {
+          this.refreshRequest$ = null;
+        }),
+        shareReplay(1),
+      );
+
+    return this.refreshRequest$;
   }
 
   logout() {
@@ -101,6 +121,10 @@ export class AuthService {
     return this.http
       .post<MessageResponse>(`${this.api}/auth/logout-all`, null)
       .pipe(finalize(() => this.clearSession()));
+  }
+
+  handleUnauthorized() {
+    this.clearSession();
   }
 
   getCurrentUser() {
@@ -132,6 +156,17 @@ export class AuthService {
     };
     this.currentUser.set(userInfo);
     localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
+  }
+
+  private isAuthResponse(res: AuthResponse | MessageResponse): res is AuthResponse {
+    return (
+      typeof (res as AuthResponse)?.accessToken === "string" &&
+      typeof (res as AuthResponse)?.userId === "string" &&
+      typeof (res as AuthResponse)?.email === "string" &&
+      typeof (res as AuthResponse)?.fullName === "string" &&
+      typeof (res as AuthResponse)?.role === "string" &&
+      typeof (res as AuthResponse)?.status === "string"
+    );
   }
 
   private clearSession() {

@@ -53,7 +53,7 @@ export interface AuthResponse {
   role: string;
   status: string;
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   tokenType: string;
 }
 
