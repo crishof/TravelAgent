@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Router } from "@angular/router";
-import { tap, throwError } from "rxjs";
+import { finalize, Observable, of, shareReplay, tap, throwError } from "rxjs";
 import { environment } from "../../../environments/environment";
 import {
   AuthResponse,
@@ -9,6 +9,12 @@ import {
   SignupRequest,
   AcceptInviteRequest,
   AuthMeResponse,
+  SignupResponse,
+  VerifyEmailRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  MessageResponse,
+  RefreshTokenRequest,
 } from "../models";
 
 const TOKEN_KEY = "td_token";
@@ -20,6 +26,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly api = environment.apiUrl;
+  private refreshRequest$: Observable<AuthResponse> | null = null;
 
   // ── Signals ──────────────────────────────────────────────────────────────
   readonly currentUser = signal<AuthMeResponse | null>(this.loadUser());
@@ -37,19 +44,33 @@ export class AuthService {
   }
 
   register(dto: SignupRequest) {
-    return this.http
-      .post<AuthResponse>(`${this.api}/auth/signup`, dto)
-      .pipe(tap((res) => this.storeSession(res)));
+    return this.http.post<SignupResponse>(`${this.api}/auth/signup`, dto);
   }
 
   acceptInvite(dto: AcceptInviteRequest) {
-    return this.http.post<any>(`${this.api}/auth/accept-invite`, dto).pipe(
-      tap((res) => {
-        if (res.accessToken) {
-          this.storeSession(res);
-        }
-      }),
-    );
+    return this.http
+      .post<AuthResponse>(`${this.api}/auth/accept-invite`, dto)
+      .pipe(tap((res) => this.storeSession(res)));
+  }
+
+  verifyEmail(dto: VerifyEmailRequest) {
+    return this.http
+      .post<AuthResponse | MessageResponse>(`${this.api}/auth/verify-email`, dto)
+      .pipe(
+        tap((res) => {
+          if (this.isAuthResponse(res)) {
+            this.storeSession(res);
+          }
+        }),
+      );
+  }
+
+  forgotPassword(dto: ForgotPasswordRequest) {
+    return this.http.post<MessageResponse>(`${this.api}/auth/forgot-password`, dto);
+  }
+
+  resetPassword(dto: ResetPasswordRequest) {
+    return this.http.post<MessageResponse>(`${this.api}/auth/reset-password`, dto);
   }
 
   getInviteInfo(token: string) {
@@ -59,19 +80,50 @@ export class AuthService {
   }
 
   refresh() {
+    if (this.refreshRequest$) {
+      return this.refreshRequest$;
+    }
+
     const rt = this.refreshToken();
     if (!rt) {
-      this.clearSession();
+      this.handleUnauthorized();
       return throwError(() => new Error('No refresh token'));
     }
-    return this.http
-      .get<AuthResponse>(`${this.api}/auth/refresh`, {
-        headers: { Authorization: `Bearer ${rt}` },
-      })
-      .pipe(tap((res) => this.storeSession(res)));
+
+    const payload: RefreshTokenRequest = { refreshToken: rt };
+
+    this.refreshRequest$ = this.http
+      .post<AuthResponse>(`${this.api}/auth/refresh`, payload)
+      .pipe(
+        tap((res) => this.storeSession(res)),
+        finalize(() => {
+          this.refreshRequest$ = null;
+        }),
+        shareReplay(1),
+      );
+
+    return this.refreshRequest$;
   }
 
   logout() {
+    const rt = this.refreshToken();
+    if (!rt) {
+      this.clearSession();
+      return of({ message: "Logout successful" });
+    }
+
+    return this.http
+      .post<MessageResponse>(`${this.api}/auth/logout`, { refreshToken: rt })
+      .pipe(finalize(() => this.clearSession()));
+  }
+
+  logoutAll() {
+    return this.http
+      .post<MessageResponse>(`${this.api}/auth/logout-all`, null)
+      .pipe(finalize(() => this.clearSession()));
+  }
+
+  handleUnauthorized() {
     this.clearSession();
   }
 
@@ -106,6 +158,17 @@ export class AuthService {
     localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
   }
 
+  private isAuthResponse(res: AuthResponse | MessageResponse): res is AuthResponse {
+    return (
+      typeof (res as AuthResponse)?.accessToken === "string" &&
+      typeof (res as AuthResponse)?.userId === "string" &&
+      typeof (res as AuthResponse)?.email === "string" &&
+      typeof (res as AuthResponse)?.fullName === "string" &&
+      typeof (res as AuthResponse)?.role === "string" &&
+      typeof (res as AuthResponse)?.status === "string"
+    );
+  }
+
   private clearSession() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_KEY);
@@ -126,6 +189,7 @@ export class AuthService {
       // Prevent app bootstrap crashes when stale/corrupted session data exists.
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_KEY);
       return null;
     }
   }

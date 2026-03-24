@@ -18,8 +18,32 @@ export interface AcceptInviteRequest {
   password: string;
 }
 
+export interface VerifyEmailRequest {
+  email: string;
+  code: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface LogoutRequest {
   refreshToken: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface SignupResponse {
+  message: string;
+  email?: string;
 }
 
 export interface AuthResponse {
@@ -29,7 +53,7 @@ export interface AuthResponse {
   role: string;
   status: string;
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
   tokenType: string;
 }
 
@@ -46,6 +70,17 @@ export type VisibilityMode = "MY_DATA" | "ALL_USERS";
 
 export interface MessageResponse {
   message: string;
+}
+
+export interface InvitationResponse {
+  id?: string;
+  email: string;
+  role: string;
+  status?: string;
+  token?: string;
+  invitationLink?: string;
+  expiresAt?: string;
+  message?: string;
 }
 
 // ─── Account ──────────────────────────────────────────────────────────────────

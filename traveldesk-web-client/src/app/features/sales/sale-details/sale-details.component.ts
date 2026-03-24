@@ -137,7 +137,7 @@ export class SaleDetailsComponent implements OnInit {
   );
 
   readonly feeAmount = computed(
-    () => this.totalPaidBookings() - this.paymentsReceived(),
+    () => this.paymentsReceived() - this.totalPaidBookings(),
   );
 
   ngOnInit() {

@@ -68,6 +68,8 @@ export class RegisterComponent {
       this.adminForm.markAllAsTouched();
       return;
     }
+    this.error.set("");
+
     const { password, confirmPassword, fullName, email } = this.adminForm.value;
     if (password !== confirmPassword) {
       this.error.set("Las contraseñas no coinciden");
@@ -82,7 +84,10 @@ export class RegisterComponent {
         password: password!,
       })
       .subscribe({
-        next: () => void this.router.navigate(["/app/dashboard"]),
+        next: () =>
+          void this.router.navigate(["/auth/verify-email"], {
+            queryParams: { email: email! },
+          }),
         error: (e) => {
           this.error.set(e?.error?.message || "Error al registrarse");
           this.loading.set(false);
