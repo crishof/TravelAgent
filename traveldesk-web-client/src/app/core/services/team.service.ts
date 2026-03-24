@@ -23,7 +23,14 @@ export class TeamService {
   }
 
   invite(dto: TeamInviteRequest) {
-    return this.http.post<InvitationResponse>(`${this.api}/admin/invitations`, dto);
+    return this.http.post<InvitationResponse>(`${this.api}/admin/invitations`, {
+      ...dto,
+      role: this.mapInviteRole(dto.role),
+    });
+  }
+
+  private mapInviteRole(role: string): string {
+    return role === "AGENT" ? "USER" : role;
   }
 
   update(memberId: string, dto: TeamMemberRequest) {
