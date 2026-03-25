@@ -38,6 +38,7 @@ type PaymentItem = PaymentReceivedResponse;
 interface SupplierOption {
   id: string;
   name: string;
+  currency?: Currency;
 }
 
 @Component({
@@ -152,6 +153,7 @@ export class SaleDetailsComponent implements OnInit {
     const options = this.filteredSuppliers().map((supplier) => ({
       id: supplier.id,
       name: supplier.name,
+      currency: supplier.currency || undefined,
     }));
 
     const pendingName = this.pendingNewSupplierName().trim();
@@ -475,7 +477,7 @@ export class SaleDetailsComponent implements OnInit {
     this.bookingForm.reset({
       supplierId: "",
       provider: "",
-      providerCurrency: "USD" as Currency,
+      providerCurrency: this.currency(),
       description: this.sale()?.destination ?? "",
       reservationCode: "",
       dateIn: getSaleTravelDate(this.sale() ?? {}),
@@ -502,21 +504,23 @@ export class SaleDetailsComponent implements OnInit {
     this.bookingForm.patchValue({
       supplierId: booking.supplierId ?? "",
       provider: getBookingProvider(booking),
-      providerCurrency: supplier?.currency ?? getBookingCurrency(booking),
+      providerCurrency: this.normalizeCurrency(
+        supplier?.currency ?? getBookingCurrency(booking),
+        this.currency(),
+      ),
       description: getBookingDescription(booking),
       reservationCode: getBookingReservationCode(booking),
       dateIn: getBookingDateIn(booking),
       dateOut: getBookingDateOut(booking),
       amount: getBookingAmount(booking),
-      currency: getBookingCurrency(booking),
+      currency: this.normalizeCurrency(getBookingCurrency(booking), this.currency()),
       customExchangeRate: booking.exchangeRate ?? null,
       paymentDate: booking.paymentDate ?? this.todayIso(),
     });
     this.selectedSupplierId.set(booking.supplierId ?? "");
 
-    this.bookingForm.controls.currency.enable({ emitEvent: false });
-
     if (supplier) {
+      this.bookingForm.controls.currency.disable({ emitEvent: false });
       this.supplierSearch.set(supplier.name);
       this.pendingNewSupplierName.set("");
       return;
@@ -524,12 +528,14 @@ export class SaleDetailsComponent implements OnInit {
 
     const providerName = getBookingProvider(booking).trim();
     if (providerName) {
+      this.bookingForm.controls.currency.enable({ emitEvent: false });
       this.supplierSearch.set(providerName);
       this.pendingNewSupplierName.set(providerName);
       this.bookingForm.patchValue({ supplierId: this.pendingSupplierId });
       return;
     }
 
+    this.bookingForm.controls.currency.enable({ emitEvent: false });
     this.supplierSearch.set("");
     this.pendingNewSupplierName.set("");
   }
@@ -562,7 +568,11 @@ export class SaleDetailsComponent implements OnInit {
     this.resolveSupplierId().subscribe({
       next: (supplierId) => {
         const value = this.bookingForm.getRawValue();
-        const bookingCurrency = this.effectiveBookingCurrency();
+        const supplierFromForm = this.getExistingSupplierFromForm();
+        const bookingCurrency = this.normalizeCurrency(
+          supplierFromForm?.currency ?? this.effectiveBookingCurrency(),
+          this.currency(),
+        );
         const bookingOriginalAmount = Number(value.amount);
         const bookingRate = this.requiresBookingCustomRate()
           ? Number(
@@ -780,34 +790,34 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   onSupplierSelectionChange() {
-    this.selectedSupplierId.set(this.bookingForm.getRawValue().supplierId ?? "");
+    const supplierId = this.bookingForm.getRawValue().supplierId ?? "";
+    this.selectedSupplierId.set(supplierId);
 
     if (this.isNewSupplierSelected()) {
       this.pendingNewSupplierName.set(this.supplierSearch().trim());
+      const saleCurrency = this.currency();
       this.bookingForm.patchValue({
-        providerCurrency: "USD" as Currency,
-        currency: "USD" as Currency,
+        providerCurrency: saleCurrency,
+        currency: saleCurrency,
         customExchangeRate: null,
-      });
-      this.bookingForm.controls.currency.enable({ emitEvent: false });
-      return;
-    }
-
-    const supplier = this.selectedSupplier();
-    if (supplier) {
-      this.pendingNewSupplierName.set("");
-      this.bookingForm.patchValue({
-        providerCurrency: supplier.currency,
-        currency: supplier.currency,
       });
       this.bookingForm.controls.currency.enable({ emitEvent: false });
       this.onBookingCurrencyChange();
       return;
     }
 
+    const supplier = this.getExistingSupplierFromForm();
+    if (supplier) {
+      this.pendingNewSupplierName.set("");
+      this.applyExistingSupplierCurrency(
+        this.normalizeCurrency(supplier.currency, this.currency()),
+      );
+      return;
+    }
+
     // Sin proveedor seleccionado, usar la moneda de la venta por defecto.
     this.bookingForm.patchValue({
-      providerCurrency: "USD" as Currency,
+      providerCurrency: this.currency(),
       currency: this.currency(),
       customExchangeRate: null,
     });
@@ -816,8 +826,10 @@ export class SaleDetailsComponent implements OnInit {
 
   onProviderCurrencyChange() {
     if (!this.isNewSupplierSelected()) return;
-    const providerCurrency = this.bookingForm.value
-      .providerCurrency as Currency;
+    const providerCurrency = this.normalizeCurrency(
+      this.bookingForm.value.providerCurrency,
+      this.currency(),
+    );
     this.bookingForm.patchValue({ currency: providerCurrency });
     this.onBookingCurrencyChange();
   }
@@ -955,22 +967,23 @@ export class SaleDetailsComponent implements OnInit {
       return;
     }
 
-    const exactMatch = this.suppliersSvc
+    const matches = this.suppliersSvc
       .suppliers()
-      .find((supplier) => supplier.name.trim().toLowerCase() === typedName.toLowerCase());
+      .filter((supplier) =>
+        supplier.name.toLowerCase().includes(typedName.toLowerCase()),
+      );
 
-    if (exactMatch) {
-      this.pendingNewSupplierName.set("");
-      this.bookingForm.patchValue({ supplierId: exactMatch.id });
-      this.onSupplierSelectionChange();
-      return;
-    }
+    const exactMatch = matches.find(
+      (supplier) => supplier.name.trim().toLowerCase() === typedName.toLowerCase(),
+    );
 
-    const firstMatch = this.filteredSuppliers()[0];
-    if (firstMatch) {
+    const matchedSupplier = exactMatch ?? matches[0] ?? null;
+
+    if (matchedSupplier) {
       this.pendingNewSupplierName.set("");
-      this.bookingForm.patchValue({ supplierId: firstMatch.id });
-      this.onSupplierSelectionChange();
+      this.bookingForm.patchValue({ supplierId: matchedSupplier.id });
+      this.selectedSupplierId.set(matchedSupplier.id);
+      this.applyExistingSupplierCurrency(matchedSupplier.currency);
       return;
     }
 
@@ -981,6 +994,18 @@ export class SaleDetailsComponent implements OnInit {
 
   getVal(event: Event): string {
     return (event.target as HTMLInputElement | HTMLSelectElement).value;
+  }
+
+  private applyExistingSupplierCurrency(currency: Currency) {
+    this.bookingForm.patchValue(
+      {
+        providerCurrency: currency,
+        currency,
+      },
+      { emitEvent: false },
+    );
+    this.bookingForm.controls.currency.disable({ emitEvent: false });
+    this.onBookingCurrencyChange();
   }
 
   private normalizePayment(
@@ -1039,7 +1064,36 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   effectiveBookingCurrency(): Currency {
-    return (this.bookingForm.getRawValue().currency as Currency) || this.currency();
+    const rawValue = this.bookingForm.getRawValue();
+    const supplierFromForm = this.getExistingSupplierFromForm();
+    const providerCurrency = rawValue.providerCurrency as Currency | undefined;
+    const bookingCurrency = rawValue.currency as Currency | undefined;
+
+    if (supplierFromForm) {
+      return this.normalizeCurrency(supplierFromForm.currency, this.currency());
+    }
+
+    return this.normalizeCurrency(
+      bookingCurrency ?? providerCurrency ?? this.currency(),
+      this.currency(),
+    );
+  }
+
+  private normalizeCurrency(value: unknown, fallback: Currency): Currency {
+    if (typeof value !== "string") return fallback;
+
+    const normalized = value.trim().toUpperCase();
+    if (normalized === "USD" || normalized === "EUR") {
+      return normalized;
+    }
+
+    return fallback;
+  }
+
+  private getExistingSupplierFromForm() {
+    const supplierId = this.bookingForm.getRawValue().supplierId ?? "";
+    if (!supplierId || supplierId === this.pendingSupplierId) return null;
+    return this.suppliersSvc.suppliers().find((supplier) => supplier.id === supplierId) ?? null;
   }
 
 }
