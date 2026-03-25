@@ -64,7 +64,7 @@
           <p
             class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
           >
-            Venta
+            DESTINO
           </p>
           @if (!showSaleEdit()) {
             <button
@@ -103,6 +103,30 @@
                 class="form-input form-input-light dark:form-input-dark mt-1"
               />
             </label>
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Importe
+              <input
+                type="number"
+                formControlName="amount"
+                step="0.01"
+                min="0"
+                class="form-input form-input-light dark:form-input-dark mt-1"
+              />
+            </label>
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Moneda
+              <select
+                formControlName="currency"
+                class="form-input form-input-light dark:form-input-dark mt-1"
+              >
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </label>
             <div class="md:col-span-2 flex gap-2">
               <button
                 type="submit"
@@ -127,6 +151,9 @@
             <p class="text-xs text-slate-500 dark:text-slate-400">
               Fecha de viaje:
               {{ getSaleTravelDate(sale()!) | date: "dd/MM/yyyy" }}
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Importe: {{ formatMoney(getSaleTotalAmount(sale()!), currency()) }}
             </p>
           </div>
         }
@@ -431,79 +458,28 @@
           (ngSubmit)="saveBooking()"
           class="flex flex-col gap-4"
         >
-          <div
-            class="flex items-center gap-2 rounded-xl bg-slate-50 p-1 dark:bg-slate-800"
+          <label
+            class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
           >
-            <button
-              type="button"
-              (click)="toggleProviderMode(false)"
-              class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold"
-              [class]="
-                !useCustomProvider()
-                  ? 'bg-white text-slate-900 shadow dark:bg-slate-900 dark:text-white'
-                  : 'text-slate-500 dark:text-slate-400'
-              "
+            Proveedor
+            <input
+              type="text"
+              [value]="supplierSearch()"
+              (input)="onSupplierSearchInput($event)"
+              placeholder="Escribí para filtrar o crear proveedor..."
+              class="form-input form-input-light dark:form-input-dark mt-1 mb-2"
+            />
+            <select
+              formControlName="supplierId"
+              (change)="onSupplierSelectionChange()"
+              class="form-input form-input-light dark:form-input-dark"
             >
-              Proveedor existente
-            </button>
-            <button
-              type="button"
-              (click)="toggleProviderMode(true)"
-              class="flex-1 rounded-lg px-3 py-2 text-sm font-semibold"
-              [class]="
-                useCustomProvider()
-                  ? 'bg-white text-slate-900 shadow dark:bg-slate-900 dark:text-white'
-                  : 'text-slate-500 dark:text-slate-400'
-              "
-            >
-              Escribir proveedor
-            </button>
-          </div>
-
-          @if (!useCustomProvider()) {
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >
-              Proveedor
-              <select
-                formControlName="supplierId"
-                (change)="onSupplierSelectionChange()"
-                class="form-input form-input-light dark:form-input-dark mt-1"
-              >
-                <option value="">— Elegir proveedor —</option>
-                @for (supplier of suppliersSvc.suppliers(); track supplier.id) {
-                  <option [value]="supplier.id">{{ supplier.name }}</option>
-                }
-              </select>
-            </label>
-          } @else {
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <label
-                class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >
-                Proveedor
-                <input
-                  type="text"
-                  formControlName="provider"
-                  placeholder="Nombre del proveedor"
-                  class="form-input form-input-light dark:form-input-dark mt-1"
-                />
-              </label>
-              <label
-                class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-              >
-                Moneda del proveedor
-                <select
-                  formControlName="providerCurrency"
-                  (change)="onProviderCurrencyChange()"
-                  class="form-input form-input-light dark:form-input-dark mt-1"
-                >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                </select>
-              </label>
-            </div>
-          }
+              <option value="">-Seleccionar proveedor</option>
+              @for (supplier of supplierOptions(); track supplier.id) {
+                <option [value]="supplier.id">{{ supplier.name }}</option>
+              }
+            </select>
+          </label>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <label
@@ -563,7 +539,7 @@
                 class="form-input form-input-light dark:form-input-dark mt-1"
               />
             </label>
-            <label
+            <div
               class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
             >
               Moneda
@@ -572,15 +548,11 @@
                 (change)="onBookingCurrencyChange()"
                 class="form-input form-input-light dark:form-input-dark mt-1"
               >
+                <option value="">-Seleccionar moneda</option>
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
               </select>
-              @if (isSupplierLocked() || useCustomProvider()) {
-                <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                  Moneda sugerida: la del proveedor seleccionado
-                </p>
-              }
-            </label>
+            </div>
           </div>
 
           @if (requiresBookingCustomRate()) {

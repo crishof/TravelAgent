@@ -85,15 +85,13 @@ export class SalesComponent implements OnInit {
 
   ngOnInit() {
     this.salesSvc.loadAll().subscribe();
-    this.clientsSvc.loadAll().subscribe({
-      next: () => this.ensureCustomerSelected(),
-    });
+    this.clientsSvc.loadAll().subscribe();
     this.teamSvc.loadAll().subscribe();
   }
 
   openNewSaleModal() {
     this.showNewSale.set(true);
-    this.ensureCustomerSelected();
+    this.saleForm.patchValue({ clientId: "" });
   }
 
   openSaleDetails(saleId: string) {
@@ -153,8 +151,7 @@ export class SalesComponent implements OnInit {
 
     if (!typedName) {
       this.pendingNewCustomerName.set("");
-      const firstMatch = this.filteredCustomers()[0];
-      this.saleForm.patchValue({ clientId: firstMatch?.id ?? "" });
+      this.saleForm.patchValue({ clientId: "" });
       return;
     }
 
@@ -178,16 +175,6 @@ export class SalesComponent implements OnInit {
     // Si no hay coincidencias, tratamos el texto ingresado como cliente nuevo.
     this.pendingNewCustomerName.set(typedName);
     this.saleForm.patchValue({ clientId: this.pendingCustomerId });
-  }
-
-  private ensureCustomerSelected() {
-    const currentCustomerId = this.saleForm.value.clientId;
-    if (currentCustomerId) return;
-
-    const firstOption = this.customerOptions()[0];
-    if (firstOption) {
-      this.saleForm.patchValue({ clientId: firstOption.id });
-    }
   }
 
   getVal(event: Event): string {

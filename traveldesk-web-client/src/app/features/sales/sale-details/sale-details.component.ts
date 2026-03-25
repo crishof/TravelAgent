@@ -35,6 +35,11 @@ import { SuppliersService } from "../../../core/services/suppliers.service";
 
 type PaymentItem = PaymentReceivedResponse;
 
+interface SupplierOption {
+  id: string;
+  name: string;
+}
+
 @Component({
   selector: "app-sale-details",
   standalone: true,
@@ -42,6 +47,7 @@ type PaymentItem = PaymentReceivedResponse;
   templateUrl: "./sale-details.component.html",
 })
 export class SaleDetailsComponent implements OnInit {
+  private readonly pendingSupplierId = "__pending_new_supplier__";
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
@@ -61,16 +67,21 @@ export class SaleDetailsComponent implements OnInit {
   readonly useCustomProvider = signal(false);
   readonly registerPayment = signal(false);
   readonly payments = signal<PaymentItem[]>([]);
+  readonly supplierSearch = signal("");
+  readonly pendingNewSupplierName = signal("");
+  readonly selectedSupplierId = signal("");
 
   readonly saleForm = this.fb.group({
     destination: ["", Validators.required],
     travelDate: ["", Validators.required],
+    amount: [0, [Validators.required, Validators.min(0.01)]],
+    currency: ["USD" as Currency, Validators.required],
   });
 
   readonly paymentForm = this.fb.group({
     date: [this.todayIso(), Validators.required],
     amount: [null, [Validators.required, Validators.min(0.01)]],
-    currency: ["USD", Validators.required],
+    currency: ["USD" as Currency, Validators.required],
     description: ["", [Validators.required, Validators.pattern(/.*\S.*/)]],
     customExchangeRate: [null as number | null],
   });
@@ -78,13 +89,13 @@ export class SaleDetailsComponent implements OnInit {
   readonly bookingForm = this.fb.group({
     supplierId: [""],
     provider: [""],
-    providerCurrency: ["USD", Validators.required],
+    providerCurrency: ["USD" as Currency],
     description: ["", Validators.required],
     reservationCode: ["", Validators.required],
     dateIn: ["", Validators.required],
     dateOut: [""],
     amount: [0, [Validators.required, Validators.min(0.01)]],
-    currency: ["USD", Validators.required],
+    currency: ["USD" as Currency, Validators.required],
     customExchangeRate: [null as number | null],
     paymentDate: [""],
   });
@@ -94,11 +105,39 @@ export class SaleDetailsComponent implements OnInit {
   );
 
   readonly selectedSupplier = computed(() => {
-    const supplierId = this.bookingForm.value.supplierId;
-    if (!supplierId) return null;
+    const supplierId = this.selectedSupplierId();
+    if (!supplierId || supplierId === this.pendingSupplierId) return null;
     return (
       this.suppliersSvc.suppliers().find((s) => s.id === supplierId) ?? null
     );
+  });
+
+  readonly isNewSupplierSelected = computed(
+    () => this.selectedSupplierId() === this.pendingSupplierId,
+  );
+
+  readonly filteredSuppliers = computed(() => {
+    const term = this.supplierSearch().trim().toLowerCase();
+    if (!term) return this.suppliersSvc.suppliers();
+
+    return this.suppliersSvc
+      .suppliers()
+      .filter((supplier) => supplier.name.toLowerCase().includes(term));
+  });
+
+  readonly supplierOptions = computed<SupplierOption[]>(() => {
+    const options = this.filteredSuppliers().map((supplier) => ({
+      id: supplier.id,
+      name: supplier.name,
+    }));
+
+    const pendingName = this.pendingNewSupplierName().trim();
+    if (!pendingName) return options;
+
+    return [
+      { id: this.pendingSupplierId, name: `${pendingName} (nuevo)` },
+      ...options,
+    ];
   });
 
   readonly isSupplierLocked = computed(() => this.selectedSupplier() !== null);
@@ -154,6 +193,8 @@ export class SaleDetailsComponent implements OnInit {
         this.saleForm.patchValue({
           destination: sale.destination,
           travelDate: getSaleTravelDate(sale),
+          amount: getSaleTotalAmount(sale),
+          currency: getSaleCurrency(sale),
         });
         this.paymentForm.patchValue({ currency: getSaleCurrency(sale) });
         this.loadPayments(sale.id);
@@ -177,8 +218,12 @@ export class SaleDetailsComponent implements OnInit {
     const currentSale = this.sale();
     if (!currentSale || this.saleForm.invalid) return;
 
+    const formCurrency = (this.saleForm.value.currency ?? getSaleCurrency(currentSale)) as Currency;
+
     const dto: Partial<SaleRequest> = {
       destination: this.saleForm.value.destination ?? currentSale.destination,
+      amount: Number(this.saleForm.value.amount) || getSaleTotalAmount(currentSale),
+      currency: formCurrency,
       departureDate:
         this.saleForm.value.travelDate ?? getSaleTravelDate(currentSale),
     };
@@ -260,21 +305,24 @@ export class SaleDetailsComponent implements OnInit {
     this.editingBookingId.set(null);
     this.useCustomProvider.set(false);
     this.registerPayment.set(false);
+    this.supplierSearch.set("");
+    this.pendingNewSupplierName.set("");
     this.showAddBooking.set(true);
-    const saleCurrency = this.currency();
     this.bookingForm.reset({
       supplierId: "",
       provider: "",
-      providerCurrency: saleCurrency,
+      providerCurrency: "USD" as Currency,
       description: this.sale()?.destination ?? "",
       reservationCode: "",
       dateIn: getSaleTravelDate(this.sale() ?? {}),
       dateOut: "",
       amount: 0,
-      currency: saleCurrency,
+      currency: this.currency(),
       customExchangeRate: null,
       paymentDate: this.todayIso(),
     });
+    this.selectedSupplierId.set("");
+    this.bookingForm.controls.currency.enable({ emitEvent: false });
   }
 
   editBooking(booking: BookingResponse) {
@@ -290,7 +338,7 @@ export class SaleDetailsComponent implements OnInit {
     this.bookingForm.patchValue({
       supplierId: booking.supplierId ?? "",
       provider: getBookingProvider(booking),
-      providerCurrency: supplier?.currency ?? getBookingCurrency(booking),
+      providerCurrency: (supplier?.currency ?? getBookingCurrency(booking)) as Currency,
       description: getBookingDescription(booking),
       reservationCode: getBookingReservationCode(booking),
       dateIn: getBookingDateIn(booking),
@@ -300,23 +348,42 @@ export class SaleDetailsComponent implements OnInit {
       customExchangeRate: booking.exchangeRate ?? null,
       paymentDate: booking.paymentDate ?? this.todayIso(),
     });
+    this.selectedSupplierId.set(booking.supplierId ?? "");
+
+    this.bookingForm.controls.currency.enable({ emitEvent: false });
+
+    if (supplier) {
+      this.supplierSearch.set(supplier.name);
+      this.pendingNewSupplierName.set("");
+      return;
+    }
+
+    const providerName = getBookingProvider(booking).trim();
+    if (providerName) {
+      this.supplierSearch.set(providerName);
+      this.pendingNewSupplierName.set(providerName);
+      this.bookingForm.patchValue({ supplierId: this.pendingSupplierId });
+      return;
+    }
+
+    this.supplierSearch.set("");
+    this.pendingNewSupplierName.set("");
   }
 
   saveBooking() {
     const currentSale = this.sale();
     if (!currentSale) return;
 
-    // Validate provider-specific fields
-    if (this.useCustomProvider()) {
-      const providerName = (this.bookingForm.value.provider ?? "").trim();
-      if (!providerName) {
-        alert("El nombre del proveedor es requerido");
-        return;
-      }
-    } else {
-      const supplierId = this.bookingForm.value.supplierId ?? "";
-      if (!supplierId) {
-        alert("Debe seleccionar un proveedor");
+    const supplierId = this.bookingForm.value.supplierId ?? "";
+    if (!supplierId) {
+      alert("Debe seleccionar un proveedor");
+      return;
+    }
+
+    if (this.isNewSupplierSelected()) {
+      const supplierName = this.pendingNewSupplierName().trim();
+      if (!supplierName) {
+        alert("Debe ingresar el nombre del proveedor nuevo");
         return;
       }
     }
@@ -328,8 +395,8 @@ export class SaleDetailsComponent implements OnInit {
 
     this.resolveSupplierId().subscribe({
       next: (supplierId) => {
-        const value = this.bookingForm.value;
-        const bookingCurrency = value.currency as Currency;
+        const value = this.bookingForm.getRawValue();
+        const bookingCurrency = this.effectiveBookingCurrency();
         const bookingOriginalAmount = Number(value.amount);
         const bookingRate = this.requiresBookingCustomRate()
           ? Number(
@@ -413,7 +480,7 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   requiresBookingCustomRate(): boolean {
-    const bookingCurrency = this.bookingForm.value.currency as Currency;
+    const bookingCurrency = this.effectiveBookingCurrency();
     return !!bookingCurrency && bookingCurrency !== this.currency();
   }
 
@@ -426,7 +493,7 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   bookingRatePlaceholder(): string {
-    const bookingCurrency = this.bookingForm.value.currency as Currency;
+    const bookingCurrency = this.effectiveBookingCurrency();
     if (!bookingCurrency) return "";
     return this.defaultExchangeRate(bookingCurrency, this.currency()).toFixed(
       4,
@@ -434,12 +501,17 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   onBookingCurrencyChange() {
+    if (this.isNewSupplierSelected()) {
+      const bookingCurrency = this.bookingForm.getRawValue().currency as Currency;
+      this.bookingForm.patchValue({ providerCurrency: bookingCurrency });
+    }
+
     if (!this.requiresBookingCustomRate()) {
       this.bookingForm.patchValue({ customExchangeRate: null });
       return;
     }
 
-    const bookingCurrency = this.bookingForm.value.currency as Currency;
+    const bookingCurrency = this.effectiveBookingCurrency();
     this.bookingForm.patchValue({
       customExchangeRate: this.defaultExchangeRate(
         bookingCurrency,
@@ -479,16 +551,42 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   onSupplierSelectionChange() {
+    this.selectedSupplierId.set(this.bookingForm.getRawValue().supplierId ?? "");
+
+    if (this.isNewSupplierSelected()) {
+      this.pendingNewSupplierName.set(this.supplierSearch().trim());
+      this.bookingForm.patchValue({
+        providerCurrency: "USD" as Currency,
+        currency: "USD" as Currency,
+        customExchangeRate: null,
+      });
+      this.bookingForm.controls.currency.enable({ emitEvent: false });
+      return;
+    }
+
     const supplier = this.selectedSupplier();
     if (supplier) {
-      // Sync booking currency with supplier currency
-      this.bookingForm.patchValue({ currency: supplier.currency });
+      this.pendingNewSupplierName.set("");
+      this.bookingForm.patchValue({
+        providerCurrency: supplier.currency,
+        currency: supplier.currency,
+      });
+      this.bookingForm.controls.currency.enable({ emitEvent: false });
       this.onBookingCurrencyChange();
+      return;
     }
+
+    // Sin proveedor seleccionado, usar la moneda de la venta por defecto.
+    this.bookingForm.patchValue({
+      providerCurrency: "USD" as Currency,
+      currency: this.currency(),
+      customExchangeRate: null,
+    });
+    this.bookingForm.controls.currency.enable({ emitEvent: false });
   }
 
   onProviderCurrencyChange() {
-    if (!this.useCustomProvider()) return;
+    if (!this.isNewSupplierSelected()) return;
     const providerCurrency = this.bookingForm.value
       .providerCurrency as Currency;
     this.bookingForm.patchValue({ currency: providerCurrency });
@@ -569,11 +667,11 @@ export class SaleDetailsComponent implements OnInit {
 
   private resolveSupplierId(): Observable<string> {
     const supplierId = this.bookingForm.value.supplierId ?? "";
-    if (!this.useCustomProvider()) {
+    if (supplierId && supplierId !== this.pendingSupplierId) {
       return of(supplierId);
     }
 
-    const providerName = (this.bookingForm.value.provider ?? "").trim();
+    const providerName = this.pendingNewSupplierName().trim();
     const existing = this.suppliersSvc
       .suppliers()
       .find(
@@ -586,7 +684,7 @@ export class SaleDetailsComponent implements OnInit {
     }
 
     const providerCurrency =
-      (this.bookingForm.value.providerCurrency as Currency) ?? this.currency();
+      (this.bookingForm.getRawValue().currency as Currency) ?? this.currency();
     const createSupplierDto: SupplierRequest = {
       name: providerName,
       serviceType: "OTHER",
@@ -596,6 +694,49 @@ export class SaleDetailsComponent implements OnInit {
     return this.suppliersSvc
       .create(createSupplierDto)
       .pipe(map((supplier) => supplier.id));
+  }
+
+  onSupplierSearchInput(event: Event) {
+    const typedValue = this.getVal(event);
+    const typedName = typedValue.trim();
+
+    this.supplierSearch.set(typedValue);
+
+    if (!typedName) {
+      this.pendingNewSupplierName.set("");
+      this.bookingForm.patchValue({
+        supplierId: "",
+      });
+      this.onSupplierSelectionChange();
+      return;
+    }
+
+    const exactMatch = this.suppliersSvc
+      .suppliers()
+      .find((supplier) => supplier.name.trim().toLowerCase() === typedName.toLowerCase());
+
+    if (exactMatch) {
+      this.pendingNewSupplierName.set("");
+      this.bookingForm.patchValue({ supplierId: exactMatch.id });
+      this.onSupplierSelectionChange();
+      return;
+    }
+
+    const firstMatch = this.filteredSuppliers()[0];
+    if (firstMatch) {
+      this.pendingNewSupplierName.set("");
+      this.bookingForm.patchValue({ supplierId: firstMatch.id });
+      this.onSupplierSelectionChange();
+      return;
+    }
+
+    this.pendingNewSupplierName.set(typedName);
+    this.bookingForm.patchValue({ supplierId: this.pendingSupplierId });
+    this.onSupplierSelectionChange();
+  }
+
+  getVal(event: Event): string {
+    return (event.target as HTMLInputElement | HTMLSelectElement).value;
   }
 
   private normalizePayment(
@@ -652,4 +793,9 @@ export class SaleDetailsComponent implements OnInit {
   private todayIso() {
     return new Date().toISOString().slice(0, 10);
   }
+
+  effectiveBookingCurrency(): Currency {
+    return (this.bookingForm.getRawValue().currency as Currency) || this.currency();
+  }
+
 }

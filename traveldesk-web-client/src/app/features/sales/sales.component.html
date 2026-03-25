@@ -170,6 +170,7 @@
               formControlName="clientId"
               class="form-input form-input-light dark:form-input-dark"
             >
+              <option value="">-Seleccionar cliente</option>
               @for (c of customerOptions(); track c.id) {
                 <option [value]="c.id">{{ c.fullName }}</option>
               }
