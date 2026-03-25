@@ -61,9 +61,17 @@ export class SaleDetailsComponent implements OnInit {
   readonly sale = signal<SaleResponse | null>(null);
   readonly loading = signal(true);
   readonly error = signal("");
-  readonly showSaleEdit = signal(false);
+  readonly showClientEdit = signal(false);
+  readonly showDestinationEdit = signal(false);
+  readonly showAmountEdit = signal(false);
   readonly showAddBooking = signal(false);
   readonly showAddPayment = signal(false);
+  readonly showDeleteSaleDialog = signal(false);
+  readonly showDeleteBookingDialog = signal(false);
+  readonly showDeletePaymentDialog = signal(false);
+  readonly deletingSale = signal(false);
+  readonly deletingBooking = signal(false);
+  readonly deletingPayment = signal(false);
   readonly editingBookingId = signal<string | null>(null);
   readonly useCustomProvider = signal(false);
   readonly registerPayment = signal(false);
@@ -71,10 +79,19 @@ export class SaleDetailsComponent implements OnInit {
   readonly supplierSearch = signal("");
   readonly pendingNewSupplierName = signal("");
   readonly selectedSupplierId = signal("");
+  readonly bookingIdToDelete = signal<string | null>(null);
+  readonly paymentIdToDelete = signal<string | null>(null);
 
-  readonly saleForm = this.fb.group({
+  readonly clientForm = this.fb.group({
+    clientName: ["", [Validators.required, Validators.pattern(/.*\S.*/)]],
+  });
+
+  readonly destinationForm = this.fb.group({
     destination: ["", Validators.required],
     travelDate: ["", Validators.required],
+  });
+
+  readonly amountForm = this.fb.group({
     amount: [0, [Validators.required, Validators.min(0.01)]],
     currency: ["USD" as Currency, Validators.required],
   });
@@ -180,6 +197,22 @@ export class SaleDetailsComponent implements OnInit {
     () => this.paymentsReceived() - this.totalPaidBookings(),
   );
 
+  readonly hasAssignedPaymentsOrBookings = computed(
+    () => this.payments().length > 0 || this.saleBookings().length > 0,
+  );
+
+  readonly bookingToDelete = computed(() => {
+    const bookingId = this.bookingIdToDelete();
+    if (!bookingId) return null;
+    return this.saleBookings().find((booking) => booking.id === bookingId) ?? null;
+  });
+
+  readonly paymentToDelete = computed(() => {
+    const paymentId = this.paymentIdToDelete();
+    if (!paymentId) return null;
+    return this.payments().find((payment) => payment.id === paymentId) ?? null;
+  });
+
   ngOnInit() {
     const saleId = this.route.snapshot.paramMap.get("id");
     if (!saleId) {
@@ -190,13 +223,7 @@ export class SaleDetailsComponent implements OnInit {
 
     this.salesSvc.getById(saleId).subscribe({
       next: (sale) => {
-        this.sale.set(sale);
-        this.saleForm.patchValue({
-          destination: sale.destination,
-          travelDate: getSaleTravelDate(sale),
-          amount: getSaleTotalAmount(sale),
-          currency: getSaleCurrency(sale),
-        });
+        this.applySaleState(sale);
         this.paymentForm.patchValue({ currency: getSaleCurrency(sale) });
         this.loadPayments(sale.id);
         this.bookingsSvc.loadAll().subscribe();
@@ -220,26 +247,107 @@ export class SaleDetailsComponent implements OnInit {
     this.router.navigate(["/app/sales"]);
   }
 
-  updateSaleDetails() {
+  openClientEdit() {
+    this.clientForm.patchValue({
+      clientName: getSaleClientName(this.sale() ?? {}),
+    });
+    this.showClientEdit.set(true);
+  }
+
+  updateClientName() {
     const currentSale = this.sale();
-    if (!currentSale || this.saleForm.invalid) return;
+    if (!currentSale || this.clientForm.invalid) {
+      this.clientForm.markAllAsTouched();
+      return;
+    }
 
-    const formCurrency = this.saleForm.value.currency ?? getSaleCurrency(currentSale);
-
+    const clientName = (this.clientForm.value.clientName ?? "").trim();
     const dto: Partial<SaleRequest> = {
-      destination: this.saleForm.value.destination ?? currentSale.destination,
-      amount: Number(this.saleForm.value.amount) || getSaleTotalAmount(currentSale),
-      currency: formCurrency,
-      departureDate:
-        this.saleForm.value.travelDate ?? getSaleTravelDate(currentSale),
+      clientName,
+      customerName: clientName,
     };
 
     this.salesSvc.update(currentSale.id, dto).subscribe({
       next: (updated) => {
-        this.sale.set(updated);
-        this.showSaleEdit.set(false);
+        this.applySaleState({
+          ...updated,
+          clientName: updated.clientName ?? updated.customerName ?? clientName,
+          customerName: updated.customerName ?? updated.clientName ?? clientName,
+        });
+        this.showClientEdit.set(false);
       },
-      error: (err) => console.error("Error updating sale details:", err),
+      error: (err) => console.error("Error updating sale client:", err),
+    });
+  }
+
+  openDestinationEdit() {
+    const currentSale = this.sale();
+    if (!currentSale) return;
+
+    this.destinationForm.patchValue({
+      destination: currentSale.destination,
+      travelDate: getSaleTravelDate(currentSale),
+    });
+    this.showDestinationEdit.set(true);
+  }
+
+  updateDestinationDetails() {
+    const currentSale = this.sale();
+    if (!currentSale || this.destinationForm.invalid) {
+      this.destinationForm.markAllAsTouched();
+      return;
+    }
+
+    const dto: Partial<SaleRequest> = {
+      destination:
+        this.destinationForm.value.destination ?? currentSale.destination,
+      departureDate:
+        this.destinationForm.value.travelDate ?? getSaleTravelDate(currentSale),
+    };
+
+    this.salesSvc.update(currentSale.id, dto).subscribe({
+      next: (updated) => {
+        this.applySaleState(updated);
+        this.showDestinationEdit.set(false);
+      },
+      error: (err) => console.error("Error updating sale destination:", err),
+    });
+  }
+
+  openAmountEdit() {
+    const currentSale = this.sale();
+    if (!currentSale) return;
+
+    this.amountForm.patchValue({
+      amount: getSaleTotalAmount(currentSale),
+      currency: getSaleCurrency(currentSale),
+    });
+    this.showAmountEdit.set(true);
+  }
+
+  updateSaleAmount() {
+    const currentSale = this.sale();
+    if (!currentSale || this.amountForm.invalid) {
+      this.amountForm.markAllAsTouched();
+      return;
+    }
+
+    const dto: Partial<SaleRequest> = {
+      amount: Number(this.amountForm.value.amount) || getSaleTotalAmount(currentSale),
+      ...(this.hasAssignedPaymentsOrBookings()
+        ? {}
+        : {
+            currency:
+              this.amountForm.value.currency ?? getSaleCurrency(currentSale),
+          }),
+    };
+
+    this.salesSvc.update(currentSale.id, dto).subscribe({
+      next: (updated) => {
+        this.applySaleState(updated);
+        this.showAmountEdit.set(false);
+      },
+      error: (err) => console.error("Error updating sale amount:", err),
     });
   }
 
@@ -294,16 +402,37 @@ export class SaleDetailsComponent implements OnInit {
     });
   }
 
-  removePayment(id: string) {
-    const currentSale = this.sale();
-    if (!currentSale) return;
+  openDeletePaymentDialog(paymentId: string) {
+    this.paymentIdToDelete.set(paymentId);
+    this.showDeletePaymentDialog.set(true);
+  }
 
-    this.salesSvc.deletePayment(currentSale.id, id).subscribe({
-      next: () =>
+  closeDeletePaymentDialog() {
+    if (this.deletingPayment()) return;
+    this.showDeletePaymentDialog.set(false);
+    this.paymentIdToDelete.set(null);
+  }
+
+  confirmDeletePayment() {
+    const currentSale = this.sale();
+    const paymentId = this.paymentIdToDelete();
+    if (!currentSale || !paymentId || this.deletingPayment()) return;
+
+    this.deletingPayment.set(true);
+
+    this.salesSvc.deletePayment(currentSale.id, paymentId).subscribe({
+      next: () => {
         this.payments.update((list) =>
-          list.filter((payment) => payment.id !== id),
-        ),
-      error: (err) => console.error("Error deleting payment:", err),
+          list.filter((payment) => payment.id !== paymentId),
+        );
+        this.showDeletePaymentDialog.set(false);
+        this.paymentIdToDelete.set(null);
+        this.deletingPayment.set(false);
+      },
+      error: (err) => {
+        this.deletingPayment.set(false);
+        console.error("Error deleting payment:", err);
+      },
     });
   }
 
@@ -449,9 +578,33 @@ export class SaleDetailsComponent implements OnInit {
     });
   }
 
-  deleteBooking(id: string) {
-    this.bookingsSvc.delete(id).subscribe({
-      error: (err) => console.error("Error deleting booking:", err),
+  openDeleteBookingDialog(bookingId: string) {
+    this.bookingIdToDelete.set(bookingId);
+    this.showDeleteBookingDialog.set(true);
+  }
+
+  closeDeleteBookingDialog() {
+    if (this.deletingBooking()) return;
+    this.showDeleteBookingDialog.set(false);
+    this.bookingIdToDelete.set(null);
+  }
+
+  confirmDeleteBooking() {
+    const bookingId = this.bookingIdToDelete();
+    if (!bookingId || this.deletingBooking()) return;
+
+    this.deletingBooking.set(true);
+
+    this.bookingsSvc.delete(bookingId).subscribe({
+      next: () => {
+        this.showDeleteBookingDialog.set(false);
+        this.bookingIdToDelete.set(null);
+        this.deletingBooking.set(false);
+      },
+      error: (err) => {
+        this.deletingBooking.set(false);
+        console.error("Error deleting booking:", err);
+      },
     });
   }
 
@@ -459,9 +612,43 @@ export class SaleDetailsComponent implements OnInit {
     const currentSale = this.sale();
     if (!currentSale || currentSale.status === "CANCELLED") return;
 
+    if (this.hasAssignedPaymentsOrBookings()) {
+      alert("Debes eliminar los pagos y reservas antes de cancelar la venta.");
+      return;
+    }
+
     this.salesSvc.update(currentSale.id, { status: "CANCELLED" }).subscribe({
-      next: (updated) => this.sale.set(updated),
+      next: (updated) => this.applySaleState(updated),
       error: (err) => console.error("Error cancelling sale:", err),
+    });
+  }
+
+  openDeleteSaleDialog() {
+    if (this.sale()?.status !== "CANCELLED") return;
+    this.showDeleteSaleDialog.set(true);
+  }
+
+  closeDeleteSaleDialog() {
+    if (this.deletingSale()) return;
+    this.showDeleteSaleDialog.set(false);
+  }
+
+  confirmDeleteSale() {
+    const currentSale = this.sale();
+    if (currentSale?.status !== "CANCELLED" || this.deletingSale()) return;
+
+    this.deletingSale.set(true);
+
+    this.salesSvc.delete(currentSale.id).subscribe({
+      next: () => {
+        this.showDeleteSaleDialog.set(false);
+        this.sale.set(null);
+        void this.router.navigateByUrl("/app/sales", { replaceUrl: true });
+      },
+      error: (err) => {
+        this.deletingSale.set(false);
+        console.error("Error deleting sale:", err);
+      },
     });
   }
 
@@ -655,6 +842,21 @@ export class SaleDetailsComponent implements OnInit {
   getBookingReservationCode = getBookingReservationCode;
   getBookingAmount = getBookingAmount;
   getBookingCurrency = getBookingCurrency;
+
+  private applySaleState(sale: SaleResponse) {
+    this.sale.set(sale);
+    this.clientForm.patchValue({
+      clientName: getSaleClientName(sale),
+    });
+    this.destinationForm.patchValue({
+      destination: sale.destination,
+      travelDate: getSaleTravelDate(sale),
+    });
+    this.amountForm.patchValue({
+      amount: getSaleTotalAmount(sale),
+      currency: getSaleCurrency(sale),
+    });
+  }
 
   private loadPayments(saleId: string) {
     this.salesSvc.getPayments(saleId).subscribe({

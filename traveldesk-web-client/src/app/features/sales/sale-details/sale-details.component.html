@@ -32,14 +32,23 @@
         >
           {{ sale()!.status }}
         </span>
-        <button
-          type="button"
-          (click)="cancelSale()"
-          [disabled]="sale()!.status === 'CANCELLED'"
-          class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-500 hover:bg-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Cancelar venta
-        </button>
+        @if (sale()!.status === 'CANCELLED') {
+          <button
+            type="button"
+            (click)="openDeleteSaleDialog()"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-500"
+          >
+            Eliminar definitivamente
+          </button>
+        } @else {
+          <button
+            type="button"
+            (click)="cancelSale()"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-500 hover:bg-red-500/20"
+          >
+            Cancelar venta
+          </button>
+        }
       </div>
     </div>
 
@@ -47,14 +56,60 @@
       <div
         class="rounded-2xl border p-4 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
       >
-        <p
-          class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
-        >
-          Cliente
-        </p>
-        <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
-          {{ getSaleClientName(sale()!) }}
-        </p>
+        <div class="flex items-center justify-between gap-2">
+          <p
+            class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
+          >
+            Cliente
+          </p>
+          @if (!showClientEdit()) {
+            <button
+              type="button"
+              (click)="openClientEdit()"
+              class="text-xs font-semibold text-cyan-600 dark:text-cyan-400"
+            >
+              Editar
+            </button>
+          }
+        </div>
+
+        @if (showClientEdit()) {
+          <form
+            [formGroup]="clientForm"
+            (ngSubmit)="updateClientName()"
+            class="mt-3 space-y-3"
+          >
+            <label
+              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Nombre del cliente
+              <input
+                type="text"
+                formControlName="clientName"
+                class="form-input form-input-light dark:form-input-dark mt-1"
+              />
+            </label>
+            <div class="flex gap-2">
+              <button
+                type="submit"
+                class="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500"
+              >
+                Guardar
+              </button>
+              <button
+                type="button"
+                (click)="showClientEdit.set(false)"
+                class="px-3 py-2 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        } @else {
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+            {{ getSaleClientName(sale()!) }}
+          </p>
+        }
       </div>
 
       <div
@@ -66,10 +121,10 @@
           >
             DESTINO
           </p>
-          @if (!showSaleEdit()) {
+          @if (!showDestinationEdit()) {
             <button
               type="button"
-              (click)="showSaleEdit.set(true)"
+              (click)="openDestinationEdit()"
               class="text-xs font-semibold text-cyan-600 dark:text-cyan-400"
             >
               Editar
@@ -77,10 +132,10 @@
           }
         </div>
 
-        @if (showSaleEdit()) {
+        @if (showDestinationEdit()) {
           <form
-            [formGroup]="saleForm"
-            (ngSubmit)="updateSaleDetails()"
+            [formGroup]="destinationForm"
+            (ngSubmit)="updateDestinationDetails()"
             class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3"
           >
             <label
@@ -103,30 +158,6 @@
                 class="form-input form-input-light dark:form-input-dark mt-1"
               />
             </label>
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >
-              Importe
-              <input
-                type="number"
-                formControlName="amount"
-                step="0.01"
-                min="0"
-                class="form-input form-input-light dark:form-input-dark mt-1"
-              />
-            </label>
-            <label
-              class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-            >
-              Moneda
-              <select
-                formControlName="currency"
-                class="form-input form-input-light dark:form-input-dark mt-1"
-              >
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-              </select>
-            </label>
             <div class="md:col-span-2 flex gap-2">
               <button
                 type="submit"
@@ -136,7 +167,7 @@
               </button>
               <button
                 type="button"
-                (click)="showSaleEdit.set(false)"
+                (click)="showDestinationEdit.set(false)"
                 class="px-3 py-2 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
               >
                 Cancelar
@@ -152,9 +183,6 @@
               Fecha de viaje:
               {{ getSaleTravelDate(sale()!) | date: "dd/MM/yyyy" }}
             </p>
-            <p class="text-xs text-slate-500 dark:text-slate-400">
-              Importe: {{ formatMoney(getSaleTotalAmount(sale()!), currency()) }}
-            </p>
           </div>
         }
       </div>
@@ -162,14 +190,85 @@
       <div
         class="rounded-2xl border p-4 bg-white border-slate-100 shadow-sm dark:bg-slate-800/60 dark:border-slate-700/60"
       >
-        <p
-          class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
-        >
-          Importe total
-        </p>
-        <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
-          {{ formatMoney(getSaleTotalAmount(sale()!), currency()) }}
-        </p>
+        <div class="flex items-center justify-between gap-2">
+          <p
+            class="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400"
+          >
+            Importe total
+          </p>
+          @if (!showAmountEdit()) {
+            <button
+              type="button"
+              (click)="openAmountEdit()"
+              class="text-xs font-semibold text-cyan-600 dark:text-cyan-400"
+            >
+              Editar
+            </button>
+          }
+        </div>
+
+        @if (showAmountEdit()) {
+          <form
+            [formGroup]="amountForm"
+            (ngSubmit)="updateSaleAmount()"
+            class="mt-3 space-y-3"
+          >
+            <label
+              class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Importe
+              <input
+                type="number"
+                formControlName="amount"
+                step="0.01"
+                min="0"
+                class="form-input form-input-light dark:form-input-dark mt-1"
+              />
+            </label>
+            <label
+              class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+            >
+              Moneda
+              <select
+                formControlName="currency"
+                [disabled]="hasAssignedPaymentsOrBookings()"
+                class="form-input form-input-light dark:form-input-dark mt-1"
+              >
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </label>
+
+            @if (hasAssignedPaymentsOrBookings()) {
+              <p class="text-xs text-amber-600 dark:text-amber-400">
+                No se puede cambiar la moneda mientras la venta tenga reservas o pagos asignados.
+              </p>
+            }
+
+            <div class="flex gap-2">
+              <button
+                type="submit"
+                class="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500"
+              >
+                Guardar
+              </button>
+              <button
+                type="button"
+                (click)="showAmountEdit.set(false)"
+                class="px-3 py-2 rounded-lg text-xs font-semibold bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        } @else {
+          <p class="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+            {{ formatMoney(getSaleTotalAmount(sale()!), currency()) }}
+          </p>
+          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Moneda: {{ currency() }}
+          </p>
+        }
       </div>
     </div>
 
@@ -234,7 +333,7 @@
                     </button>
                     <button
                       type="button"
-                      (click)="deleteBooking(booking.id)"
+                      (click)="openDeleteBookingDialog(booking.id)"
                       class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-500 hover:bg-red-500/20"
                     >
                       Eliminar
@@ -362,7 +461,7 @@
                   </div>
                   <button
                     type="button"
-                    (click)="removePayment(payment.id)"
+                    (click)="openDeletePaymentDialog(payment.id)"
                     class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-500 hover:bg-red-500/20"
                   >
                     Eliminar
@@ -428,6 +527,168 @@
       </div>
     </div>
   </div>
+
+  @if (showDeleteSaleDialog()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        type="button"
+        aria-label="Cerrar confirmación"
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        (click)="closeDeleteSaleDialog()"
+      ></button>
+      <dialog
+        open
+        class="relative w-full max-w-md rounded-2xl shadow-2xl border p-6 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+      >
+        <div class="flex flex-col gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-red-500">
+              Eliminar venta
+            </p>
+            <h2 class="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
+              Confirmar eliminación definitiva
+            </h2>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              Esta venta ya está cancelada. Si continúas, se eliminará definitivamente y no podrás recuperarla.
+            </p>
+          </div>
+
+          <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+            Se eliminarán los datos visibles de esta venta del listado actual.
+          </div>
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              (click)="closeDeleteSaleDialog()"
+              [disabled]="deletingSale()"
+              class="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Volver
+            </button>
+            <button
+              type="button"
+              (click)="confirmDeleteSale()"
+              [disabled]="deletingSale()"
+              class="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ deletingSale() ? 'Eliminando...' : 'Eliminar definitivamente' }}
+            </button>
+          </div>
+        </div>
+      </dialog>
+    </div>
+  }
+
+  @if (showDeleteBookingDialog()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        type="button"
+        aria-label="Cerrar confirmación"
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        (click)="closeDeleteBookingDialog()"
+      ></button>
+      <dialog
+        open
+        class="relative w-full max-w-md rounded-2xl shadow-2xl border p-6 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+      >
+        <div class="flex flex-col gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-red-500">
+              Eliminar reserva
+            </p>
+            <h2 class="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
+              Confirmar eliminación de la reserva
+            </h2>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              Vas a eliminar esta reserva de la venta. Esta acción no se puede deshacer.
+            </p>
+          </div>
+
+          @if (bookingToDelete(); as booking) {
+            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+              <p class="font-semibold">{{ getBookingDescription(booking) }}</p>
+              <p class="mt-1">{{ getBookingProvider(booking) }} - {{ getBookingReservationCode(booking) }}</p>
+            </div>
+          }
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              (click)="closeDeleteBookingDialog()"
+              [disabled]="deletingBooking()"
+              class="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Volver
+            </button>
+            <button
+              type="button"
+              (click)="confirmDeleteBooking()"
+              [disabled]="deletingBooking()"
+              class="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ deletingBooking() ? 'Eliminando...' : 'Eliminar reserva' }}
+            </button>
+          </div>
+        </div>
+      </dialog>
+    </div>
+  }
+
+  @if (showDeletePaymentDialog()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        type="button"
+        aria-label="Cerrar confirmación"
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        (click)="closeDeletePaymentDialog()"
+      ></button>
+      <dialog
+        open
+        class="relative w-full max-w-md rounded-2xl shadow-2xl border p-6 bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100"
+      >
+        <div class="flex flex-col gap-4">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-red-500">
+              Eliminar pago
+            </p>
+            <h2 class="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
+              Confirmar eliminación del pago
+            </h2>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+              Vas a eliminar este pago registrado. Esta acción no se puede deshacer.
+            </p>
+          </div>
+
+          @if (paymentToDelete(); as payment) {
+            <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+              <p class="font-semibold">{{ payment.description }}</p>
+              <p class="mt-1">{{ formatPaymentLine(payment) }}</p>
+            </div>
+          }
+
+          <div class="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              (click)="closeDeletePaymentDialog()"
+              [disabled]="deletingPayment()"
+              class="px-4 py-2 rounded-lg text-sm font-semibold bg-slate-200 text-slate-700 hover:bg-slate-300 dark:bg-slate-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Volver
+            </button>
+            <button
+              type="button"
+              (click)="confirmDeletePayment()"
+              [disabled]="deletingPayment()"
+              class="px-4 py-2 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ deletingPayment() ? 'Eliminando...' : 'Eliminar pago' }}
+            </button>
+          </div>
+        </div>
+      </dialog>
+    </div>
+  }
 
   @if (showAddBooking()) {
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
