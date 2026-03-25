@@ -5,6 +5,23 @@ export const routes: Routes = [
   // Default redirect
   { path: '', redirectTo: 'app/dashboard', pathMatch: 'full' },
 
+  // Public invite route used by email links
+  {
+    path: 'invite/:token',
+    loadComponent: () =>
+      import('./features/auth/accept-invite/accept-invite.component').then(m => m.AcceptInviteComponent)
+  },
+  {
+    path: 'accept-invite',
+    loadComponent: () =>
+      import('./features/auth/accept-invite/accept-invite.component').then(m => m.AcceptInviteComponent)
+  },
+  {
+    path: 'accept-invite/:token',
+    loadComponent: () =>
+      import('./features/auth/accept-invite/accept-invite.component').then(m => m.AcceptInviteComponent)
+  },
+
   // ── Auth routes (guest only) ───────────────────────────────────────────────
   {
     path: 'auth',

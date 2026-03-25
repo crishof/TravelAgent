@@ -32,7 +32,7 @@ export class VerifyEmailComponent {
   }
 
   submit() {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.loading()) {
       this.form.markAllAsTouched();
       return;
     }

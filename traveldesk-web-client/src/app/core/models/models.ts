@@ -14,7 +14,6 @@ export interface SignupRequest {
 export interface AcceptInviteRequest {
   token: string;
   fullName: string;
-  email: string;
   password: string;
 }
 

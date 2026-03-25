@@ -172,14 +172,16 @@
           <div class="flex gap-3 mt-4">
             <button
               type="submit"
-              class="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white font-semibold text-sm hover:opacity-90 transition-all"
+              [disabled]="isSaving()"
+              class="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white font-semibold text-sm hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Guardar Cambios
+              {{ isSaving() ? 'Guardando...' : 'Guardar Cambios' }}
             </button>
             <button
               type="button"
               (click)="cancel()"
-              class="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition-all dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+              [disabled]="isSaving()"
+              class="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition-all dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancelar
             </button>

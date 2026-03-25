@@ -7,6 +7,7 @@ import {
   FormGroup,
 } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
+import { finalize } from "rxjs";
 import { SuppliersService } from "../../../core/services/suppliers.service";
 import { BookingsService } from "../../../core/services/bookings.service";
 import {
@@ -31,6 +32,7 @@ export class SupplierDetailComponent implements OnInit {
   supplierId: string | null = null;
   isEditing = signal(false);
   isLoading = signal(true);
+  isSaving = signal(false);
   errorMessage = signal("");
   successMessage = signal("");
   associatedBookings = signal<BookingResponse[]>([]);
@@ -94,7 +96,7 @@ export class SupplierDetailComponent implements OnInit {
   }
 
   save() {
-    if (!this.supplierId) return;
+    if (!this.supplierId || this.isSaving()) return;
 
     this.errorMessage.set("");
     this.successMessage.set("");
@@ -116,21 +118,26 @@ export class SupplierDetailComponent implements OnInit {
     const formData = this.form.getRawValue() as CreateSupplierDto;
     console.log("Datos a actualizar:", formData);
 
-    this.suppliersSvc.update(this.supplierId, formData).subscribe({
-      next: (response) => {
-        console.log("Proveedor actualizado exitosamente:", response);
-        this.successMessage.set("Proveedor actualizado exitosamente");
-        this.isEditing.set(false);
+    this.isSaving.set(true);
 
-        setTimeout(() => this.successMessage.set(""), 3000);
-      },
-      error: (err) => {
-        console.error("Error al actualizar proveedor:", err);
-        const errorMsg =
-          err?.error?.message || "Error al actualizar el proveedor";
-        this.errorMessage.set(errorMsg);
-      },
-    });
+    this.suppliersSvc
+      .update(this.supplierId, formData)
+      .pipe(finalize(() => this.isSaving.set(false)))
+      .subscribe({
+        next: (response) => {
+          console.log("Proveedor actualizado exitosamente:", response);
+          this.successMessage.set("Proveedor actualizado exitosamente");
+          this.isEditing.set(false);
+
+          setTimeout(() => this.successMessage.set(""), 3000);
+        },
+        error: (err) => {
+          console.error("Error al actualizar proveedor:", err);
+          const errorMsg =
+            err?.error?.message || "Error al actualizar el proveedor";
+          this.errorMessage.set(errorMsg);
+        },
+      });
   }
 
   cancel() {

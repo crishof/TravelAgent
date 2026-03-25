@@ -24,6 +24,7 @@ export class AccountStatementComponent implements OnInit {
     EUR: null,
   });
   readonly showAddPayment = signal(false);
+  readonly savingPayment = signal(false);
 
   readonly paymentForm = this.fb.group({
     date: [new Date().toISOString().slice(0, 10), Validators.required],
@@ -59,10 +60,12 @@ export class AccountStatementComponent implements OnInit {
   }
 
   addPayment() {
-    if (this.paymentForm.invalid) {
+    if (this.paymentForm.invalid || this.savingPayment()) {
       this.paymentForm.markAllAsTouched();
       return;
     }
+
+    this.savingPayment.set(true);
 
     this.accountSvc
       .addAccountPayment({
@@ -82,9 +85,11 @@ export class AccountStatementComponent implements OnInit {
             amount: null,
             currency: this.paymentForm.value.currency ?? statement.currency,
           });
+          this.savingPayment.set(false);
         },
         error: (err) => {
           this.error.set(err?.error?.message ?? "No se pudo registrar el pago manual");
+          this.savingPayment.set(false);
         },
       });
   }

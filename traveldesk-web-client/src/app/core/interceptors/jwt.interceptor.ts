@@ -14,6 +14,18 @@ function isSoftFailureEndpoint(url: string): boolean {
   return url.includes('/exchange-rate');
 }
 
+function isPublicGuestEndpoint(url: string): boolean {
+  return (
+    url.includes('/auth/invite-info') ||
+    url.includes('/auth/accept-invite') ||
+    url.includes('/auth/login') ||
+    url.includes('/auth/signup') ||
+    url.includes('/auth/forgot-password') ||
+    url.includes('/auth/reset-password') ||
+    url.includes('/auth/verify-email')
+  );
+}
+
 function debugAuthTrace(event: string, data?: Record<string, unknown>) {
   if (environment.production) return;
   console.debug("[auth-trace]", event, data ?? {});
@@ -24,6 +36,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const token = auth.token();
   const alreadyRetried = req.context.get(REFRESH_RETRIED);
   const softFailureEndpoint = isSoftFailureEndpoint(req.url);
+  const publicGuestEndpoint = isPublicGuestEndpoint(req.url);
 
   debugAuthTrace("request", {
     method: req.method,
@@ -31,6 +44,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     hasToken: Boolean(token),
     alreadyRetried,
     softFailureEndpoint,
+    publicGuestEndpoint,
   });
 
   const authReq = token
@@ -48,7 +62,16 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
         isRefreshCall,
         alreadyRetried,
         softFailureEndpoint,
+        publicGuestEndpoint,
       });
+
+      if (err.status === 401 && publicGuestEndpoint) {
+        debugAuthTrace("skip-session-invalidation", {
+          reason: "public-guest-endpoint",
+          url: req.url,
+        });
+        return throwError(() => err);
+      }
 
       if (err.status === 401 && softFailureEndpoint) {
         debugAuthTrace("skip-session-invalidation", {

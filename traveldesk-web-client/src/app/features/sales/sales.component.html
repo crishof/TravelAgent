@@ -170,6 +170,7 @@
               formControlName="clientId"
               class="form-input form-input-light dark:form-input-dark"
             >
+              <option value="">-Seleccionar cliente</option>
               @for (c of customerOptions(); track c.id) {
                 <option [value]="c.id">{{ c.fullName }}</option>
               }
@@ -254,9 +255,10 @@
 
         <button
           type="submit"
-          class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold text-sm hover:opacity-90 transition-all mt-1"
+          [disabled]="creatingSale()"
+          class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white font-semibold text-sm hover:opacity-90 transition-all mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Crear venta
+          {{ creatingSale() ? 'Creando...' : 'Crear venta' }}
         </button>
       </form>
     </div>

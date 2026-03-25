@@ -173,9 +173,10 @@
         </div>
         <button
           type="submit"
-          class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white font-semibold text-sm hover:opacity-90 transition-all mt-1"
+          [disabled]="saving()"
+          class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 text-white font-semibold text-sm hover:opacity-90 transition-all mt-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Guardar proveedor
+          {{ saving() ? 'Guardando...' : 'Guardar proveedor' }}
         </button>
       </form>
     </div>
