@@ -18,6 +18,7 @@ export class TeamComponent implements OnInit {
   showInvite = signal(false);
   showCommissionModal = signal(false);
   inviteLoading = signal(false);
+  commissionLoading = signal(false);
   inviteError = signal("");
   selectedMemberId = signal<string | null>(null);
 
@@ -35,7 +36,7 @@ export class TeamComponent implements OnInit {
   }
 
   sendInvite() {
-    if (this.inviteForm.invalid) return;
+    if (this.inviteForm.invalid || this.inviteLoading()) return;
     this.inviteLoading.set(true);
     this.teamSvc
       .invite({
@@ -68,16 +69,24 @@ export class TeamComponent implements OnInit {
 
   saveCommission() {
     const memberId = this.selectedMemberId();
-    if (!memberId || this.commissionForm.invalid) {
+    if (!memberId || this.commissionForm.invalid || this.commissionLoading()) {
       this.commissionForm.markAllAsTouched();
       return;
     }
 
+    this.commissionLoading.set(true);
+
     this.teamSvc
       .updateCommission(memberId, Number(this.commissionForm.value.commissionPercentage ?? 0))
       .subscribe({
-        next: () => this.showCommissionModal.set(false),
-        error: (err) => console.error("Error updating commission:", err),
+        next: () => {
+          this.showCommissionModal.set(false);
+          this.commissionLoading.set(false);
+        },
+        error: (err) => {
+          this.commissionLoading.set(false);
+          console.error("Error updating commission:", err);
+        },
       });
   }
 }

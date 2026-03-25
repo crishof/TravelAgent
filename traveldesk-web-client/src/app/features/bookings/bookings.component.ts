@@ -28,7 +28,7 @@ import {
   getBookingProvider,
   getBookingReservationCode,
 } from "../../core/models/domain-helpers";
-import { map, Observable, of } from "rxjs";
+import { finalize, map, Observable, of } from "rxjs";
 
 interface SupplierOption {
   id: string;
@@ -54,6 +54,7 @@ export class BookingsComponent implements OnInit {
 
   readonly showBookingEdit = signal(false);
   readonly editingBookingId = signal<string | null>(null);
+  readonly savingBooking = signal(false);
   readonly registerPayment = signal(false);
   readonly supplierSearch = signal("");
   readonly pendingNewSupplierName = signal("");
@@ -228,7 +229,7 @@ export class BookingsComponent implements OnInit {
 
   saveBooking() {
     const currentBooking = this.editingBooking();
-    if (!currentBooking) return;
+    if (!currentBooking || this.savingBooking()) return;
 
     const supplierId = this.bookingForm.value.supplierId ?? "";
     if (!supplierId) {
@@ -248,6 +249,8 @@ export class BookingsComponent implements OnInit {
       this.bookingForm.markAllAsTouched();
       return;
     }
+
+    this.savingBooking.set(true);
 
     this.resolveSupplierId().subscribe({
       next: (resolvedSupplierId) => {
@@ -283,12 +286,18 @@ export class BookingsComponent implements OnInit {
           status: this.registerPayment() ? "PAID" : currentBooking.status,
         };
 
-        this.bookingsSvc.update(currentBooking.id, dto).subscribe({
-          next: () => this.closeBookingModal(),
-          error: (err) => console.error("Error saving booking:", err),
-        });
+        this.bookingsSvc
+          .update(currentBooking.id, dto)
+          .pipe(finalize(() => this.savingBooking.set(false)))
+          .subscribe({
+            next: () => this.closeBookingModal(),
+            error: (err) => console.error("Error saving booking:", err),
+          });
       },
-      error: (err) => console.error("Error resolving supplier:", err),
+      error: (err) => {
+        this.savingBooking.set(false);
+        console.error("Error resolving supplier:", err);
+      },
     });
   }
 

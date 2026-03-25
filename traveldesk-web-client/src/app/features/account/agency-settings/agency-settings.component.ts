@@ -72,7 +72,7 @@ export class AgencySettingsComponent {
   });
 
   saveChanges() {
-    if (this.settingsForm.invalid) {
+    if (this.settingsForm.invalid || this.isSaving()) {
       return;
     }
     this.isSaving.set(true);

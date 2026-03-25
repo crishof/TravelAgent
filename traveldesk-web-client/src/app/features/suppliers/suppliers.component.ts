@@ -7,6 +7,7 @@ import {
   FormGroup,
 } from "@angular/forms";
 import { Router } from "@angular/router";
+import { finalize } from "rxjs";
 import { SuppliersService } from "../../core/services/suppliers.service";
 import { ServiceType, CreateSupplierDto } from "../../core/models";
 
@@ -22,6 +23,7 @@ export class SuppliersComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   showNew = signal(false);
+  saving = signal(false);
   errorMessage = signal("");
   successMessage = signal("");
 
@@ -72,7 +74,7 @@ export class SuppliersComponent implements OnInit {
     this.errorMessage.set("");
     this.successMessage.set("");
 
-    if (this.form.invalid) {
+    if (this.form.invalid || this.saving()) {
       // Log detallado de errores por campo
       Object.keys(this.form.controls).forEach((key) => {
         const control = this.form.get(key);
@@ -90,22 +92,26 @@ export class SuppliersComponent implements OnInit {
     const formData = this.form.getRawValue() as CreateSupplierDto;
     console.log("Datos a enviar:", formData);
 
-    this.suppliersSvc.create(formData).subscribe({
-      next: (response) => {
-        console.log("Proveedor creado exitosamente:", response);
-        this.successMessage.set("Proveedor creado exitosamente");
-        this.showNew.set(false);
-        this.form.reset({ serviceType: "HOTEL", currency: "USD" });
+    this.saving.set(true);
 
-        // Limpiar mensaje de éxito después de 3 segundos
-        setTimeout(() => this.successMessage.set(""), 3000);
-      },
-      error: (err) => {
-        console.error("Error al crear proveedor:", err);
-        const errorMsg = err?.error?.message || "Error al crear el proveedor";
-        this.errorMessage.set(errorMsg);
-      },
-    });
+    this.suppliersSvc
+      .create(formData)
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe({
+        next: (response) => {
+          console.log("Proveedor creado exitosamente:", response);
+          this.successMessage.set("Proveedor creado exitosamente");
+          this.showNew.set(false);
+          this.form.reset({ serviceType: "HOTEL", currency: "USD" });
+
+          setTimeout(() => this.successMessage.set(""), 3000);
+        },
+        error: (err) => {
+          console.error("Error al crear proveedor:", err);
+          const errorMsg = err?.error?.message || "Error al crear el proveedor";
+          this.errorMessage.set(errorMsg);
+        },
+      });
   }
 
   cancel() {

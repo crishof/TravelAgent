@@ -7,6 +7,7 @@ import {
   FormsModule,
 } from "@angular/forms";
 import { Router } from "@angular/router";
+import { finalize } from "rxjs";
 import { SalesService } from "../../core/services/sales.service";
 import { ClientsService } from "../../core/services/clients.service";
 import { TeamService } from "../../core/services/team.service";
@@ -43,6 +44,7 @@ export class SalesComponent implements OnInit {
   readonly visibleSales = this.salesSvc.visibleSales;
 
   showNewSale = signal(false);
+  creatingSale = signal(false);
   customerSearch = signal("");
   pendingNewCustomerName = signal("");
 
@@ -99,7 +101,7 @@ export class SalesComponent implements OnInit {
   }
 
   createSale() {
-    if (this.saleForm.invalid) {
+    if (this.saleForm.invalid || this.creatingSale()) {
       this.saleForm.markAllAsTouched();
       return;
     }
@@ -122,23 +124,28 @@ export class SalesComponent implements OnInit {
       status: "CREATED",
     };
 
-    this.salesSvc.create(dto).subscribe({
-      next: (sale) => {
-        this.showNewSale.set(false);
-        this.saleForm.reset({
-          clientId: "",
-          destination: "",
-          travelDate: "",
-          description: "",
-          amount: 0,
-          currency: "USD",
-        });
-        this.customerSearch.set("");
-        this.pendingNewCustomerName.set("");
-        this.router.navigate(["/app/sales", sale.id]);
-      },
-      error: (err) => console.error("Error creating sale:", err),
-    });
+    this.creatingSale.set(true);
+
+    this.salesSvc
+      .create(dto)
+      .pipe(finalize(() => this.creatingSale.set(false)))
+      .subscribe({
+        next: (sale) => {
+          this.showNewSale.set(false);
+          this.saleForm.reset({
+            clientId: "",
+            destination: "",
+            travelDate: "",
+            description: "",
+            amount: 0,
+            currency: "USD",
+          });
+          this.customerSearch.set("");
+          this.pendingNewCustomerName.set("");
+          void this.router.navigate(["/app/sales", sale.id]);
+        },
+        error: (err) => console.error("Error creating sale:", err),
+      });
   }
 
 

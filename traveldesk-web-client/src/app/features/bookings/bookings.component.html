@@ -305,14 +305,16 @@
         <div class="flex gap-2 pt-2">
           <button
             type="submit"
-            class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white text-sm font-semibold hover:opacity-90"
+            [disabled]="savingBooking()"
+            class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-600 text-white text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Guardar booking
+            {{ savingBooking() ? 'Guardando...' : 'Guardar booking' }}
           </button>
           <button
             type="button"
             (click)="closeBookingModal()"
-            class="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-sm font-semibold dark:bg-slate-700 dark:text-slate-200"
+            [disabled]="savingBooking()"
+            class="px-4 py-2.5 rounded-xl bg-slate-200 text-slate-700 text-sm font-semibold dark:bg-slate-700 dark:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancelar
           </button>

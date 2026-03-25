@@ -64,7 +64,7 @@ export class RegisterComponent {
   }
 
   submit() {
-    if (this.adminForm.invalid) {
+    if (this.adminForm.invalid || this.loading()) {
       this.adminForm.markAllAsTouched();
       return;
     }

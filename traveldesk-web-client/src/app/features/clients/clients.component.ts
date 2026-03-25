@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import { finalize } from "rxjs";
 import { ClientsService } from "../../core/services/clients.service";
 import { SalesService } from "../../core/services/sales.service";
 
@@ -16,6 +17,7 @@ export class ClientsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
 
   showNew = signal(false);
+  saving = signal(false);
   search = signal("");
 
   filtered = computed(() =>
@@ -77,13 +79,21 @@ export class ClientsComponent implements OnInit {
   }
 
   save() {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.saving()) {
       this.form.markAllAsTouched();
       return;
     }
-    this.clientsSvc.create(this.form.value as any).subscribe();
-    this.showNew.set(false);
-    this.form.reset();
+    this.saving.set(true);
+    this.clientsSvc
+      .create(this.form.value as any)
+      .pipe(finalize(() => this.saving.set(false)))
+      .subscribe({
+        next: () => {
+          this.showNew.set(false);
+          this.form.reset();
+        },
+        error: (err) => console.error("Error creating client:", err),
+      });
   }
 
   getSaleCount(clientId: string): number {

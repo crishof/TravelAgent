@@ -2,7 +2,7 @@ import { CommonModule, Location } from "@angular/common";
 import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
-import { map, Observable, of } from "rxjs";
+import { finalize, map, Observable, of } from "rxjs";
 import {
   BookingRequest,
   BookingResponse,
@@ -69,6 +69,11 @@ export class SaleDetailsComponent implements OnInit {
   readonly showDeleteSaleDialog = signal(false);
   readonly showDeleteBookingDialog = signal(false);
   readonly showDeletePaymentDialog = signal(false);
+  readonly savingClient = signal(false);
+  readonly savingDestination = signal(false);
+  readonly savingAmount = signal(false);
+  readonly savingPayment = signal(false);
+  readonly savingBooking = signal(false);
   readonly deletingSale = signal(false);
   readonly deletingBooking = signal(false);
   readonly deletingPayment = signal(false);
@@ -256,7 +261,7 @@ export class SaleDetailsComponent implements OnInit {
 
   updateClientName() {
     const currentSale = this.sale();
-    if (!currentSale || this.clientForm.invalid) {
+    if (!currentSale || this.clientForm.invalid || this.savingClient()) {
       this.clientForm.markAllAsTouched();
       return;
     }
@@ -267,17 +272,22 @@ export class SaleDetailsComponent implements OnInit {
       customerName: clientName,
     };
 
-    this.salesSvc.update(currentSale.id, dto).subscribe({
-      next: (updated) => {
-        this.applySaleState({
-          ...updated,
-          clientName: updated.clientName ?? updated.customerName ?? clientName,
-          customerName: updated.customerName ?? updated.clientName ?? clientName,
-        });
-        this.showClientEdit.set(false);
-      },
-      error: (err) => console.error("Error updating sale client:", err),
-    });
+    this.savingClient.set(true);
+
+    this.salesSvc
+      .update(currentSale.id, dto)
+      .pipe(finalize(() => this.savingClient.set(false)))
+      .subscribe({
+        next: (updated) => {
+          this.applySaleState({
+            ...updated,
+            clientName: updated.clientName ?? updated.customerName ?? clientName,
+            customerName: updated.customerName ?? updated.clientName ?? clientName,
+          });
+          this.showClientEdit.set(false);
+        },
+        error: (err) => console.error("Error updating sale client:", err),
+      });
   }
 
   openDestinationEdit() {
@@ -293,7 +303,11 @@ export class SaleDetailsComponent implements OnInit {
 
   updateDestinationDetails() {
     const currentSale = this.sale();
-    if (!currentSale || this.destinationForm.invalid) {
+    if (
+      !currentSale ||
+      this.destinationForm.invalid ||
+      this.savingDestination()
+    ) {
       this.destinationForm.markAllAsTouched();
       return;
     }
@@ -305,13 +319,18 @@ export class SaleDetailsComponent implements OnInit {
         this.destinationForm.value.travelDate ?? getSaleTravelDate(currentSale),
     };
 
-    this.salesSvc.update(currentSale.id, dto).subscribe({
-      next: (updated) => {
-        this.applySaleState(updated);
-        this.showDestinationEdit.set(false);
-      },
-      error: (err) => console.error("Error updating sale destination:", err),
-    });
+    this.savingDestination.set(true);
+
+    this.salesSvc
+      .update(currentSale.id, dto)
+      .pipe(finalize(() => this.savingDestination.set(false)))
+      .subscribe({
+        next: (updated) => {
+          this.applySaleState(updated);
+          this.showDestinationEdit.set(false);
+        },
+        error: (err) => console.error("Error updating sale destination:", err),
+      });
   }
 
   openAmountEdit() {
@@ -327,7 +346,7 @@ export class SaleDetailsComponent implements OnInit {
 
   updateSaleAmount() {
     const currentSale = this.sale();
-    if (!currentSale || this.amountForm.invalid) {
+    if (!currentSale || this.amountForm.invalid || this.savingAmount()) {
       this.amountForm.markAllAsTouched();
       return;
     }
@@ -342,13 +361,18 @@ export class SaleDetailsComponent implements OnInit {
           }),
     };
 
-    this.salesSvc.update(currentSale.id, dto).subscribe({
-      next: (updated) => {
-        this.applySaleState(updated);
-        this.showAmountEdit.set(false);
-      },
-      error: (err) => console.error("Error updating sale amount:", err),
-    });
+    this.savingAmount.set(true);
+
+    this.salesSvc
+      .update(currentSale.id, dto)
+      .pipe(finalize(() => this.savingAmount.set(false)))
+      .subscribe({
+        next: (updated) => {
+          this.applySaleState(updated);
+          this.showAmountEdit.set(false);
+        },
+        error: (err) => console.error("Error updating sale amount:", err),
+      });
   }
 
   openAddPayment() {
@@ -364,7 +388,7 @@ export class SaleDetailsComponent implements OnInit {
 
   addPayment() {
     const currentSale = this.sale();
-    if (!currentSale || this.paymentForm.invalid) {
+    if (!currentSale || this.paymentForm.invalid || this.savingPayment()) {
       this.paymentForm.markAllAsTouched();
       return;
     }
@@ -393,13 +417,18 @@ export class SaleDetailsComponent implements OnInit {
         : {}),
     };
 
-    this.salesSvc.addPayment(currentSale.id, dto).subscribe({
-      next: () => {
-        this.loadPayments(currentSale.id);
-        this.showAddPayment.set(false);
-      },
-      error: (err) => console.error("Error adding payment:", err),
-    });
+    this.savingPayment.set(true);
+
+    this.salesSvc
+      .addPayment(currentSale.id, dto)
+      .pipe(finalize(() => this.savingPayment.set(false)))
+      .subscribe({
+        next: () => {
+          this.loadPayments(currentSale.id);
+          this.showAddPayment.set(false);
+        },
+        error: (err) => console.error("Error adding payment:", err),
+      });
   }
 
   openDeletePaymentDialog(paymentId: string) {
@@ -507,7 +536,7 @@ export class SaleDetailsComponent implements OnInit {
 
   saveBooking() {
     const currentSale = this.sale();
-    if (!currentSale) return;
+    if (!currentSale || this.savingBooking()) return;
 
     const supplierId = this.bookingForm.value.supplierId ?? "";
     if (!supplierId) {
@@ -527,6 +556,8 @@ export class SaleDetailsComponent implements OnInit {
       this.bookingForm.markAllAsTouched();
       return;
     }
+
+    this.savingBooking.set(true);
 
     this.resolveSupplierId().subscribe({
       next: (supplierId) => {
@@ -566,15 +597,20 @@ export class SaleDetailsComponent implements OnInit {
           ? this.bookingsSvc.update(bookingId, dto)
           : this.bookingsSvc.create(dto);
 
-        request$.subscribe({
-          next: () => {
-            this.showAddBooking.set(false);
-            this.editingBookingId.set(null);
-          },
-          error: (err) => console.error("Error saving booking:", err),
-        });
+        request$
+          .pipe(finalize(() => this.savingBooking.set(false)))
+          .subscribe({
+            next: () => {
+              this.showAddBooking.set(false);
+              this.editingBookingId.set(null);
+            },
+            error: (err) => console.error("Error saving booking:", err),
+          });
       },
-      error: (err) => console.error("Error resolving supplier:", err),
+      error: (err) => {
+        this.savingBooking.set(false);
+        console.error("Error resolving supplier:", err);
+      },
     });
   }
 
