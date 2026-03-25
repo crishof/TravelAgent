@@ -1,4 +1,4 @@
-import { CommonModule } from "@angular/common";
+import { CommonModule, Location } from "@angular/common";
 import { Component, computed, inject, OnInit, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
@@ -50,6 +50,7 @@ export class SaleDetailsComponent implements OnInit {
   private readonly pendingSupplierId = "__pending_new_supplier__";
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly fb = inject(FormBuilder);
 
   readonly salesSvc = inject(SalesService);
@@ -211,6 +212,11 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   goBack() {
+    if (globalThis.history.length > 1) {
+      this.location.back();
+      return;
+    }
+
     this.router.navigate(["/app/sales"]);
   }
 
@@ -218,7 +224,7 @@ export class SaleDetailsComponent implements OnInit {
     const currentSale = this.sale();
     if (!currentSale || this.saleForm.invalid) return;
 
-    const formCurrency = (this.saleForm.value.currency ?? getSaleCurrency(currentSale)) as Currency;
+    const formCurrency = this.saleForm.value.currency ?? getSaleCurrency(currentSale);
 
     const dto: Partial<SaleRequest> = {
       destination: this.saleForm.value.destination ?? currentSale.destination,
@@ -338,7 +344,7 @@ export class SaleDetailsComponent implements OnInit {
     this.bookingForm.patchValue({
       supplierId: booking.supplierId ?? "",
       provider: getBookingProvider(booking),
-      providerCurrency: (supplier?.currency ?? getBookingCurrency(booking)) as Currency,
+      providerCurrency: supplier?.currency ?? getBookingCurrency(booking),
       description: getBookingDescription(booking),
       reservationCode: getBookingReservationCode(booking),
       dateIn: getBookingDateIn(booking),
