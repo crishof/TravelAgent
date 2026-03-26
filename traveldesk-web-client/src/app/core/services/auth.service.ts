@@ -73,6 +73,10 @@ export class AuthService {
     return this.http.post<MessageResponse>(`${this.api}/auth/reset-password`, dto);
   }
 
+  resendVerification(email: string) {
+    return this.http.post<MessageResponse>(`${this.api}/auth/resend-verification`, { email });
+  }
+
   getInviteInfo(token: string) {
     return this.http.get<{ email: string; agencyName: string }>(
       `${this.api}/auth/invite-info/${token}`,
