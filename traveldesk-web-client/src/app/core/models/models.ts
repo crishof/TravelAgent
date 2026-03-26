@@ -172,9 +172,15 @@ export type CreateClientDto = CustomerRequest;
 // ─── Supplier ─────────────────────────────────────────────────────────────────
 export type ServiceType =
   | "AIRLINE"
-  | "HOTEL"
-  | "TRANSPORT"
+  | "AIR_CONSOLIDATOR"
+  | "BED_BANK"
   | "TOUR_OPERATOR"
+  | "TRANSFER"
+  | "CRUISE"
+  | "FERRY"
+  | "TRAIN"
+  | "TICKET_PROVIDER"
+  | "LOCAL_TOUR_OPERATOR"
   | "INSURANCE"
   | "OTHER";
 
