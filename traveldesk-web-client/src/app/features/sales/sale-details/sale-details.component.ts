@@ -67,6 +67,7 @@ export class SaleDetailsComponent implements OnInit {
   readonly showAmountEdit = signal(false);
   readonly showAddBooking = signal(false);
   readonly showAddPayment = signal(false);
+  readonly showCancelBlockedDialog = signal(false);
   readonly showDeleteSaleDialog = signal(false);
   readonly showDeleteBookingDialog = signal(false);
   readonly showDeletePaymentDialog = signal(false);
@@ -659,7 +660,7 @@ export class SaleDetailsComponent implements OnInit {
     if (!currentSale || currentSale.status === "CANCELLED") return;
 
     if (this.hasAssignedPaymentsOrBookings()) {
-      alert("Debes eliminar los pagos y reservas antes de cancelar la venta.");
+      this.showCancelBlockedDialog.set(true);
       return;
     }
 
@@ -667,6 +668,10 @@ export class SaleDetailsComponent implements OnInit {
       next: (updated) => this.applySaleState(updated),
       error: (err) => console.error("Error cancelling sale:", err),
     });
+  }
+
+  closeCancelBlockedDialog() {
+    this.showCancelBlockedDialog.set(false);
   }
 
   openDeleteSaleDialog() {
