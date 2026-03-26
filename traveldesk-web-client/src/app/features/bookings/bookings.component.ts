@@ -29,6 +29,7 @@ import {
   getBookingReservationCode,
 } from "../../core/models/domain-helpers";
 import { finalize, map, Observable, of } from "rxjs";
+import { ClearZeroOnFocusDirective } from "../../shared/directives/clear-zero-on-focus.directive";
 
 interface SupplierOption {
   id: string;
@@ -38,7 +39,7 @@ interface SupplierOption {
 @Component({
   selector: "app-bookings",
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ClearZeroOnFocusDirective],
   templateUrl: "./bookings.component.html",
 })
 export class BookingsComponent implements OnInit {
@@ -68,7 +69,7 @@ export class BookingsComponent implements OnInit {
     reservationCode: ["", Validators.required],
     dateIn: ["", Validators.required],
     dateOut: [""],
-    amount: [0, [Validators.required, Validators.min(0.01)]],
+    amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     currency: ["USD" as Currency, Validators.required],
     customExchangeRate: [null as number | null],
     paymentDate: [""],

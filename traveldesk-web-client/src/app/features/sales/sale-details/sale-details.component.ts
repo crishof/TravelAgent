@@ -32,6 +32,7 @@ import { BookingsService } from "../../../core/services/bookings.service";
 import { ExchangeRateService } from "../../../core/services/exchange-rate.service";
 import { SalesService } from "../../../core/services/sales.service";
 import { SuppliersService } from "../../../core/services/suppliers.service";
+import { ClearZeroOnFocusDirective } from "../../../shared/directives/clear-zero-on-focus.directive";
 
 type PaymentItem = PaymentReceivedResponse;
 
@@ -44,7 +45,7 @@ interface SupplierOption {
 @Component({
   selector: "app-sale-details",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ClearZeroOnFocusDirective],
   templateUrl: "./sale-details.component.html",
 })
 export class SaleDetailsComponent implements OnInit {
@@ -99,7 +100,7 @@ export class SaleDetailsComponent implements OnInit {
   });
 
   readonly amountForm = this.fb.group({
-    amount: [0, [Validators.required, Validators.min(0.01)]],
+    amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     currency: ["USD" as Currency, Validators.required],
   });
 
@@ -119,7 +120,7 @@ export class SaleDetailsComponent implements OnInit {
     reservationCode: ["", Validators.required],
     dateIn: ["", Validators.required],
     dateOut: [""],
-    amount: [0, [Validators.required, Validators.min(0.01)]],
+    amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     currency: ["USD" as Currency, Validators.required],
     customExchangeRate: [null as number | null],
     paymentDate: [""],
@@ -483,7 +484,7 @@ export class SaleDetailsComponent implements OnInit {
       reservationCode: "",
       dateIn: getSaleTravelDate(this.sale() ?? {}),
       dateOut: "",
-      amount: 0,
+      amount: null,
       currency: this.currency(),
       customExchangeRate: null,
       paymentDate: this.todayIso(),

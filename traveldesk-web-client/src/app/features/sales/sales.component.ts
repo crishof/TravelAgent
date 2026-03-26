@@ -13,6 +13,7 @@ import { ClientsService } from "../../core/services/clients.service";
 import { TeamService } from "../../core/services/team.service";
 import { AuthService } from "../../core/services/auth.service";
 import { SaleRequest } from "../../core/models";
+import { ClearZeroOnFocusDirective } from "../../shared/directives/clear-zero-on-focus.directive";
 import {
   getSaleClientName,
   getSaleTotalAmount,
@@ -27,7 +28,7 @@ interface CustomerOption {
 @Component({
   selector: "app-sales",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, ClearZeroOnFocusDirective],
   templateUrl: "./sales.component.html",
 })
 export class SalesComponent implements OnInit {
@@ -55,7 +56,7 @@ export class SalesComponent implements OnInit {
     destination: ["", Validators.required],
     travelDate: ["", Validators.required],
     description: [""],
-    amount: [0, [Validators.required, Validators.min(0.01)]],
+    amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     currency: ["USD", Validators.required],
   });
 
@@ -137,7 +138,7 @@ export class SalesComponent implements OnInit {
             destination: "",
             travelDate: "",
             description: "",
-            amount: 0,
+            amount: null,
             currency: "USD",
           });
           this.customerSearch.set("");

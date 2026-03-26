@@ -8,11 +8,12 @@ import {
   Currency,
 } from "../../../core/models";
 import { AccountService } from "../../../core/services/account.service";
+import { ClearZeroOnFocusDirective } from "../../../shared/directives/clear-zero-on-focus.directive";
 
 @Component({
   selector: "app-account-statement",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ClearZeroOnFocusDirective],
   templateUrl: "./account-statement.component.html",
 })
 export class AccountStatementComponent implements OnInit {
