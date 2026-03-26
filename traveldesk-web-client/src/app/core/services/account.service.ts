@@ -63,4 +63,17 @@ export class AccountService {
       dto,
     );
   }
+
+  updateAccountPayment(paymentId: string, dto: AccountPaymentRequest) {
+    return this.http.put<AccountStatementResponse>(
+      `${environment.apiUrl}/account-statement/me/payments/${paymentId}`,
+      dto,
+    );
+  }
+
+  deleteAccountPayment(paymentId: string) {
+    return this.http.delete<AccountStatementResponse>(
+      `${environment.apiUrl}/account-statement/me/payments/${paymentId}`,
+    );
+  }
 }
