@@ -29,6 +29,7 @@ import {
   getBookingReservationCode,
 } from "../../core/models/domain-helpers";
 import { finalize, map, Observable, of } from "rxjs";
+import { ClearZeroOnFocusDirective } from "../../shared/directives/clear-zero-on-focus.directive";
 
 interface SupplierOption {
   id: string;
@@ -38,7 +39,7 @@ interface SupplierOption {
 @Component({
   selector: "app-bookings",
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ClearZeroOnFocusDirective],
   templateUrl: "./bookings.component.html",
 })
 export class BookingsComponent implements OnInit {
@@ -55,6 +56,8 @@ export class BookingsComponent implements OnInit {
   readonly showBookingEdit = signal(false);
   readonly editingBookingId = signal<string | null>(null);
   readonly savingBooking = signal(false);
+  readonly bookingError = signal("");
+  readonly pageError = signal("");
   readonly registerPayment = signal(false);
   readonly supplierSearch = signal("");
   readonly pendingNewSupplierName = signal("");
@@ -68,7 +71,7 @@ export class BookingsComponent implements OnInit {
     reservationCode: ["", Validators.required],
     dateIn: ["", Validators.required],
     dateOut: [""],
-    amount: [0, [Validators.required, Validators.min(0.01)]],
+    amount: [null as number | null, [Validators.required, Validators.min(0.01)]],
     currency: ["USD" as Currency, Validators.required],
     customExchangeRate: [null as number | null],
     paymentDate: [""],
@@ -169,6 +172,7 @@ export class BookingsComponent implements OnInit {
   }
 
   openBookingDetails(booking: BookingResponse) {
+    this.bookingError.set("");
     this.editingBookingId.set(booking.id);
     this.registerPayment.set(booking.status === "PAID");
     this.showBookingEdit.set(true);
@@ -213,6 +217,7 @@ export class BookingsComponent implements OnInit {
   }
 
   closeBookingModal() {
+    this.bookingError.set("");
     this.showBookingEdit.set(false);
     this.editingBookingId.set(null);
   }
@@ -220,27 +225,30 @@ export class BookingsComponent implements OnInit {
   goToRelatedSale(booking: BookingResponse) {
     const saleId = this.findRelatedSaleId(booking);
     if (!saleId) {
-      alert("No se encontró una venta relacionada para esta reserva");
+      this.pageError.set("No se encontró una venta relacionada para esta reserva");
       return;
     }
+
+    this.pageError.set("");
 
     this.router.navigate(["/app/sales", saleId]);
   }
 
   saveBooking() {
+    this.bookingError.set("");
     const currentBooking = this.editingBooking();
     if (!currentBooking || this.savingBooking()) return;
 
     const supplierId = this.bookingForm.value.supplierId ?? "";
     if (!supplierId) {
-      alert("Debe seleccionar un proveedor");
+      this.bookingError.set("Debe seleccionar un proveedor");
       return;
     }
 
     if (this.isNewSupplierSelected()) {
       const supplierName = this.pendingNewSupplierName().trim();
       if (!supplierName) {
-        alert("Debe ingresar el nombre del proveedor nuevo");
+        this.bookingError.set("Debe ingresar el nombre del proveedor nuevo");
         return;
       }
     }
@@ -291,14 +299,67 @@ export class BookingsComponent implements OnInit {
           .pipe(finalize(() => this.savingBooking.set(false)))
           .subscribe({
             next: () => this.closeBookingModal(),
-            error: (err) => console.error("Error saving booking:", err),
+            error: (err) => {
+              this.bookingError.set(
+                this.extractBackendMessage(
+                  err,
+                  "No se pudo guardar el booking. Verifica los datos e intenta nuevamente.",
+                ),
+              );
+              console.error("Error saving booking:", err);
+            },
           });
       },
       error: (err) => {
         this.savingBooking.set(false);
+        this.bookingError.set(
+          this.extractBackendMessage(
+            err,
+            "No se pudo validar el proveedor para guardar el booking.",
+          ),
+        );
         console.error("Error resolving supplier:", err);
       },
     });
+  }
+
+  private extractBackendMessage(error: unknown, fallbackMessage: string): string {
+    if (!error || typeof error !== "object") return fallbackMessage;
+
+    const response = error as {
+      error?: { message?: string } | string;
+      message?: string;
+    };
+
+    if (typeof response.error === "string" && response.error.trim()) {
+      return this.normalizeBookingReferenceConflict(response.error);
+    }
+
+    if (
+      response.error &&
+      typeof response.error === "object" &&
+      typeof response.error.message === "string" &&
+      response.error.message.trim()
+    ) {
+      return this.normalizeBookingReferenceConflict(response.error.message);
+    }
+
+    if (typeof response.message === "string" && response.message.trim()) {
+      return this.normalizeBookingReferenceConflict(response.message);
+    }
+
+    return fallbackMessage;
+  }
+
+  private normalizeBookingReferenceConflict(message: string): string {
+    const conflictPattern = /Booking reference\s+(.+?)\s+is already in use/i;
+    const match = conflictPattern.exec(message);
+    if (!match) return message;
+
+    const bookingReference = match[1]?.trim();
+    if (!bookingReference) return "Ya existe una reserva con codigo de referencia";
+
+    return `Ya existe una reserva con codigo de referencia ${bookingReference}`;
   }
 
   onSupplierSelectionChange() {

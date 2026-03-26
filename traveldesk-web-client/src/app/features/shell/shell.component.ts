@@ -1,4 +1,10 @@
-import { Component, inject, signal, computed } from "@angular/core";
+import {
+  Component,
+  HostListener,
+  computed,
+  inject,
+  signal,
+} from "@angular/core";
 import { RouterOutlet, RouterLink, RouterLinkActive } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import { AuthService } from "../../core/services/auth.service";
@@ -42,6 +48,7 @@ export class ShellComponent {
   });
 
   sidebarOpen = signal(true);
+  isMobile = signal(false);
 
   private readonly navItems: NavItem[] = [
     {
@@ -108,8 +115,27 @@ export class ShellComponent {
     this.navItems.filter((item) => !item.adminOnly || this.auth.isAdmin()),
   );
 
+  constructor() {
+    this.updateViewport();
+  }
+
+  @HostListener("window:resize")
+  onResize() {
+    this.updateViewport();
+  }
+
   toggleSidebar() {
+    if (this.isMobile()) {
+      this.sidebarOpen.update((v) => !v);
+      return;
+    }
     this.sidebarOpen.update((v) => !v);
+  }
+
+  closeSidebarOnMobile() {
+    if (this.isMobile()) {
+      this.sidebarOpen.set(false);
+    }
   }
 
   logout() {
@@ -128,5 +154,16 @@ export class ShellComponent {
         .map((d) => `<path d="M${d}"/>`)
         .join("")}
     </svg>`;
+  }
+
+  private updateViewport() {
+    const mobile = window.innerWidth < 768;
+    this.isMobile.set(mobile);
+    if (!mobile && !this.sidebarOpen()) {
+      this.sidebarOpen.set(true);
+    }
+    if (mobile && this.sidebarOpen()) {
+      this.sidebarOpen.set(false);
+    }
   }
 }

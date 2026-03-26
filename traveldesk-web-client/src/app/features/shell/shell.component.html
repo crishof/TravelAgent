@@ -1,10 +1,25 @@
 <div
   class="flex h-screen overflow-hidden bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
 >
+  @if (isMobile() && sidebarOpen()) {
+    <button
+      type="button"
+      aria-label="Cerrar menú"
+      class="fixed inset-0 z-40 bg-black/50"
+      (click)="closeSidebarOnMobile()"
+    ></button>
+  }
+
   <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
   <aside
     class="flex-shrink-0 flex flex-col transition-all duration-300 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 shadow-sm"
-    [style.width]="sidebarOpen() ? '232px' : '64px'"
+    [class]="
+      isMobile()
+        ? 'fixed inset-y-0 left-0 z-50 w-[232px] transform'
+        : 'relative'
+    "
+    [style.width]="isMobile() ? '232px' : sidebarOpen() ? '232px' : '64px'"
+    [style.transform]="isMobile() ? (sidebarOpen() ? 'translateX(0)' : 'translateX(-100%)') : 'none'"
   >
     <!-- Logo -->
     <div
@@ -44,6 +59,7 @@
       @for (item of visibleNav(); track item.path) {
         <a
           [routerLink]="['/app', item.path]"
+          (click)="closeSidebarOnMobile()"
           routerLinkActive="bg-gradient-to-r from-cyan-500/20 to-teal-500/10 text-cyan-400 border border-cyan-500/20"
           [routerLinkActiveOptions]="{ exact: false }"
           [title]="!sidebarOpen() ? item.label : ''"
@@ -121,7 +137,7 @@
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
     <!-- Topbar -->
     <header
-      class="flex items-center justify-between px-6 h-16 flex-shrink-0 border-b bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-sm"
+      class="flex items-center justify-between px-3 md:px-6 h-16 flex-shrink-0 border-b bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-sm"
     >
       <button
         (click)="toggleSidebar()"
@@ -142,12 +158,14 @@
         </svg>
       </button>
 
-      <div class="flex items-center gap-3">
-        <app-exchange-rate-banner></app-exchange-rate-banner>
+      <div class="flex items-center gap-2 md:gap-3 min-w-0">
+        <div class="max-w-[56vw] md:max-w-none overflow-visible">
+          <app-exchange-rate-banner></app-exchange-rate-banner>
+        </div>
 
         <div class="w-px h-5 bg-slate-200 dark:bg-slate-700"></div>
 
-        <span class="text-xs text-slate-500 dark:text-slate-500">{{
+        <span class="text-[11px] md:text-xs text-slate-500 dark:text-slate-500">{{
           theme.isDark() ? "Dark" : "Light"
         }}</span>
         <button
@@ -196,7 +214,7 @@
     </header>
 
     <!-- Page content -->
-    <main class="flex-1 overflow-y-auto p-6 animate-fade-in">
+    <main class="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 animate-fade-in">
       <router-outlet />
     </main>
   </div>

@@ -2,8 +2,13 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard, adminGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  // Default redirect
-  { path: '', redirectTo: 'app/dashboard', pathMatch: 'full' },
+  // Landing pública
+  {
+    path: '',
+    loadComponent: () =>
+      import('./features/landing/landing.component').then(m => m.LandingComponent),
+    title: 'TravelDesk — Gestión para agencias'
+  },
 
   // Public invite route used by email links
   {
@@ -142,5 +147,5 @@ export const routes: Routes = [
   },
 
   // ── Fallback ───────────────────────────────────────────────────────────────
-  { path: '**', redirectTo: 'app/dashboard' }
+  { path: '**', redirectTo: '' }
 ];

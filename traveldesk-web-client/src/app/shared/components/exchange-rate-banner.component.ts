@@ -8,7 +8,23 @@ import { ExchangeRateService } from "../../core/services/exchange-rate.service";
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="relative flex items-center gap-3">
+    <div class="relative">
+      <div class="md:hidden flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-800/80 px-2 py-1">
+        <button
+          type="button"
+          (click)="toggleDirection()"
+          title="Invertir conversión"
+          class="px-1 py-0.5 rounded text-slate-500 hover:text-cyan-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm leading-none"
+        >
+          ⇄
+        </button>
+        <span class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">1 {{ fromCurrency() }}</span>
+        <span class="text-[11px] text-slate-500 dark:text-slate-400">=</span>
+        <span class="text-[11px] font-bold text-slate-900 dark:text-white tabular-nums">{{ pairRateDisplay() }}</span>
+        <span class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">{{ toCurrency() }}</span>
+      </div>
+
+      <div class="hidden md:flex items-center gap-3">
       <div class="flex items-center gap-1.5">
         <input
           type="number"
@@ -59,6 +75,7 @@ import { ExchangeRateService } from "../../core/services/exchange-rate.service";
         >
           {{ showManualInput() ? "Cancelar" : "Tasa manual" }}
         </button>
+      </div>
       </div>
 
       @if (showManualInput()) {
