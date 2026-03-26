@@ -17,7 +17,9 @@ export class VerifyEmailComponent {
   private readonly router = inject(Router);
 
   loading = signal(false);
-  error = signal("");
+    error = signal("");
+    resendLoading = signal(false);
+    resendSuccess = signal("");
 
   form = this.fb.group({
     email: ["", [Validators.required, Validators.email]],
@@ -30,6 +32,26 @@ export class VerifyEmailComponent {
       this.form.patchValue({ email: prefillEmail });
     }
   }
+
+    resendCode() {
+      const email = this.form.value.email?.trim();
+      if (!email || this.resendLoading()) return;
+
+      this.resendLoading.set(true);
+      this.resendSuccess.set("");
+      this.error.set("");
+
+      this.auth.resendVerification(email).subscribe({
+        next: () => {
+          this.resendSuccess.set("Código reenviado. Revisá tu correo.");
+          this.resendLoading.set(false);
+        },
+        error: (e) => {
+          this.error.set(e?.error?.message || "Error al reenviar el código");
+          this.resendLoading.set(false);
+        },
+      });
+    }
 
   submit() {
     if (this.form.invalid || this.loading()) {

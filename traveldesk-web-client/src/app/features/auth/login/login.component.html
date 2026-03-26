@@ -132,9 +132,19 @@
       </div>
 
       @if (error()) {
-        <p class="text-xs text-red-400 bg-red-400/10 px-3 py-2 rounded-lg">
-          {{ error() }}
-        </p>
+        <div class="text-xs bg-red-400/10 px-3 py-2 rounded-lg space-y-2">
+          <p class="text-red-400">{{ error() }}</p>
+          @if (showResend()) {
+            <button
+              type="button"
+              (click)="resendCode()"
+              [disabled]="resendLoading()"
+              class="text-cyan-500 hover:underline font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {{ resendLoading() ? "Enviando..." : "Reenviar código de verificación" }}
+            </button>
+          }
+        </div>
       }
 
       <button
