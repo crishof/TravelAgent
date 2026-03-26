@@ -8,6 +8,11 @@
     <p class="text-sm mt-1 text-slate-500 dark:text-slate-400">
       {{ filteredBookings().length }} reservas
     </p>
+    @if (pageError()) {
+      <p class="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300">
+        {{ pageError() }}
+      </p>
+    }
   </div>
 
   <!-- Filters -->
@@ -301,6 +306,12 @@
               class="form-input form-input-light dark:form-input-dark mt-1"
             />
           </label>
+        }
+
+        @if (bookingError()) {
+          <p class="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300">
+            {{ bookingError() }}
+          </p>
         }
 
         <div class="flex gap-2 pt-2">

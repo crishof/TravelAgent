@@ -77,6 +77,7 @@ export class SaleDetailsComponent implements OnInit {
   readonly savingAmount = signal(false);
   readonly savingPayment = signal(false);
   readonly savingBooking = signal(false);
+  readonly bookingError = signal("");
   readonly deletingSale = signal(false);
   readonly deletingBooking = signal(false);
   readonly deletingPayment = signal(false);
@@ -470,6 +471,7 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   openAddBooking() {
+    this.bookingError.set("");
     this.editingBookingId.set(null);
     this.useCustomProvider.set(false);
     this.registerPayment.set(false);
@@ -494,6 +496,7 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   editBooking(booking: BookingResponse) {
+    this.bookingError.set("");
     this.editingBookingId.set(booking.id);
     this.useCustomProvider.set(
       !booking.supplierId && !!getBookingProvider(booking),
@@ -543,19 +546,20 @@ export class SaleDetailsComponent implements OnInit {
   }
 
   saveBooking() {
+    this.bookingError.set("");
     const currentSale = this.sale();
     if (!currentSale || this.savingBooking()) return;
 
     const supplierId = this.bookingForm.value.supplierId ?? "";
     if (!supplierId) {
-      alert("Debe seleccionar un proveedor");
+      this.bookingError.set("Debe seleccionar un proveedor");
       return;
     }
 
     if (this.isNewSupplierSelected()) {
       const supplierName = this.pendingNewSupplierName().trim();
       if (!supplierName) {
-        alert("Debe ingresar el nombre del proveedor nuevo");
+        this.bookingError.set("Debe ingresar el nombre del proveedor nuevo");
         return;
       }
     }
@@ -613,17 +617,37 @@ export class SaleDetailsComponent implements OnInit {
           .pipe(finalize(() => this.savingBooking.set(false)))
           .subscribe({
             next: () => {
-              this.showAddBooking.set(false);
-              this.editingBookingId.set(null);
+              this.closeAddBookingModal();
             },
-            error: (err) => console.error("Error saving booking:", err),
+            error: (err) => {
+              this.bookingError.set(
+                this.extractBackendMessage(
+                  err,
+                  "No se pudo guardar el booking. Verifica los datos e intenta nuevamente.",
+                ),
+              );
+              console.error("Error saving booking:", err);
+            },
           });
       },
       error: (err) => {
         this.savingBooking.set(false);
+        this.bookingError.set(
+          this.extractBackendMessage(
+            err,
+            "No se pudo validar el proveedor para guardar el booking.",
+          ),
+        );
         console.error("Error resolving supplier:", err);
       },
     });
+  }
+
+  closeAddBookingModal() {
+    if (this.savingBooking()) return;
+    this.bookingError.set("");
+    this.showAddBooking.set(false);
+    this.editingBookingId.set(null);
   }
 
   openDeleteBookingDialog(bookingId: string) {
@@ -1063,6 +1087,45 @@ export class SaleDetailsComponent implements OnInit {
     if (from === to) return 1;
 
     return this.xr.getRateForPair(from, to);
+  }
+
+  private extractBackendMessage(error: unknown, fallbackMessage: string): string {
+    if (!error || typeof error !== "object") return fallbackMessage;
+
+    const response = error as {
+      error?: { message?: string } | string;
+      message?: string;
+    };
+
+    if (typeof response.error === "string" && response.error.trim()) {
+      return this.normalizeBookingReferenceConflict(response.error);
+    }
+
+    if (
+      response.error &&
+      typeof response.error === "object" &&
+      typeof response.error.message === "string" &&
+      response.error.message.trim()
+    ) {
+      return this.normalizeBookingReferenceConflict(response.error.message);
+    }
+
+    if (typeof response.message === "string" && response.message.trim()) {
+      return this.normalizeBookingReferenceConflict(response.message);
+    }
+
+    return fallbackMessage;
+  }
+
+  private normalizeBookingReferenceConflict(message: string): string {
+    const conflictPattern = /Booking reference\s+(.+?)\s+is already in use/i;
+    const match = conflictPattern.exec(message);
+    if (!match) return message;
+
+    const bookingReference = match[1]?.trim();
+    if (!bookingReference) return "Ya existe una reserva con codigo de referencia";
+
+    return `Ya existe una reserva con codigo de referencia ${bookingReference}`;
   }
 
   private todayIso() {
